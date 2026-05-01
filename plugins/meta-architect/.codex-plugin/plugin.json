@@ -1,0 +1,23 @@
+{
+  "name": "meta-architect",
+  "version": "0.1.0",
+  "description": "Skills-first workflow layer for Codex with architecture, evidence, review, and gated build guidance.",
+  "author": {
+    "name": "JustineDevs",
+    "url": "https://github.com/JustineDevs"
+  },
+  "homepage": "https://github.com/JustineDevs/meta-architect",
+  "repository": "https://github.com/JustineDevs/meta-architect.git",
+  "license": "MIT",
+  "keywords": ["codex", "skills", "architecture", "workflow", "review"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "apps": "./.app.json",
+  "interface": {
+    "displayName": "Meta-Architect",
+    "shortDescription": "Architecture-first skill bundle for Codex workflows.",
+    "longDescription": "Plugin = Meta-Architect skill discovery plus plugin-scoped MCP and app metadata. Runtime = the ma launcher plus .ma state, release gates, and scripted helper commands when a repository needs local workflow state.",
+    "developerName": "JustineDevs",
+    "category": "Developer Tools"
+  }
+}

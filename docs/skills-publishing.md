@@ -49,6 +49,18 @@ Expected effect:
 - missing or invalid frontmatter should fail the command
 - missing or structurally incomplete `agents/openai.yaml` should fail the command
 
+### Sync plugin mirror
+
+```bash
+npm run plugin:sync
+npm run plugin:verify
+```
+
+Expected effect:
+- `plugins/meta-architect/skills/` mirrors the canonical `skills/` surface
+- the local marketplace and plugin bundle remain aligned with the package skill contract
+- plugin drift fails verification instead of surviving into release artifacts
+
 ### Create bundle
 
 ```bash
@@ -69,12 +81,12 @@ Expected effect:
 - all publishable skill folders are copied to the target install path
 - install target should contain:
   - `meta-architect`
-  - `meta-architect-arch`
-  - `meta-architect-sage`
-  - `meta-architect-flow`
-  - `meta-architect-vet`
-  - `meta-architect-vibe`
-  - `meta-architect-build`
+  - `arch`
+  - `sage`
+  - `flow`
+  - `vet`
+  - `vibe`
+  - `build`
 
 ## Expected outputs
 
@@ -107,7 +119,7 @@ Important:
 The npm package and tarball should stay explicit.
 
 Current package intent:
-- package name: `meta-architect`
+- package name: `@jstn-sdk/meta-architect`
 - public publish config
 - explicit `files` list in `package.json`
 
@@ -141,18 +153,23 @@ Relationship:
 - `skills/` is the canonical publishable skill source
 - `plugins/meta-architect/` is the plugin-installable consumer-facing bundle
 - both should remain aligned in behavior and version intent
+- `.agents/plugins/marketplace.json` advertises the local plugin source for discovery
+- `plugins/meta-architect/.codex-plugin/plugin.json` is the plugin contract entrypoint
 
 If a skill contract changes:
 1. update `skills/`
-2. validate skills
-3. regenerate manifest
-4. ensure plugin-facing bundle still reflects the same product contract
+2. regenerate manifest
+3. sync the plugin mirror
+4. validate skills
+5. ensure plugin-facing bundle still reflects the same product contract
 
 ## Real commands for a release-minded flow
 
 ```bash
 npm run skills:manifest
+npm run plugin:sync
 npm run skills:validate
+npm run plugin:verify
 npm run skills:pack
 npm run skills:install -- --path ./dist/installed-skills
 npm run pack:inspect
@@ -185,8 +202,11 @@ Before a release is considered real:
 - [README.md](../README.md)
 - [docs/skills.md](./skills.md)
 - [plugins/meta-architect/README.md](../plugins/meta-architect/README.md)
+- [plugins/meta-architect/.codex-plugin/plugin.json](../plugins/meta-architect/.codex-plugin/plugin.json)
+- [../.agents/plugins/marketplace.json](../.agents/plugins/marketplace.json)
 - [package.json](../package.json)
 - [scripts/skills-manifest.js](../scripts/skills-manifest.js)
+- [scripts/plugin-sync.js](../scripts/plugin-sync.js)
 - [scripts/skills-validate.js](../scripts/skills-validate.js)
 - [scripts/skills-pack.js](../scripts/skills-pack.js)
 - [scripts/skills-install.js](../scripts/skills-install.js)

@@ -4,7 +4,15 @@ Meta-Architect is a skills-first orchestration layer with a strict kernel.
 
 ## What is implemented
 
-The CLI currently supports:
+The primary runtime surface is `ma --madmax --high` plus:
+- `$arch`
+- `$sage`
+- `$flow`
+- `$vet`
+- `$vibe`
+- `$build`
+
+Repo-local helper commands remain available through:
 - `ma init`
 - `ma idea`
 - `ma skills`
@@ -24,7 +32,7 @@ The CLI currently supports:
 2. Read `docs/getting-started.md`
 3. Read `docs/release-spec.md`
 4. Read `docs/skills.md`
-5. Use `ma status` before assuming the workflow is ready
+5. Start with `ma --madmax --high` and use `$arch` before assuming the workflow is ready
 
 ## What not to do
 

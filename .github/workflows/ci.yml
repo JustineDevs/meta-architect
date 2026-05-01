@@ -27,8 +27,14 @@ jobs:
       - name: Generate skills manifest
         run: npm run skills:manifest
 
+      - name: Sync plugin mirror
+        run: npm run plugin:sync
+
       - name: Validate skills
         run: npm run skills:validate
+
+      - name: Verify plugin mirror
+        run: npm run plugin:verify
 
       - name: Pack skills bundle
         run: npm run skills:pack
@@ -50,4 +56,6 @@ jobs:
           path: |
             dist/*.tgz
             skills/index.json
+            plugins/meta-architect/.codex-plugin/plugin.json
+            .agents/plugins/marketplace.json
           if-no-files-found: ignore

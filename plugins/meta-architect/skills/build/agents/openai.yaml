@@ -1,0 +1,4 @@
+interface:
+  display_name: "MA Build"
+  short_description: "Gated build planning and branch/worktree prep"
+  default_prompt: "Use $build to decide whether implementation is ready, what remains blocked, and what the next build slice should be."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MA Flow"
+  short_description: "Business logic and state validation for MA"
+  default_prompt: "Use $flow to map business logic, state transitions, invariants, and blockers in the current design."

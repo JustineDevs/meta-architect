@@ -1,0 +1,4 @@
+interface:
+  display_name: "MA Sage"
+  short_description: "GitMCP-backed OSS evidence selection"
+  default_prompt: "Use $sage to validate stack choices with official docs, upstream repos, and approved GitMCP-backed sources."

@@ -11,7 +11,7 @@ Meta-Architect `v0.1.0` is production only when:
 
 ### 1. Canonical package/runtime path
 
-- install: `npm i -g @openai/codex@latest meta-architect@latest`
+- install: `npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest`
 - launch: `ma --madmax --high`
 - runtime trigger surface:
   - `$arch`

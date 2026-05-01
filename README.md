@@ -2,7 +2,7 @@
   <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="1024" height="240">
   <p>Production-grade skills package and CLI for programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking.</p>
   <p>
-    <img src="https://img.shields.io/npm/v/meta-architect" alt="npm version">
+    <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fmeta-architect" alt="npm version">
     <img src="https://img.shields.io/badge/node-%3E%3D20-339933" alt="Node.js 20+">
     <img src="https://img.shields.io/github/v/release/JustineDevs/meta-architect" alt="GitHub release">
     <img src="https://img.shields.io/badge/license-MIT-16A34A" alt="MIT License">
@@ -32,7 +32,7 @@ It adds:
 <table>
   <tr>
     <td><strong>npm package</strong></td>
-    <td><code>meta-architect</code></td>
+    <td><code>@jstn-sdk/meta-architect</code></td>
   </tr>
   <tr>
     <td><strong>CLI commands</strong></td>
@@ -71,7 +71,7 @@ Meta-Architect is intended to be consumed as an installed package, not primarily
 Default operator path:
 
 ```bash
-npm i -g @openai/codex@latest meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
 ma --madmax --high
 ```
 
@@ -79,7 +79,8 @@ What this assumes:
 
 - Codex CLI is installed globally
 - Meta-Architect is installed globally as a package
-- you want the Codex-hosted Meta-Architect runtime posture immediately
+- Meta-Architect installs its published skill surface into the active Codex home
+- `ma` launches Codex with the Meta-Architect workflow posture already attached
 - you will operate through the skill-driven workflow inside the Codex session
 
 > [!IMPORTANT]
@@ -108,16 +109,16 @@ Meta-Architect’s repository workflow follows a stricter release posture focuse
 Install the consumer package directly:
 
 ```bash
-npm i -g @openai/codex@latest meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
 ma --madmax --high
 ```
 
 This gives you:
 
-- `codex`
 - `ma`
 - `meta-architect`
-- the canonical Meta-Architect runtime entrypoints and launch posture
+- the installed Meta-Architect skill surface
+- the canonical Meta-Architect runtime entrypoints inside a Codex session
 
 ### Contributor setup: source checkout
 

@@ -1,6 +1,6 @@
 # Skills
 
-Meta-Architect’s canonical runtime surface is:
+Meta-Architect’s canonical Codex runtime surface is:
 - `$arch`
 - `$sage`
 - `$flow`
@@ -10,12 +10,16 @@ Meta-Architect’s canonical runtime surface is:
 
 ## Real usage path
 
-The intended operator flow is documented in [example/usage-workflow.md](../example/usage-workflow.md).
+Install the package once, launch through `ma`, and use the skills directly in-session.
 
-Use it like this:
-1. Launch `ma --madmax --high`
-2. Start with the structured `$arch` prompt
-3. Continue through `$sage -> $flow -> $vet -> $vibe -> $build`
+```bash
+npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+ma --madmax --high
+```
+
+Then inside the Codex session:
+1. Start with the structured `$arch` prompt
+2. Continue through `$sage -> $flow -> $vet -> $vibe -> $build`
 
 ## Shared output contract
 
@@ -28,7 +32,7 @@ Every skill result must include:
 
 ## Status ownership
 
-- `ma idea` -> `idea_status`
+- project brief -> architecture input
 - `$arch` -> `architecture_status`
 - `$sage` -> `evidence_status`
 - `$flow` -> `logic_status`
@@ -38,4 +42,4 @@ Every skill result must include:
 
 ## Operator note
 
-The runtime trigger surface is primary. The `ma setup`, `ma idea`, `ma run ...`, and `ma status` commands are helper paths for repository setup and scripted execution, not the main user journey.
+The runtime trigger surface is primary. The `ma` helper commands exist to launch Codex with Meta-Architect attached and to provide repo-local state automation when scripted verification is needed.

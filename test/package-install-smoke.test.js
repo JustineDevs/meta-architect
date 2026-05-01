@@ -28,8 +28,9 @@ test("packed package installs and supports the documented runtime/helper flow", 
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-packaged-"));
   const installRoot = path.join(tempRoot, "global");
   const workRoot = path.join(tempRoot, "project");
+  const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "meta-architect-0.1.0.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-meta-architect-0.1.0.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });
@@ -59,17 +60,28 @@ test("packed package installs and supports the documented runtime/helper flow", 
       "install",
       "--prefix",
       installRoot,
-      "--ignore-scripts",
       "--cache",
       path.join(tempRoot, ".npm-install-cache"),
       tarballPath,
     ],
     {
       cwd: tempRoot,
+      env: {
+        ...process.env,
+        CODEX_HOME: codexHome,
+      },
       encoding: "utf8",
     },
   );
   assert.equal(installResult.status, 0, installResult.stderr || installResult.stdout);
+
+  await fs.access(path.join(codexHome, "skills", "meta-architect", "SKILL.md"));
+  await fs.access(path.join(codexHome, "skills", "arch", "SKILL.md"));
+  await fs.access(path.join(codexHome, "skills", "sage", "SKILL.md"));
+  await fs.access(path.join(codexHome, "skills", "flow", "SKILL.md"));
+  await fs.access(path.join(codexHome, "skills", "vet", "SKILL.md"));
+  await fs.access(path.join(codexHome, "skills", "vibe", "SKILL.md"));
+  await fs.access(path.join(codexHome, "skills", "build", "SKILL.md"));
 
   const maBin = path.join(
     installRoot,

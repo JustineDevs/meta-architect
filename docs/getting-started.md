@@ -25,11 +25,11 @@ By the end of this guide you should be able to:
 Canonical public install:
 
 ```bash
-npm i -g @openai/codex@latest meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
 ma --madmax --high
 ```
 
-That is the default operator posture. The rest of this guide should match the real workflow shape in [example/usage-workflow.md](../example/usage-workflow.md).
+That is the default operator posture. `ma` is the Meta-Architect launcher for a Codex session, and the rest of this guide should match the in-session workflow shape in [example/usage-workflow.md](../example/usage-workflow.md).
 
 ## 2. Real usage workflow
 

@@ -10,7 +10,13 @@ const checks = [
   [".ma/decisions.json", fs.existsSync(".ma/decisions.json")],
   [".ma/release.json", fs.existsSync(".ma/release.json")],
   ["docs/release-spec.md", fs.existsSync("docs/release-spec.md")],
+  [".agents/plugins/marketplace.json", fs.existsSync(".agents/plugins/marketplace.json")],
   ["plugins/meta-architect/.app.json", fs.existsSync("plugins/meta-architect/.app.json")],
+  [
+    "plugins/meta-architect/.codex-plugin/plugin.json",
+    fs.existsSync("plugins/meta-architect/.codex-plugin/plugin.json"),
+  ],
+  ["plugins/meta-architect/.mcp.json", fs.existsSync("plugins/meta-architect/.mcp.json")],
   [
     "missions/collaborative-whiteboard/mission.md",
     fs.existsSync("missions/collaborative-whiteboard/mission.md"),

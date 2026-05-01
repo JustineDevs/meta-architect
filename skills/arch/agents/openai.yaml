@@ -1,0 +1,4 @@
+interface:
+  display_name: "MA Architect"
+  short_description: "Architecture and stack design for MA flows"
+  default_prompt: "Use $arch to produce architecture, stack rationale, subsystem boundaries, tradeoffs, and a phased delivery plan."

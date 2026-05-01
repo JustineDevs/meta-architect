@@ -5,6 +5,7 @@ This plugin bundle packages the Meta-Architect skill surfaces for consumers that
 ## What the plugin contains
 
 - plugin metadata:
+  - `.codex-plugin/plugin.json`
   - `.app.json`
   - `.mcp.json`
 - bundled Meta-Architect skill surfaces under `skills/`
@@ -43,6 +44,15 @@ Use the core repo when you want to develop Meta-Architect itself. Use the plugin
 
 The plugin-facing bundle should be consumed alongside the repository’s documented packaging/install flow.
 
+Canonical package/runtime path:
+
+```bash
+npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+ma --madmax --high
+```
+
+Use the plugin bundle when you need installable skill metadata or local marketplace discovery. Use the package and launcher when you want the full Meta-Architect runtime posture.
+
 Primary related surfaces:
 - [docs/skills-publishing.md](../../docs/skills-publishing.md)
 - [skills/](../../skills/)
@@ -51,7 +61,9 @@ If you are working from the repository directly, validate and package with:
 
 ```bash
 npm run skills:manifest
+npm run plugin:sync
 npm run skills:validate
+npm run plugin:verify
 npm run skills:pack
 npm run skills:install -- --path ./dist/installed-skills
 ```
@@ -96,4 +108,5 @@ The plugin is one distribution surface of the same product, not a separate produ
 - [docs/skills-publishing.md](../../docs/skills-publishing.md)
 - [docs/mcp-setup.md](../../docs/mcp-setup.md)
 - [.app.json](./.app.json)
+- [.codex-plugin/plugin.json](./.codex-plugin/plugin.json)
 - [.mcp.json](./.mcp.json)

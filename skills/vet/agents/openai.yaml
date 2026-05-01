@@ -1,0 +1,4 @@
+interface:
+  display_name: "MA Vet"
+  short_description: "Security, CVE, and risk review for MA"
+  default_prompt: "Use $vet to review trust boundaries, security risks, abuse cases, and safer alternatives in the current design."

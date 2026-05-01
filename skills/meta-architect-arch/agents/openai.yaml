@@ -1,4 +1,0 @@
-interface:
-  display_name: "MA Architect"
-  short_description: "Architecture and stack design for MA flows"
-  default_prompt: "Use $meta-architect-arch to produce architecture and stack rationale for a Meta-Architect-managed project."

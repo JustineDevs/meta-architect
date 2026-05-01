@@ -1,0 +1,4 @@
+interface:
+  display_name: "MA Vibe"
+  short_description: "DX and UX review before Meta-Architect build"
+  default_prompt: "Use $vibe to review developer and user experience risks before the build lane proceeds."

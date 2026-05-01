@@ -3,7 +3,7 @@
 ## Summary
 
 This release ships Meta-Architect as a Codex-native runtime layer with:
-- canonical install `npm i -g @openai/codex@latest meta-architect@latest`
+- canonical install `npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest`
 - canonical launch `ma --madmax --high`
 - a usage-workflow-driven runtime path starting with the structured `$arch` prompt
 - helper commands for setup, scripted validation, and branch/release gating
@@ -18,7 +18,7 @@ This release ships Meta-Architect as a Codex-native runtime layer with:
 ## Operational bar
 
 This release is only considered real if:
-- `meta-architect@latest` installs cleanly
+- `@jstn-sdk/meta-architect@latest` installs cleanly
 - `ma --madmax --high` delegates into Codex as expected
 - `ma setup` creates the documented `.ma` runtime surfaces
 - the usage-workflow sequence remains coherent from `$arch` to `$build`

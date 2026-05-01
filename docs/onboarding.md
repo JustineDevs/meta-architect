@@ -13,7 +13,7 @@ This is the shortest operator entrypoint for someone who just opened Meta-Archit
 ## Canonical install and launch
 
 ```bash
-npm i -g @openai/codex@latest meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
 ma --madmax --high
 ```
 

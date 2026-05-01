@@ -36,8 +36,16 @@ jobs:
           npm run skills:manifest
           git diff --exit-code skills/index.json
 
+      - name: Verify plugin mirror is current
+        run: |
+          npm run plugin:sync
+          git diff --exit-code plugins/meta-architect
+
       - name: Validate skills
         run: npm run skills:validate
+
+      - name: Verify plugin mirror
+        run: npm run plugin:verify
 
       - name: Enforce PR base branch policy
         env:
