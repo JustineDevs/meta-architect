@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="320" height="160">
-  <h1>Meta-Architect</h1>
+  <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="1024" height="240">
   <p>Production-grade skills package and CLI for programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking.</p>
   <p>
     <img src="https://img.shields.io/badge/npm-%40jstn--sdk%2Fmeta--architect--skills-CB3837" alt="npm package">
