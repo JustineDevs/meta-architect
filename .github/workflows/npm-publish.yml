@@ -26,12 +26,7 @@ jobs:
         run: npm ci
 
       - name: Validate package
-        run: |
-          npm run skills:manifest
-          npm run skills:validate
-          npm run check
-          npm test
-          npm pack --dry-run
+        run: npm run release:check
 
       - name: Publish package
         run: npm publish --access public --provenance

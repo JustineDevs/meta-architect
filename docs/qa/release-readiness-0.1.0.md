@@ -3,21 +3,34 @@
 ## Production bar
 
 `v0.1.0` is treated as production only when:
-- the core workflows are reliable end-to-end,
-- the public interface and release contract are stable,
-- and the release has documented verification evidence.
+- the package installs cleanly from the canonical public install command
+- the Codex-hosted runtime path works end to end
+- the helper flow remains valid for scripted verification
+- release docs, package metadata, and workflows all agree on `0.1.0`
 
 ## Automated checks run
 
 ```bash
-npm run check
-npm test
-npm run skills:validate
+npm run release:check
 ```
 
-## Manual checks run
+That must cover:
+- skills manifest generation
+- skill validation
+- skill bundle packaging
+- repo checks
+- automated tests
+- npm package dry-run inspection
 
-Typical release-critical flow:
+## Manual/behavioral checks run
+
+Canonical launch:
+
+```bash
+ma --madmax --high
+```
+
+Helper-path validation:
 
 ```bash
 ma setup
@@ -31,13 +44,12 @@ ma status
 ma run '$build'
 ```
 
-## Required evidence
-
-- gate contract matches runtime behavior
-- publishable skills validate and pack
-- build and release policies remain explicit
+Expected evidence:
+- `.ma/release.json` remains the source of truth
+- `.ma/decisions.json` records the helper-path activity
+- `$build` stays blocked until upstream gates are green, then becomes ready
 
 ## Known limitations
 
-- worktree lifecycle is still operator-driven
-- release publication still depends on explicit channel success
+- interactive Codex conversation quality depends on the installed Codex host
+- release publication still depends on npm ownership/authorization for the target package name
