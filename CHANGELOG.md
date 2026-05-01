@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.0
+## v0.1.0
 
 - Added the core Meta-Architect CLI flow: `ma init`, `ma idea`, `ma skills`, `ma status`, and skill execution.
 - Added gate enforcement for `$build`, merge, and release policy checks.

@@ -1,6 +1,6 @@
 # Meta-Architect Feature Coverage Matrix
 
-**Target: Production-ready core orchestration + publishable skills for v1.0.0**  
+**Target: Production-ready core orchestration + publishable skills for v0.1.0**  
 **Last Updated:** 2026-04-30
 
 ## Coverage Summary
@@ -126,7 +126,7 @@
 
 ## Production Interpretation
 
-Meta-Architect currently covers the production `v1.0.0` core bar for:
+Meta-Architect currently covers the production `v0.1.0` core bar for:
 - reliable core orchestration,
 - stable status/branch contract,
 - publishable repo-local skill artifacts,

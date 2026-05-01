@@ -313,8 +313,8 @@ export async function runInit() {
       path.join(repoRoot, "docs", "release-spec.md"),
     ],
     [
-      path.join(packageRoot, "docs", "qa", "release-readiness-1.0.0.md"),
-      path.join(repoRoot, "docs", "qa", "release-readiness-1.0.0.md"),
+      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.0.md"),
+      path.join(repoRoot, "docs", "qa", "release-readiness-0.1.0.md"),
     ],
   ];
 
@@ -352,7 +352,7 @@ export async function runInit() {
     path.join(repoRoot, ".omx", "decisions.json"),
     `${JSON.stringify(
       {
-        schemaVersion: "1.0.0",
+        schemaVersion: "0.1.0",
         idea_status: "DRAFT",
         architecture_status: "DRAFT",
         evidence_status: "MISSING",
@@ -373,7 +373,7 @@ export async function runInit() {
     path.join(repoRoot, ".omx", "release.json"),
     `${JSON.stringify(
       {
-        schemaVersion: "1.0.0",
+        schemaVersion: "0.1.0",
         idea_status: "DRAFT",
         architecture_status: "DRAFT",
         evidence_status: "MISSING",
@@ -397,17 +397,17 @@ export async function runInit() {
 
   await writeFileIfMissing(
     path.join(repoRoot, "mcp", "servers.json"),
-    `${JSON.stringify({ schemaVersion: "1.0.0", servers: [] }, null, 2)}\n`,
+    `${JSON.stringify({ schemaVersion: "0.1.0", servers: [] }, null, 2)}\n`,
   );
   await writeFileIfMissing(
     path.join(repoRoot, "mcp", "collections.json"),
-    `${JSON.stringify({ schemaVersion: "1.0.0", collections: {} }, null, 2)}\n`,
+    `${JSON.stringify({ schemaVersion: "0.1.0", collections: {} }, null, 2)}\n`,
   );
   await writeFileIfMissing(
     path.join(repoRoot, "mcp", "fallback.json"),
     `${JSON.stringify(
       {
-        schemaVersion: "1.0.0",
+        schemaVersion: "0.1.0",
         fallback: {
           endpoint: "https://gitmcp.io/docs",
           policy: "Use only when no approved exact endpoint exists.",
@@ -421,7 +421,7 @@ export async function runInit() {
     path.join(repoRoot, ".omx", "evidence", "sources.json"),
     `${JSON.stringify(
       {
-        schemaVersion: "1.0.0",
+        schemaVersion: "0.1.0",
         items: [],
       },
       null,
@@ -432,7 +432,7 @@ export async function runInit() {
     path.join(repoRoot, ".omx", "evidence", "audits.json"),
     `${JSON.stringify(
       {
-        schemaVersion: "1.0.0",
+        schemaVersion: "0.1.0",
         items: [],
       },
       null,
@@ -443,7 +443,7 @@ export async function runInit() {
     path.join(repoRoot, ".omx", "evidence", "outcomes.json"),
     `${JSON.stringify(
       {
-        schemaVersion: "1.0.0",
+        schemaVersion: "0.1.0",
         items: [],
       },
       null,
@@ -454,7 +454,7 @@ export async function runInit() {
     path.join(repoRoot, ".omx", "evidence", "cves.json"),
     `${JSON.stringify(
       {
-        schemaVersion: "1.0.0",
+        schemaVersion: "0.1.0",
         items: [],
       },
       null,

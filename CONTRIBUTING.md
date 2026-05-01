@@ -165,7 +165,7 @@ Preferred commit styles:
 - `docs: update <surface>`
 - `ci: harden <workflow>`
 - `chore: maintain <repo surface>`
-- `chore(release): prepare v1.0.0`
+- `chore(release): prepare v0.1.0`
 
 ## Pull requests
 

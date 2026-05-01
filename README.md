@@ -22,7 +22,7 @@ Meta-Architect (MA) is a workflow layer for **Codex-style CLIs and MCP-enabled r
 - **strict security and release gates** before any build runs
 - **optional linked git worktrees** for isolated, parallel implementation once a plan is approved
 
-Production rule for `v1.0.0`:
+Production rule for `v0.1.0`:
 - core workflows must be reliable end-to-end,
 - the public skill/status/branch contract must be stable,
 - and release evidence must exist in docs and packaged skills.
@@ -238,7 +238,7 @@ meta-architect/
 │   ├── mcp-setup.md
 │   ├── onboarding.md
 │   ├── qa/
-│   │   └── release-readiness-1.0.0.md
+│   │   └── release-readiness-0.1.0.md
 │   ├── release-spec.md
 │   ├── skills.md
 │   └── skills-publishing.md
@@ -322,7 +322,7 @@ If anything is unclear, MA should stop and show you **which gate is blocking** a
 - [Skills Publishing](./docs/skills-publishing.md)
 - [MCP / GitMCP Setup](./docs/mcp-setup.md)
 - [Release & Gate Spec](./docs/release-spec.md)
-- [QA / Release Readiness](./docs/qa/release-readiness-1.0.0.md)
+- [QA / Release Readiness](./docs/qa/release-readiness-0.1.0.md)
 - [Release Body](./RELEASE.md)
 - [Changelog](./CHANGELOG.md)
 

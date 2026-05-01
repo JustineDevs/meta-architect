@@ -1,8 +1,8 @@
-# V1.0.0 Requirements & Rules
+# V0.1.0 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v1.0.0` is production only when all three are true at the same time:
+Meta-Architect `v0.1.0` is production only when all three are true at the same time:
 
 1. Core workflows are reliable end-to-end.
 2. The public interface and contract are stable.
@@ -10,7 +10,7 @@ Meta-Architect `v1.0.0` is production only when all three are true at the same t
 
 Production here means safe to recommend for real projects and expensive to break without a major version change.
 
-## What v1.0.0 MUST have
+## What v0.1.0 MUST have
 
 ### 1. Core workflow working end-to-end
 
@@ -73,7 +73,7 @@ Build lock rule:
   - `experience_status` is `GREEN` or `WAIVED`
   - `build_status` is `LOCKED` or `READY`
 
-Public contract freeze for `v1.0.0`:
+Public contract freeze for `v0.1.0`:
 - Core triggers remain stable:
   - `ma init`
   - `ma idea`
@@ -120,7 +120,7 @@ Minimum required tests:
 - Skill packaging validation tests
 
 Required QA artifact:
-- `docs/qa/release-readiness-1.0.0.md`
+- `docs/qa/release-readiness-0.1.0.md`
 
 Required release evidence:
 - release tag
@@ -135,11 +135,11 @@ Required release evidence:
 - `docs/skills.md`
 - `docs/release-spec.md`
 - `docs/mcp-setup.md`
-- `docs/qa/release-readiness-1.0.0.md`
+- `docs/qa/release-readiness-0.1.0.md`
 
 ## Production rule
 
-Meta-Architect `v1.0.0` is considered production-ready only if:
+Meta-Architect `v0.1.0` is considered production-ready only if:
 - a new project can be initialized,
 - at least one real GitMCP endpoint is wired and successfully queried,
 - the full `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` workflow runs with exact gate enforcement,

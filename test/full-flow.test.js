@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 
 const repoRoot = process.cwd();
 const cleanDecisions = {
-  schemaVersion: "1.0.0",
+  schemaVersion: "0.1.0",
   idea_status: "DRAFT",
   architecture_status: "DRAFT",
   evidence_status: "MISSING",
@@ -20,7 +20,7 @@ const cleanDecisions = {
   decisions: [],
 };
 const cleanRelease = {
-  schemaVersion: "1.0.0",
+  schemaVersion: "0.1.0",
   idea_status: "DRAFT",
   architecture_status: "DRAFT",
   evidence_status: "MISSING",

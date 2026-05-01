@@ -50,7 +50,7 @@ async function main() {
   skills.sort((left, right) => left.name.localeCompare(right.name));
   await fs.writeFile(
     manifestPath,
-    `${JSON.stringify({ schemaVersion: "1.0.0", skills }, null, 2)}\n`,
+    `${JSON.stringify({ schemaVersion: "0.1.0", skills }, null, 2)}\n`,
   );
   console.log(manifestPath);
 }
