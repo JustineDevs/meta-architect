@@ -14,6 +14,11 @@ Published release state:
 - published at: pending publish
 - git tag: `v0.1.1`
 
+Recovery state:
+- `@jstn-sdk/meta-architect@0.1.0` is deprecated on npm
+- remote `v0.1.0` release/tag surfaces were removed
+- `v0.1.1` is the forward-correct release line
+
 ## Automated checks run
 
 ```bash

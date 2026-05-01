@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify release metadata alignment
+        run: npm run release:verify
+
       - name: Generate skills manifest
         run: npm run skills:manifest
 

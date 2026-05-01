@@ -71,8 +71,17 @@ Meta-Architect is intended to be consumed as an installed package, not primarily
 Default operator path:
 
 ```bash
+# Install
 npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+
+# Launch
 ma --madmax --high
+
+# Remove Meta-Architect only
+npm uninstall -g @jstn-sdk/meta-architect
+
+# Remove Meta-Architect and Codex
+npm uninstall -g @jstn-sdk/meta-architect @openai/codex
 ```
 
 What this assumes:
@@ -109,8 +118,17 @@ Meta-Architect’s repository workflow follows a stricter release posture focuse
 Install the consumer package directly:
 
 ```bash
+# Install
 npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+
+# Launch
 ma --madmax --high
+
+# Remove Meta-Architect only
+npm uninstall -g @jstn-sdk/meta-architect
+
+# Remove Meta-Architect and Codex
+npm uninstall -g @jstn-sdk/meta-architect @openai/codex
 ```
 
 This gives you:
@@ -360,6 +378,21 @@ Pre-publish rules:
 - `dist/meta-architect-skills.tgz` must exist
 - `npm pack --dry-run` must show only intended public files
 - docs must match real CLI and release behavior
+
+Release lane discipline:
+- stable versions publish to npm `latest`
+- prerelease versions such as `0.2.0-beta.1` must publish with an explicit dist-tag such as `beta`
+- alternate lanes such as `next`, `beta`, and `canary` must never overwrite `latest`
+
+Maintainer version-bump flow:
+1. Bump the package with `npm version <version> --no-git-tag-version`
+2. Update `CHANGELOG.md`, `RELEASE.md`, and `docs/qa/release-readiness-<version>.md`
+3. Run `npm run release:verify`
+4. Run `npm run release:check`
+5. Create and push tag `v<version>`
+6. Stable publish: `npm publish --access public --provenance`
+7. Prerelease publish: `npm publish --access public --provenance --tag <lane>`
+8. Verify publish state with `npm view @jstn-sdk/meta-architect version dist-tags time --json`
 
 > [!CAUTION]
 > Do not claim npm, GitHub release, or any other publish channel until that channel has actually succeeded.

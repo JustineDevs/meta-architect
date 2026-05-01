@@ -13,8 +13,17 @@ Meta-Architect’s canonical Codex runtime surface is:
 Install the package once, launch through `ma`, and use the skills directly in-session.
 
 ```bash
+# Install
 npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+
+# Launch
 ma --madmax --high
+
+# Remove Meta-Architect only
+npm uninstall -g @jstn-sdk/meta-architect
+
+# Remove Meta-Architect and Codex
+npm uninstall -g @jstn-sdk/meta-architect @openai/codex
 ```
 
 Then inside the Codex session:

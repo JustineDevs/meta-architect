@@ -15,6 +15,11 @@ Published package state:
 - published at: pending publish
 - release tag: `v0.1.1`
 
+Recovery note:
+- stale scoped version `0.1.0` has been deprecated on npm
+- incorrect GitHub `v0.1.0` release/tag surfaces were removed
+- `0.1.1` is the next correct publishable version and must be used for the fixed public package
+
 ## Verification
 
 - `npm run release:check`

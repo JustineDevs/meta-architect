@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify release metadata alignment
+        run: npm run release:verify
+
       - name: Verify skills manifest is current
         run: |
           npm run skills:manifest
@@ -76,14 +79,4 @@ jobs:
             echo "Forbidden runtime .ma files are tracked:"
             echo "$forbidden"
             exit 1
-          fi
-
-      - name: Check release docs when package version changes
-        run: |
-          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q '^package.json$'; then
-            changed=$(git diff origin/${{ github.base_ref }}...HEAD -- package.json)
-            if echo "$changed" | grep -q '"version"'; then
-              files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-              echo "$files" | grep -q '^RELEASE.md$' || (echo "RELEASE.md must be updated when version changes" && exit 1)
-            fi
           fi

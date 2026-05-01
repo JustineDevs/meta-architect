@@ -13,8 +13,17 @@ This is the shortest operator entrypoint for someone who just opened Meta-Archit
 ## Canonical install and launch
 
 ```bash
+# Install
 npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+
+# Launch
 ma --madmax --high
+
+# Remove Meta-Architect only
+npm uninstall -g @jstn-sdk/meta-architect
+
+# Remove Meta-Architect and Codex
+npm uninstall -g @jstn-sdk/meta-architect @openai/codex
 ```
 
 ## First runtime action

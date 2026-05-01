@@ -23,6 +23,8 @@ jobs:
         run: npm ci
 
       - name: Validate release bundle
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: npm run release:check
 
       - name: Validate release assets

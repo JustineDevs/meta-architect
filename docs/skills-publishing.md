@@ -142,6 +142,23 @@ The `skills:pack` tarball is narrower than the npm package:
 - `skills:pack` => `skills/` distribution bundle
 - `npm pack` => public npm package with the explicit `files` list
 
+## Release and dist-tag discipline
+
+Meta-Architect release behavior is lane-aware:
+- stable versions publish to npm `latest`
+- prerelease versions publish to explicit lanes such as `next`, `beta`, or `canary`
+- prereleases must use `npm publish --tag <lane>`
+- stable releases keep the default `latest` behavior and public scoped access
+
+Before publish:
+1. bump version with `npm version <version> --no-git-tag-version`
+2. update changelog and release docs
+3. run `npm run release:verify`
+4. run `npm run release:check`
+5. create and push tag `v<version>`
+6. publish the package with the correct lane behavior
+7. verify the resulting dist-tags with `npm view @jstn-sdk/meta-architect version dist-tags time --json`
+
 ## Plugin relation
 
 The plugin bundle in:

@@ -4,6 +4,7 @@ on:
   release:
     types:
       - published
+      - prereleased
 
 jobs:
   publish:
@@ -26,7 +27,21 @@ jobs:
         run: npm ci
 
       - name: Validate package
+        env:
+          GITHUB_REF_NAME: ${{ github.event.release.tag_name }}
         run: npm run release:check
 
-      - name: Publish package
+      - name: Resolve release metadata
+        id: release_meta
+        run: node ./scripts/release-metadata.js --github-output "$GITHUB_OUTPUT"
+
+      - name: Publish stable package to latest
+        if: steps.release_meta.outputs.dist_tag == 'latest'
         run: npm publish --access public --provenance
+
+      - name: Publish prerelease package to explicit dist-tag
+        if: steps.release_meta.outputs.dist_tag != 'latest'
+        run: npm publish --access public --provenance --tag "${{ steps.release_meta.outputs.dist_tag }}"
+
+      - name: Verify published dist-tags
+        run: npm view @jstn-sdk/meta-architect version dist-tags time --json
