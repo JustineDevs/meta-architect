@@ -65,7 +65,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.0
+8. Delivery plan for v0.1.1
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
