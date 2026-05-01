@@ -1,0 +1,5 @@
+<svg width="256" height="256" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Meta-Architect Variant 06 - Compass Frame</title>
+  <path d="M50 18L58 40L82 50L58 60L50 82L42 60L18 50L42 40L50 18Z" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/>
+  <rect x="44" y="44" width="12" height="12" rx="3" fill="currentColor"/>
+</svg>

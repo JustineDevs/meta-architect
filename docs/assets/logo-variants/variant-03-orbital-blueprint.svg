@@ -1,0 +1,9 @@
+<svg width="256" height="256" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Meta-Architect Variant 03 - Orbital Blueprint</title>
+  <path d="M50 18C67.6731 18 82 32.3269 82 50C82 67.6731 67.6731 82 50 82C32.3269 82 18 67.6731 18 50C18 42.5 20.5 35.5 25 30" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <path d="M50 26V58" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <path d="M38 58H62" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="25" cy="30" r="5" fill="currentColor"/>
+  <circle cx="50" cy="18" r="5" fill="currentColor"/>
+  <circle cx="82" cy="50" r="5" fill="currentColor"/>
+</svg>

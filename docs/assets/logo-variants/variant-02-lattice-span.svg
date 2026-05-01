@@ -1,0 +1,8 @@
+<svg width="256" height="256" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Meta-Architect Variant 02 - Lattice Span</title>
+  <path d="M26 76L44 38" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <path d="M38 76L54 30" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <path d="M50 76L64 34" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <path d="M36 58H70" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="64" cy="34" r="5" fill="currentColor"/>
+</svg>

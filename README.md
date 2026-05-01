@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./docs/assets/meta-architect-mark.svg" alt="Meta-Architect mark" width="148" height="148">
+  <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="148" height="148">
   <h1>Meta-Architect</h1>
   <p>Production-grade skills package and CLI for programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking.</p>
   <p>
