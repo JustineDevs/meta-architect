@@ -25,7 +25,7 @@
 
 | Command | Status | Purpose |
 |---------|--------|---------|
-| `ma init` | DONE | Scaffold repo shape and seed baseline files |
+| `ma setup` | DONE | Scaffold repo shape and seed baseline files |
 | `ma idea` | DONE | Capture project brief and unlock architecture |
 | `ma skills` | DONE | List the core skill triggers |
 | `ma status` | DONE | Read and display current gate state |

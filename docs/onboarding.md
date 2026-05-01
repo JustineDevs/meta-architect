@@ -16,8 +16,7 @@ This file is the short operator entrypoint for someone who just opened the repo 
 npm install
 npm link
 ma setup
-ma status
-ma skills
+ma
 ```
 
 ## First safety rules

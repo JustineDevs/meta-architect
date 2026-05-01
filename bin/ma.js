@@ -28,8 +28,8 @@ import { syncStatusUpdates } from "../src/state-sync.js";
 
 function printUsage() {
   console.error("Usage:");
+  console.error("  ma");
   console.error("  ma setup");
-  console.error("  ma --madmax --high");
   console.error("  ma init");
   console.error('  ma idea "..."');
   console.error("  ma skills");

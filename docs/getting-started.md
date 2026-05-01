@@ -39,11 +39,18 @@ Why `npm link` matters:
 ma setup
 ```
 
+Optional interactive session:
+
+```bash
+ma
+```
+
 Expected effects:
 - `.codex/agents/` exists
 - `.codex/prompts/` exists
 - local `.meta-architect/skills/` and `.meta-architect/evidence/` are seeded
 - `mcp/`, `docs/`, and `sprint/` surfaces exist
+- `ma` launches the local Codex CLI when run with no arguments
 
 Expected output:
 
@@ -242,6 +249,8 @@ ma run '$vibe'
 ma status
 ma run '$build'
 ```
+
+If you want an interactive Codex session during the walkthrough, start it separately with `ma`.
 
 What should happen:
 - `$arch` records a structured first-pass blueprint

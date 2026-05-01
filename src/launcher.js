@@ -14,7 +14,7 @@ const nativeCommands = new Set([
 
 export function shouldDelegateToCodex(args) {
   if (args.length === 0) {
-    return false;
+    return true;
   }
 
   return !nativeCommands.has(args[0]);

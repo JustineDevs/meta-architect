@@ -2,9 +2,9 @@
   <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="1024" height="240">
   <p>Production-grade skills package and CLI for programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking.</p>
   <p>
-    <img src="https://img.shields.io/badge/npm-%40jstn--sdk%2Fmeta--architect--skills-CB3837" alt="npm package">
+    <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fmeta-architect-skills" alt="npm version">
     <img src="https://img.shields.io/badge/node-%3E%3D20-339933" alt="Node.js 20+">
-    <img src="https://img.shields.io/badge/release-v0.2.0-2563EB" alt="Release v0.2.0">
+    <img src="https://img.shields.io/github/v/release/JustineDevs/meta-architect" alt="GitHub release">
     <img src="https://img.shields.io/badge/license-MIT-16A34A" alt="MIT License">
   </p>
 </div>
@@ -73,14 +73,15 @@ Default operator path:
 ```bash
 npm install -g @openai/codex @jstn-sdk/meta-architect-skills@latest
 ma setup
-ma --madmax --high
+ma
 ```
 
 What this assumes:
 
 - Codex CLI is installed globally
 - Meta-Architect is installed globally as a package
-- `ma setup` has initialized the local Meta-Architect project scaffold before launch
+- `ma setup` is run inside the repository you want Meta-Architect to scaffold
+- `ma` starts the local Codex session after scaffolding is in place
 
 > [!IMPORTANT]
 > The recommended default flow is package-first.
@@ -109,7 +110,6 @@ Install the consumer package directly:
 
 ```bash
 npm install -g @openai/codex @jstn-sdk/meta-architect-skills@latest
-ma setup
 ```
 
 This gives you:
@@ -117,7 +117,7 @@ This gives you:
 - `codex`
 - `ma`
 - `meta-architect`
-- the standalone Meta-Architect CLI and project scaffold
+- the standalone Meta-Architect CLI
 
 ### Contributor setup: source checkout
 
@@ -136,16 +136,16 @@ npm link
 
 ### 1. Initialize the project
 
-Launch the recommended high-intensity Meta-Architect session:
-
-```bash
-ma --madmax --high
-```
-
-Then initialize the repository you want Meta-Architect to govern:
+Initialize the repository you want Meta-Architect to govern:
 
 ```bash
 ma setup
+```
+
+Then start the local Codex session through `ma`:
+
+```bash
+ma
 ```
 
 Expected output:
@@ -162,6 +162,10 @@ ready: docs
 ready: docs/qa
 ready: sprint
 ```
+
+`ma` with no arguments launches the local Codex CLI.
+Legacy compatibility flags such as `ma --madmax --high` are still accepted, but they are no longer
+the recommended path.
 
 ### 2. Configure GitMCP sources
 

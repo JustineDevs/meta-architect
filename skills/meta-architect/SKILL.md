@@ -13,7 +13,7 @@ Run the end-to-end Meta-Architect operator workflow through the local `ma` CLI a
 
 1. Confirm the repo is initialized:
    ```bash
-   ma init
+   ma setup
    ```
 2. Capture the project brief:
    ```bash

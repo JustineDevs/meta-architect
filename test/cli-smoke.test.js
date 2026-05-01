@@ -174,6 +174,26 @@ test("ma launcher delegates non-native commands to codex and strips compatibilit
   assert.deepEqual(output.argv, ["--model", "gpt-5.4", "hello"]);
 });
 
+test("ma with no args delegates directly to codex", async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-launcher-empty-"));
+  await copyDir(repoRoot, tempRoot);
+  const outputPath = path.join(tempRoot, "codex-output.json");
+  const codexBin = await writeFakeCodex(tempRoot);
+  const result = spawnSync(process.execPath, [path.join(repoRoot, "bin/ma.js")], {
+    cwd: tempRoot,
+    env: {
+      ...process.env,
+      MA_CODEX_BIN: codexBin,
+      MA_TEST_OUTPUT: outputPath,
+    },
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(await fs.readFile(outputPath, "utf8"));
+  assert.deepEqual(output.argv, []);
+});
+
 test("ma launcher preserves the delegated codex exit code", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-launcher-exit-"));
   await copyDir(repoRoot, tempRoot);
