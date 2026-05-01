@@ -27,8 +27,8 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "meta-architect": "./bin/meta-architect.js",
-    "ma": "./bin/meta-architect.js"
+    "meta-architect": "bin/ma.js",
+    "ma": "bin/ma.js"
   },
   "files": [
     "bin/",

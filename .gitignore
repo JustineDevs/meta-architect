@@ -22,6 +22,9 @@ temp/
 .env
 .env.*
 !.env.example
+.npmrc
+.npmrc.*
+!.npmrc.example
 
 # OS / editor
 .DS_Store

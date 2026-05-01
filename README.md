@@ -1,345 +1,333 @@
-# Meta-Architect (MA)
+# Meta-Architect
 
-<p align="center">
-  <!-- TODO: replace with real logo/character -->
-  <img src="https://placehold.co/280x280?text=Meta-Architect" alt="Meta-Architect character" width="280">
-  <br>
-  <em>The AI OS for Programmatic Architecture &amp; Verified Engineering.</em>
-</p>
+Meta-Architect is a production-grade skills package and CLI for **programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking**.
 
-<div align="center">
+It adds a disciplined workflow around an MCP-capable coding runtime instead of replacing the runtime itself.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
-[![MCP](https://img.shields.io/badge/MCP-enabled-blue)](https://modelcontextprotocol.io/docs/getting-started/intro)
+[!NOTE]
+**Meta-Architect `v0.1.0` is not an MVP-lite line.**  
+The version describes product scope, not engineering seriousness. From `v0.1.0` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, honest evidence rules, and no accidental runtime-state leakage.
 
-</div>
+## At a glance
 
-Meta-Architect (MA) is a workflow layer for **Codex-style CLIs and MCP-enabled runtimes**. It keeps your existing LLM execution engine and adds:
+| Surface | Value |
+| --- | --- |
+| npm package | `@jstn-sdk/meta-architect-skills` |
+| CLI commands | `meta-architect`, `ma` |
+| Node requirement | `>=20` |
+| Package manager | `npm@10` |
+| Current release line | `v0.1.0` |
+| License | [MIT](./LICENSE) |
 
-- a **standard architectural workflow** driven by `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, and `$build`
-- **MCP-connected OSS collections** as the “Library of Truth” via serverless GitMCP endpoints
-- **strict security and release gates** before any build runs
-- **optional linked git worktrees** for isolated, parallel implementation once a plan is approved
+## What problem it solves
 
-Production rule for `v0.1.0`:
-- core workflows must be reliable end-to-end,
-- the public skill/status/branch contract must be stable,
-- and release evidence must exist in docs and packaged skills.
+Meta-Architect is for teams that do **not** want to jump straight from an idea to implementation with no structure.
 
-<table>
-<tr>
-<td><strong>🚨 CAUTION — RECOMMENDED DEFAULT: macOS or Linux with an MCP-capable CLI and Git.</strong><br><br><strong>Meta-Architect is designed and tuned around that path.</strong><br><strong>Native Windows is not the primary path, may require WSL2 or extra setup, and currently receives less support.</strong></td>
-</tr>
-</table>
+It gives you:
 
----
+- an explicit architecture lane before coding
+- live OSS evidence checks through GitMCP-backed sources
+- business-logic, security, and DX/UX gates before build execution
+- reproducible skill packaging instead of ad-hoc prompt files
+- a CLI and skill bundle that can be installed, validated, packed, and shipped like a real product
 
-## What Meta-Architect is for
+If you only want a freeform coding chat, Meta-Architect is probably unnecessary. If you want an AI workflow that behaves more like an **architect + reviewer + release gate**, this package is the intended layer.
 
-Use Meta-Architect when you want your AI dev workflow to behave like a **system architect + auditor**, not a freeform “vibe coder”:
+## Core workflow
 
-- Turn an idea into a **blueprinted architecture** with explicit tradeoffs.
-- Select **proven OSS** from curated “awesome” collections exposed through GitMCP, not from model vibes.
-- Run **business-logic, security, and DX/UX reviews** as first-class steps.
-- Only then unlock **build execution**, optionally in isolated git worktrees, before merge and release.
+| Trigger | Purpose | Primary output | Gate effect |
+| --- | --- | --- | --- |
+| `$arch` | Produce the first-pass architecture blueprint | architecture decision entry | `architecture_status = APPROVED` |
+| `$sage` | Bind major choices to configured GitMCP evidence | evidence source records | `evidence_status = VERIFIED | PARTIAL | MISSING` |
+| `$flow` | Review baseline logic and state transitions | logic review decision | `logic_status = GREEN | RED` |
+| `$vet` | Run baseline security and dependency review | audits + CVE records | `security_status = GREEN | RED` |
+| `$vibe` | Review developer and user experience implications | DX/UX outcome record | `experience_status = GREEN | RED | WAIVED` |
+| `$build` | Unlock bounded implementation planning | build-ready decision | `build_status = READY` |
 
-If you just want a plain coding chat with no gates, you don’t need Meta-Architect.
+## Gate model
 
----
+Meta-Architect is intentionally **fail-closed**.
 
-## Core Maintainers
+| Status | Meaning |
+| --- | --- |
+| `CLEAR` | the lane has enough input to proceed |
+| `APPROVED` | the architecture lane has produced an acceptable first-pass blueprint |
+| `VERIFIED` | live evidence was successfully grounded through approved GitMCP sources |
+| `PARTIAL` | evidence config exists, but live proof is incomplete or unavailable |
+| `GREEN` | the lane passed its current baseline review |
+| `RED` | the lane is blocked or failed its current baseline review |
+| `WAIVED` | the lane was intentionally waived with an explicit recorded reason |
+| `LOCKED` | downstream work is not allowed yet |
+| `READY` | the next gated action is allowed |
 
-> TODO: fill in once maintainers are confirmed.
+`$build` is locked until upstream states satisfy the release contract recorded in `.omx/release.json`.
 
-| Role | Name | GitHub |
-| --- | --- | --- |
-| Creator & Lead | Justine | [@Justinedevs](https://github.com/JustineDevs) |
+## Installation
 
----
-
-## Recommended default flow
-
-If you want the default MA experience, start in a repo that will host your project:
+### Public install path
 
 ```bash
-# 1. Initialize Meta-Architect in this repo
-ma init
-# 2. Register your GitMCP-backed OSS collections
-# GitMCP exposes any GitHub repo as a remote MCP server via gitmcp.io/{owner}/{repo}
-mcp add https://gitmcp.io/sindresorhus/awesome
-mcp add https://gitmcp.io/dzharii/awesome-typescript
-mcp add https://gitmcp.io/sbilly/awesome-security
-# 3. Capture your idea
-ma idea "Build a real-time collaborative whiteboard for product teams"
-# 4. Run the core architectural workflow
-ma run $arch
-ma run $sage
-ma run $flow
-ma run $vet
-ma run $vibe
-# 5. Only after gates are GREEN, start the build
-ma run $build
-# 6. Enforce merge and release policy
-ma merge feature/ui development
-ma release development prod
+npm install -g @jstn-sdk/meta-architect-skills
 ```
 
-Under the hood:
+This installs the public CLI entrypoints:
 
-- MA uses **MCP** to discover tools, resources, and prompts from the connected GitMCP servers.
-- Each skill is a **Codex/LLM skill** with a strict contract and evidence requirements.
-- Decisions and statuses are logged into `.omx/decisions.json` for auditability.
-- If configured, `$build` can spawn **linked Git worktrees** for bounded tasks like `ui`, `api`, `auth`, sharing the underlying repo while keeping separate working trees.
-- `ma merge` and `ma release` enforce branch-origin policy before state promotion.
+```bash
+ma
+meta-architect
+```
 
----
+[!NOTE]
+The package publishes both the CLI and the canonical `skills/` bundle. It does **not** publish local `.omx` runtime state, logs, caches, or contributor-only workflow residue.
 
-## A simple mental model
+### Recommended current install path: source checkout
 
-Meta-Architect does **not** replace your LLM or dev tools.
+Use this path if you want to edit the repository itself.
 
-It adds a **verified engineering layer** around them:
+```bash
+git clone https://github.com/JustineDevs/meta-architect.git
+cd meta-architect
+npm install
+npm link
+```
 
-- **MCP + GitMCP** give you a structured, live view of curated OSS and security sources instead of hardcoded integrations.
-- **Skills** (`$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`) turn that context into decisions and gates.
-- **`.omx/`** stores architecture, evidence, gates, and release decisions.
-- **Git worktrees** (optional) give each approved build task its own isolated working tree attached to the same repository.
+`npm link` makes the local `ma` command available without requiring npm publication first.
 
-Most users should think of Meta-Architect as **better project decisions + better gates + safer execution**, not as a general-purpose chatbot.
+### Install path comparison
 
----
+| Path | Use when | Commands |
+| --- | --- | --- |
+| npm global install | you want the published consumer path | `npm install -g @jstn-sdk/meta-architect-skills` |
+| source clone + link | you want to use or develop Meta-Architect immediately | `git clone ... && npm install && npm link` |
+| local package inspection | you want to inspect the exact publish surface | `npm pack --dry-run` |
 
-## Start here if you are new
+[!WARNING]
+Meta-Architect is designed around a Unix-like shell, Git, Node.js, and an MCP-capable runtime. Native Windows is possible, but the recommended default remains macOS, Linux, or WSL2.
 
-1. **Install requirements**
-   - Node.js 20+
-   - Git 2.30+ with `git worktree` support
-   - An MCP-capable LLM CLI (Codex-like tool) with auth configured in the same shell/profile.
-2. **Initialize Meta-Architect**
-   ```bash
-   ma init
-   ```
-3. **Connect your OSS collections via GitMCP**
-   - GitMCP turns any GitHub repo into an MCP server by swapping `github.com` → `gitmcp.io`.
-   ```bash
-   mcp add https://gitmcp.io/sindresorhus/awesome
-   mcp add https://gitmcp.io/dzharii/awesome-typescript
-   mcp add https://gitmcp.io/rust-unofficial/awesome-rust
-   mcp add https://gitmcp.io/sbilly/awesome-security
-   ```
-4. **Verify skills are wired**
-   ```bash
-   ma skills
-   ```
-5. **Give MA an idea**
-   ```bash
-   ma idea "I want to build a SaaS billing dashboard for small teams"
-   ```
-6. **Run the gated workflow in order**
-   ```bash
-   ma run $arch   # architecture & stack
-   ma run $sage   # proven OSS from GitMCP
-   ma run $flow   # business logic & state
-   ma run $vet    # security & CVEs
-   ma run $vibe   # DX/UX implications
-   ma status      # check gates
-   ma run $build  # only if gates are GREEN
-   ```
-7. **Enforce merge and release policy**
-   ```bash
-   ma merge feature/ui development
-   ma release development prod
-   ```
+## Quickstart
 
----
+### 1. Initialize a repo
 
-## Recommended workflow
+Run this inside the repository you want Meta-Architect to govern:
 
-### The “System 2” skill surface
+```bash
+ma init
+```
 
-Inside a session, use the short, human-style triggers:
-
-| Surface | Use it for |
-| --- | --- |
-| `$arch "idea..."` | Turn a product idea into a high-level blueprint and stack rationale. |
-| `$sage` | Fetch proven OSS candidates from your MCP-connected “awesome” lists and security collections. |
-| `$flow` | Map business logic and state transitions, highlight dead ends and missing failure paths. |
-| `$vet` | Audit security posture, check libraries against security sources, and block unsafe plans. |
-| `$vibe` | Review developer experience and user experience implications before you commit to the stack. |
-| `$build` | When all gates are green, split work into tasks and (optionally) spawn isolated git worktrees for each bounded concern. |
-
-Use `$build` only after `$arch`, `$sage`, `$flow`, and `$vet` have done their job.
-
-Supporting commands:
-- `ma init` scaffolds the repo shape and baseline files.
-- `ma idea "..."` records the project brief and unlocks `$arch`.
-- `ma skills` lists the core skill triggers.
-- `ma merge <feature/*> development` enforces merge policy and marks merge state.
-- `ma release <development|release/*> prod` enforces release-origin policy and marks release state.
-
----
-
-## Monorepo layout (high-level)
-
-Meta-Architect lives in a monorepo, but it is **not an SDK**. The core is skills, hooks, MCP mappings, and decision logs.
+Expected output:
 
 ```text
-meta-architect/
-├── .codex/
-│   ├── agents/
-│   │   ├── Architect.toml
-│   │   ├── Sage.toml
-│   │   ├── Auditor.toml
-│   │   ├── Flow.toml
-│   │   ├── Vibe.toml
-│   │   └── Builder.toml
-│   ├── hooks.json
-│   └── prompts/
-│       ├── enforcement.md
-│       ├── release-rules.md
-│       └── skill-contract.md
-│
-├── .omx/
-│   ├── skills/
-│   │   ├── arch.skill.md
-│   │   ├── sage.skill.md
-│   │   ├── vet.skill.md
-│   │   ├── flow.skill.md
-│   │   ├── vibe.skill.md
-│   │   ├── build.skill.md
-│   │   └── sync.skill.md
-│   ├── decisions.json
-│   ├── release.json
-│   └── evidence/
-│       ├── sources.json
-│       ├── audits.json
-│       ├── cves.json
-│       └── outcomes.json
-│
-├── mcp/
-│   ├── servers.json
-│   ├── collections.json
-│   └── fallback.json
-│
-├── sprint/
-│   ├── 00-idea.md
-│   ├── 01-architecture.md
-│   ├── 02-oss-evidence.md
-│   ├── 03-logic.md
-│   ├── 04-security.md
-│   ├── 05-dx-ux.md
-│   ├── 06-build-plan.md
-│   └── 07-release.md
-│
-├── docs/
-│   ├── README.md
-│   ├── getting-started.md
-│   ├── mcp-setup.md
-│   ├── onboarding.md
-│   ├── qa/
-│   │   └── release-readiness-0.1.0.md
-│   ├── release-spec.md
-│   ├── skills.md
-│   └── skills-publishing.md
-│
-└── package.json
+meta-architect init
+===================
+ready: .codex/agents
+ready: .codex/prompts
+ready: .omx/skills
+ready: .omx/evidence
+ready: mcp
+ready: docs
+ready: docs/qa
+ready: sprint
 ```
 
-- `.codex/` holds agent configs and hooks for your CLI runtime.
-- `.omx/` holds MA skills and all decisions/status.
-- `mcp/` declares GitMCP endpoints and collections.
-- `sprint/` provides human-readable sprint path docs.
+### 2. Register approved GitMCP sources
 
----
+Edit `mcp/servers.json` and register real repository-backed endpoints:
 
-## Release architecture (mental model)
+```json
+{
+  "category": "meta-list",
+  "repo": "sindresorhus/awesome",
+  "endpoint": "https://gitmcp.io/sindresorhus/awesome"
+}
+```
 
-Meta-Architect enforces a **gated release path**:
+Recommended starter set:
 
-1. **Idea** – captured via `ma idea`.
-2. **Architecture ($arch)** – blueprint and stack, must be logged.
-3. **Evidence ($sage)** – OSS mapping from GitMCP sources.
-4. **Logic ($flow)** – business logic and state validation.
-5. **Security ($vet)** – security posture and CVE checks.
-6. **DX/UX ($vibe)** – developer and user experience implications.
-7. **Build ($build)** – work split and isolated execution (optional worktrees).
-8. **Merge & Release** – merge feature branches into `development`, optionally stabilize on an approved `release/*` branch, then promote to `prod` once gates are green.
+- `https://gitmcp.io/sindresorhus/awesome`
+- `https://gitmcp.io/dzharii/awesome-typescript`
+- `https://gitmcp.io/sbilly/awesome-security`
 
-Default branch policy:
+[!NOTE]
+The build-unlocking evidence policy accepts repository-form GitMCP endpoints such as `https://gitmcp.io/{owner}/{repo}`. A documentation URL such as `https://gitmcp.io/docs` is not treated as VERIFIED release evidence.
 
-- `feature/*` — task branches (may be used in worktrees).
-- `development` — integration branch.
-- `release/*` — optional stabilization branch before `prod`.
-- `prod` — production-ready, deployable branch.
-
----
-
-## Workspace and worktrees
-
-When `$build` is allowed, MA can create **linked working trees** for bounded tasks. Git manages multiple working trees attached to the same repository while keeping branch work isolated.
-
-Example:
+### 3. Capture the idea
 
 ```bash
-# inside your repo
+ma idea "Build a real-time collaborative whiteboard for product teams"
+```
+
+Expected effect:
+
+- appends an idea entry to `.omx/decisions.json`
+- sets `idea_status = CLEAR`
+
+### 4. Run the gated sequence
+
+```bash
+ma run '$arch'
+ma run '$sage'
+ma run '$flow'
+ma run '$vet'
+ma run '$vibe'
+ma status
+ma run '$build'
+```
+
+Expected green-state status before `$build`:
+
+```text
+Meta-Architect Status
+=====================
+Idea: CLEAR
+Architecture: APPROVED
+Evidence: VERIFIED
+Logic: GREEN
+Security: GREEN
+Experience: GREEN
+Build: LOCKED
+Next allowed triggers:
+$build
+```
+
+Expected build output:
+
+```text
+Build gate is green.
+Suggested branches:
+- feature/ui
+- feature/api
+Optional worktree commands:
 git worktree add ../ui feature/ui
 git worktree add ../api feature/api
 ```
 
-Each worktree:
+## Release and publishing posture
 
-- is a separate directory with its own `HEAD` and index,
-- shares the underlying repo and history,
-- can be independently edited and tested.
+Meta-Architect has two different distribution surfaces. They are related, but not interchangeable.
 
-After merge back into `development`, remove the worktrees:
+| Surface | Purpose | Produced by |
+| --- | --- | --- |
+| npm package | public installable package containing CLI, docs, scripts, and canonical skills | `npm publish` / `npm pack` |
+| skills bundle | narrower tarball containing `skills/` only | `npm run skills:pack` |
+
+Important commands:
 
 ```bash
-git worktree remove ../ui
-git worktree remove ../api
+npm run skills:manifest
+npm run skills:validate
+npm run skills:pack
+npm run skills:install -- --path ./dist/installed-skills
+npm run pack:inspect
 ```
 
----
+Expected pre-publish rules:
 
-## Enforcement philosophy
+- `skills/index.json` must be current
+- `npm run skills:validate` must pass
+- `dist/meta-architect-skills.tgz` must exist
+- `npm pack --dry-run` must show the intended public package surface only
+- docs must match the real CLI and release behavior
 
-Meta-Architect is designed to be **fail-closed**:
+[!NOTE]
+Meta-Architect does not claim a publish channel unless that channel has actually run. The repository may be release-ready before npm publication happens, but the docs should never pretend a channel is live when it is not.
 
-- No `$build` without `$vet` and other required green gates.
-- No recommendation without visible evidence from MCP/GitMCP.
-- No direct release from a worktree or feature branch.
-- No silent status upgrades.
+## What the package contains
 
-If anything is unclear, MA should stop and show you **which gate is blocking** and why.
+The public npm package is intentionally explicit.
 
----
+| Included | Why |
+| --- | --- |
+| `bin/` | CLI entrypoints |
+| `skills/` | canonical installable skill contracts |
+| `docs/` | operator and publishing guidance |
+| `scripts/` | packaging and validation helpers |
+| `index.js` | programmatic exports |
+| `README.md` | public package contract |
+| `LICENSE` | package license |
 
-## Documentation
+| Excluded | Why |
+| --- | --- |
+| `.omx/` runtime state | local execution residue, not distributable product |
+| local logs and caches | not part of the contract |
+| contributor-only temp outputs | not stable public artifacts |
 
-- [Getting Started](./docs/getting-started.md)
-- [Skills Reference](./docs/skills.md)
-- [Skills Publishing](./docs/skills-publishing.md)
-- [MCP / GitMCP Setup](./docs/mcp-setup.md)
-- [Release & Gate Spec](./docs/release-spec.md)
-- [QA / Release Readiness](./docs/qa/release-readiness-0.1.0.md)
-- [Release Body](./RELEASE.md)
-- [Changelog](./CHANGELOG.md)
+## Example release-minded flow
 
----
+```bash
+ma init
+ma idea "Build a SaaS billing dashboard for small teams"
+ma run '$arch'
+ma run '$sage'
+ma run '$flow'
+ma run '$vet'
+ma run '$vibe'
+ma run '$build'
+ma merge feature/ui development
+ma release development prod
+```
+
+What this does:
+
+- records a first-pass architecture blueprint
+- grounds major choices in configured evidence sources
+- blocks unsafe or incomplete release progression
+- unlocks build planning only when the current gates allow it
+- enforces merge and promotion origin rules
+
+## Monorepo structure
+
+The repository is a monorepo, but the product is centered on skills, prompts, packaging, and release discipline rather than a large library API.
+
+| Path | Responsibility |
+| --- | --- |
+| `.codex/` | runtime prompts, hooks, and agent-facing repo guidance |
+| `skills/` | canonical public skill contracts |
+| `plugins/meta-architect/` | plugin-oriented distribution surface |
+| `docs/` | operator, installation, publishing, and release documentation |
+| `missions/` | reproducible scenario-driven workflows |
+| `mcp/` | GitMCP endpoint and collection configuration |
+| `scripts/` | validation, packing, and installation helpers |
+| `sprint/` | human-readable phased workflow documents |
+
+## Documentation map
+
+| Surface | Purpose |
+| --- | --- |
+| [Getting Started](./docs/getting-started.md) | end-to-end local onboarding |
+| [Skills Reference](./docs/skills.md) | trigger-by-trigger contract guide |
+| [Skills Publishing](./docs/skills-publishing.md) | source-to-package pipeline |
+| [MCP Setup](./docs/mcp-setup.md) | evidence endpoint policy |
+| [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
+| [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
+| [Release Spec](./docs/release-spec.md) | release and gate policy |
+| [Release Readiness](./docs/qa/release-readiness-0.1.0.md) | QA evidence for the `v0.1.0` line |
+
+## For package consumers
+
+Use Meta-Architect when you want:
+
+- a real installable skill bundle
+- explicit architecture and evidence lanes
+- deterministic release gating
+- a CLI that can be used directly from a published package
+
+Do not use Meta-Architect if your expectation is:
+
+- hidden magic without local state files
+- unrestricted build execution before review lanes run
+- vague or unverifiable OSS recommendations
+- release claims without evidence
+
+## Maintainer and release hygiene
+
+The repository follows strict release-sensitive hygiene:
+
+- runtime `.omx` logs, state, tmp, and cache files must not be shipped
+- public docs must match actual package behavior
+- publish statements must match reality
+- release channels must not be claimed before they succeed
+- skill contracts must stay aligned across canonical and plugin-facing copies
 
 ## License
+
 [MIT](./LICENSE)
-
----
-
-## Renovate
-
-This repo uses Renovate to keep dependencies current during business hours.
-
-- Update window: once per weekday in the configured timezone.
-- Grouping: production dependencies and devDependencies are grouped separately.
-- Automerge: only patch-level updates for `devDependencies` are auto-merged.
-
-To disable Renovate for one package, add a `packageRules` entry in `renovate.json` with
-`matchPackageNames` for that dependency and `"enabled": false`.
