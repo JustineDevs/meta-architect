@@ -1,12 +1,11 @@
 <svg width="640" height="320" viewBox="0 0 160 80" fill="none" xmlns="http://www.w3.org/2000/svg">
   <title>Meta-Architect Logo</title>
-  <desc>Landscape Meta-Architect lockup with a gradient A mark and the text rchitect.</desc>
+  <desc>Landscape Meta-Architect lockup with a red-to-blue gradient A mark and the text rchitect.</desc>
   <defs>
     <linearGradient id="architect-lockup-gradient" x1="12" y1="18" x2="144" y2="58" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="0.4" stop-color="#D6DCE5"/>
-      <stop offset="0.68" stop-color="#7C8BA1"/>
-      <stop offset="1" stop-color="#0F172A"/>
+      <stop offset="0" stop-color="#EF4444"/>
+      <stop offset="0.45" stop-color="#A855F7"/>
+      <stop offset="1" stop-color="#2563EB"/>
     </linearGradient>
   </defs>
   <path d="M34 14L56 66H47L41.6 52H26.4L21 66H12L34 14ZM39 45L34 31.8L29 45H39Z" fill="url(#architect-lockup-gradient)" stroke="#0F172A" stroke-width="1.5" stroke-linejoin="round"/>
