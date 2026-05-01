@@ -17,7 +17,7 @@ This plugin is **not** the full source repository.
 It does not attempt to ship:
 - repository `.github/` workflows
 - contributor-facing repo templates
-- local runtime `.omx` state
+- local runtime `.meta-architect` state
 - every source file in the repository
 - the entire release engineering toolchain
 
@@ -76,7 +76,7 @@ Do not assume the plugin alone provides a fully wired live MCP environment.
 When consuming the plugin:
 - use committed `skills/` content as the contract source
 - validate installed skill folders
-- do not treat local runtime `.omx` state as part of the distributable plugin
+- do not treat local runtime `.meta-architect` state as part of the distributable plugin
 - preserve the gate/evidence semantics documented in the repo
 
 ## Version and release relation
@@ -84,7 +84,7 @@ When consuming the plugin:
 The plugin version should track the release scope of the core repo.
 
 For this repository:
-- plugin scope is aligned to Meta-Architect `v0.1.0`
+- plugin scope is aligned to Meta-Architect `v0.2.0`
 - any breaking contract change should be versioned intentionally
 
 The plugin is one distribution surface of the same product, not a separate product line.

@@ -6,7 +6,7 @@ Use these instructions when generating or applying repository content to the Met
 
 - Keep Meta-Architect skills, gates, evidence, and release behavior explicit.
 - Prefer inspectable files over hidden side effects.
-- Do not bypass the `.omx` gate model.
+- Do not bypass the `.meta-architect` gate model.
 - Treat CLI, skill contracts, plugin surfaces, and docs as one coherent product system.
 
 ## Kernel rule

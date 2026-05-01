@@ -11,7 +11,7 @@ Bind major architecture choices to approved GitMCP-backed evidence.
 
 ## Expected outputs
 
-- `.omx/evidence/sources.json`
+- `.meta-architect/evidence/sources.json`
 - `evidence_status = VERIFIED | PARTIAL | MISSING`
 
 ## Exit criteria

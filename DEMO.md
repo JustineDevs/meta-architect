@@ -16,17 +16,17 @@ cd meta-architect
 npm install
 
 # Initialize Meta-Architect in this repo
-ma init
+ma setup
 ```
 
 **Expected output:**
 ```text
-meta-architect init
-===================
+meta-architect setup
+====================
 ready: .codex/agents
 ready: .codex/prompts
-ready: .omx/skills
-ready: .omx/evidence
+ready: .meta-architect/skills
+ready: .meta-architect/evidence
 ready: mcp
 ready: docs
 ready: docs/qa
@@ -103,7 +103,7 @@ ma run $sage
 - The command opens a live MCP SSE session to a configured GitMCP endpoint
 - It performs `tools/list`
 - It performs a repo-specific documentation tool call
-- `.omx/evidence/sources.json` records `liveProbe` metadata
+- `.meta-architect/evidence/sources.json` records `liveProbe` metadata
 - `evidence_status` becomes `VERIFIED` if at least one real endpoint succeeds
 
 ## Demo 3: Build Gate Enforcement
@@ -116,7 +116,7 @@ ma run $build
 
 **Expected:**
 - Build is blocked
-- A decision entry is appended to `.omx/decisions.json`
+- A decision entry is appended to `.meta-architect/decisions.json`
 - The output identifies which gate is blocking
 
 After all gates are green, rerun:
@@ -169,7 +169,7 @@ npm run skills:install -- --path ./dist/installed-skills
 | Component | Count | Location |
 |-----------|-------|----------|
 | Codex agent definitions | 6 | `.codex/agents/*.toml` |
-| OMX skill contract files | 7 | `.omx/skills/*.skill.md` |
+| Meta-Architect skill contract files | 7 | `.meta-architect/skills/*.skill.md` |
 | Repo-local published skills | 7 | `skills/*/SKILL.md` |
 | CLI source files | 8 | `src/*.js`, `bin/ma.js` |
 | MCP config files | 3 | `mcp/*.json` |

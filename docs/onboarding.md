@@ -15,14 +15,13 @@ This file is the short operator entrypoint for someone who just opened the repo 
 ```bash
 npm install
 npm link
-ma init
-ma status
-ma skills
+ma setup
+ma
 ```
 
 ## First safety rules
 
-- Do not commit runtime `.omx` state.
+- Do not commit runtime `.meta-architect` state.
 - Do not bypass gates by editing status files manually.
 - Do not assume a release channel succeeded without evidence.
 - Do not treat fallback MCP docs mode as normal verified evidence.

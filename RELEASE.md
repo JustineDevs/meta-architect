@@ -1,15 +1,18 @@
-# Meta-Architect v0.1.0
+# Meta-Architect v0.2.0
 
 ## Summary
 
-This release ships the core orchestration and skills surface for Meta-Architect, including gated build readiness, live GitMCP-backed evidence probing, and merge/release policy enforcement.
+This release converts Meta-Architect into a standalone product surface. The public launcher is now
+`ma`, runtime state lives under `.meta-architect/`, and the package no longer depends on an
+external wrapper runtime.
 
-`v0.1.0` is intended as the first production core release. In this repo, production means:
+`v0.2.0` is the standalone release line. In this repo, production means:
 - the core workflows are reliable end-to-end,
 - the public interface and contract are stable for the `1.x` line,
 - and the release is backed by explicit QA and publishing evidence.
 
-This release is therefore in scope for real project use, with future changes expected to preserve the core trigger/status/branch contract unless introduced as a major-version break.
+This release is therefore in scope for real project use, with future changes expected to preserve
+the core trigger/status/branch contract unless introduced as a major-version break.
 
 ## Verification
 
@@ -18,7 +21,7 @@ This release is therefore in scope for real project use, with future changes exp
 - `npm run skills:manifest`
 - `npm run skills:validate`
 - `npm run skills:pack`
-- manual CLI flow recorded in `docs/qa/release-readiness-0.1.0.md`
+- manual CLI flow recorded in `docs/qa/release-readiness-0.2.0.md`
 
 ## Operational bar
 

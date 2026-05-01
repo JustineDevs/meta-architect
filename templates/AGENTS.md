@@ -80,11 +80,11 @@ Major technology recommendations must be supported by evidence from configured M
 
 Architecture decisions, evidence, audits, and release-relevant outcomes should be written to repository-visible local files where applicable, especially:
 
-- `.omx/decisions.json`
-- `.omx/release.json`
-- `.omx/evidence/sources.json`
-- `.omx/evidence/audits.json`
-- `.omx/evidence/cves.json`
+- `.meta-architect/decisions.json`
+- `.meta-architect/release.json`
+- `.meta-architect/evidence/sources.json`
+- `.meta-architect/evidence/audits.json`
+- `.meta-architect/evidence/cves.json`
 
 ## Skill routing
 
@@ -104,7 +104,7 @@ When working in this repository:
 - prefer explicit reasoning and explicit file changes
 - do not skip validation steps silently
 - do not weaken hooks or gates for convenience
-- do not commit runtime `.omx` state
+- do not commit runtime `.meta-architect` state
 - do not treat release-sensitive changes as trivial edits
 
 ## Contributor expectation
