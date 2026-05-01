@@ -21,7 +21,7 @@ ma
 
 ## First safety rules
 
-- Do not commit runtime `.meta-architect` state.
+- Do not commit runtime `.ma` state.
 - Do not bypass gates by editing status files manually.
 - Do not assume a release channel succeeded without evidence.
 - Do not treat fallback MCP docs mode as normal verified evidence.

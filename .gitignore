@@ -1,6 +1,9 @@
 node_modules/
 
-# Local AI runtime state
+# Canonical local runtime state
+.ma/
+# Legacy runtime folders kept ignored for migration cleanup only
+.meta-architect/
 .omx/
 .agents/
 .claude/

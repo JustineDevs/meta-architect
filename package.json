@@ -1,6 +1,6 @@
 {
-  "name": "@jstn-sdk/meta-architect-skills",
-  "version": "0.2.0",
+  "name": "@jstn-sdk/meta-architect",
+  "version": "0.1.0",
   "description": "Meta-Architect skills bundle and orchestration tooling for verified engineering workflows.",
   "license": "MIT",
   "author": "jstn-sdk",
@@ -57,7 +57,7 @@
     "skills:validate": "node ./scripts/skills-validate.js",
     "skills:install": "node ./scripts/skills-install.js",
     "skills:pack": "node ./scripts/skills-pack.js",
-    "pack:inspect": "npm pack --dry-run",
+    "pack:inspect": "npm pack --dry-run --ignore-scripts --cache ./.npm-cache",
     "doctor": "node ./scripts/doctor.js",
     "lint": "biome lint .",
     "format": "biome format .",

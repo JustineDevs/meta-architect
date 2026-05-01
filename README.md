@@ -2,7 +2,7 @@
   <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="1024" height="240">
   <p>Production-grade skills package and CLI for programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking.</p>
   <p>
-    <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fmeta-architect-skills" alt="npm version">
+    <img src="https://img.shields.io/npm/v/meta-architect" alt="npm version">
     <img src="https://img.shields.io/badge/node-%3E%3D20-339933" alt="Node.js 20+">
     <img src="https://img.shields.io/github/v/release/JustineDevs/meta-architect" alt="GitHub release">
     <img src="https://img.shields.io/badge/license-MIT-16A34A" alt="MIT License">
@@ -10,9 +10,9 @@
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.2.0` is a production-grade skills line.
+> Meta-Architect `v0.1.0` is a production-grade skills line.
 > It is not a lightweight demo branch.
-> From `v0.2.0` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> From `v0.1.0` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
 
 ## Overview
 
@@ -32,7 +32,7 @@ It adds:
 <table>
   <tr>
     <td><strong>npm package</strong></td>
-    <td><code>@jstn-sdk/meta-architect-skills</code></td>
+    <td><code>meta-architect</code></td>
   </tr>
   <tr>
     <td><strong>CLI commands</strong></td>
@@ -44,7 +44,7 @@ It adds:
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.2.0</code></td>
+    <td><code>v0.1.0</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -71,7 +71,7 @@ Meta-Architect is intended to be consumed as an installed package, not primarily
 Default operator path:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect-skills@latest
+npm install -g @openai/codex @jstn-sdk/meta-architect@latest
 ma setup
 ma
 ```
@@ -109,7 +109,7 @@ Meta-Architect’s repository workflow follows a stricter release posture focuse
 Install the consumer package directly:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect-skills@latest
+npm install -g @openai/codex @jstn-sdk/meta-architect@latest
 ```
 
 This gives you:
@@ -117,7 +117,7 @@ This gives you:
 - `codex`
 - `ma`
 - `meta-architect`
-- the standalone Meta-Architect CLI
+- the canonical Meta-Architect runtime entrypoints
 
 ### Contributor setup: source checkout
 
@@ -155,8 +155,8 @@ meta-architect setup
 ====================
 ready: .codex/agents
 ready: .codex/prompts
-ready: .meta-architect/skills
-ready: .meta-architect/evidence
+ready: .ma/skills
+ready: .ma/evidence
 ready: mcp
 ready: docs
 ready: docs/qa
@@ -199,7 +199,7 @@ ma idea "Build a real-time collaborative whiteboard for product teams"
 
 Expected effect:
 
-- appends an idea entry to `.meta-architect/decisions.json`
+- appends an idea entry to `.ma/decisions.json`
 - sets `idea_status = CLEAR`
 
 ### 4. Run the gated workflow
@@ -285,7 +285,7 @@ Meta-Architect is intentionally fail-closed.
 | `READY` | the next gated step is allowed |
 
 > [!CAUTION]
-> `$build` must stay locked until the upstream release state in `.meta-architect/release.json` satisfies the gate contract.
+> `$build` must stay locked until the upstream release state in `.ma/release.json` satisfies the gate contract.
 > Meta-Architect is designed to stop on blockers rather than silently continue.
 
 ## Release and Packaging
@@ -328,7 +328,7 @@ Pre-publish rules:
   </tr>
   <tr>
     <td><strong>Excluded</strong></td>
-    <td><code>.meta-architect/</code> runtime state, logs, caches, and temp install outputs</td>
+    <td><code>.ma/</code> runtime state, logs, caches, and temp install outputs</td>
   </tr>
 </table>
 
@@ -384,12 +384,12 @@ Pre-publish rules:
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
 | [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.2.0.md) | QA evidence for the `v0.2.0` line |
+| [Release Readiness](./docs/qa/release-readiness-0.1.0.md) | QA evidence for the `v0.1.0` line |
 
 ## Release Hygiene
 
 > [!WARNING]
-> Runtime `.meta-architect` logs, state, tmp, and cache files must not be shipped.
+> Runtime `.ma` logs, state, tmp, and cache files must not be shipped.
 > Public docs must match actual package behavior.
 > Publish statements must match reality.
 > Skill contracts must stay aligned across canonical and plugin-facing copies.

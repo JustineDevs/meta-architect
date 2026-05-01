@@ -1,5 +1,5 @@
 import { readJson, writeJson } from "./fs-utils.js";
-import { decisionsPath } from "./paths.js";
+import { getRuntimeReadPath, getRuntimeWritePath } from "./paths.js";
 
 function validateDecisionShape(entry) {
   const required = ["decision", "status", "evidence", "blockers", "next_allowed_triggers"];
@@ -11,7 +11,7 @@ function validateDecisionShape(entry) {
 }
 
 export async function loadDecisionLog() {
-  const parsed = await readJson(decisionsPath);
+  const parsed = await readJson(getRuntimeReadPath("decisions.json"));
 
   if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.decisions)) {
     throw new Error("Decision log must be an object with a decisions array");
@@ -28,7 +28,7 @@ export async function appendDecision(entry) {
     timestamp: new Date().toISOString(),
   });
 
-  await writeJson(decisionsPath, log);
+  await writeJson(getRuntimeWritePath("decisions.json"), log);
 }
 
 export async function updateDecisionStatuses(statusUpdates) {
@@ -36,5 +36,5 @@ export async function updateDecisionStatuses(statusUpdates) {
   for (const [field, value] of Object.entries(statusUpdates)) {
     log[field] = value;
   }
-  await writeJson(decisionsPath, log);
+  await writeJson(getRuntimeWritePath("decisions.json"), log);
 }

@@ -41,7 +41,7 @@ async function copyDir(src, dest) {
     if (
       entry.name === ".git" ||
       entry.name === "node_modules" ||
-      entry.name === ".meta-architect" ||
+      entry.name === ".ma" ||
       entry.name === ".claude" ||
       entry.name === ".agents"
     ) {
@@ -61,13 +61,13 @@ async function copyDir(src, dest) {
 test("full documented skill flow reaches build-ready state", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-flow-"));
   await copyDir(repoRoot, tempRoot);
-  await fs.mkdir(path.join(tempRoot, ".meta-architect"), { recursive: true });
+  await fs.mkdir(path.join(tempRoot, ".ma"), { recursive: true });
   await fs.writeFile(
-    path.join(tempRoot, ".meta-architect", "decisions.json"),
+    path.join(tempRoot, ".ma", "decisions.json"),
     `${JSON.stringify(cleanDecisions, null, 2)}\n`,
   );
   await fs.writeFile(
-    path.join(tempRoot, ".meta-architect", "release.json"),
+    path.join(tempRoot, ".ma", "release.json"),
     `${JSON.stringify(cleanRelease, null, 2)}\n`,
   );
 

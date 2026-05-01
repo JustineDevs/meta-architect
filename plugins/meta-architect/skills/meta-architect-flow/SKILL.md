@@ -23,7 +23,7 @@ Use $meta-architect-flow to verify that the workflow logic and state transitions
 ## Output contract
 
 Expected output:
-- logic review entry in `.meta-architect/decisions.json`
+- logic review entry in `.ma/decisions.json`
 - explicit blocker or green decision
 - prerequisite-based blocking when architecture or evidence is not ready
 
@@ -61,8 +61,8 @@ ma run '$flow'
 ```
 
 Output expectation:
-- `.meta-architect/decisions.json` updated
-- `.meta-architect/release.json` shows `logic_status = GREEN` only when acceptable
+- `.ma/decisions.json` updated
+- `.ma/release.json` shows `logic_status = GREEN` only when acceptable
 
 ## Related surfaces
 

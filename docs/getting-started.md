@@ -48,7 +48,7 @@ ma
 Expected effects:
 - `.codex/agents/` exists
 - `.codex/prompts/` exists
-- local `.meta-architect/skills/` and `.meta-architect/evidence/` are seeded
+- local `.ma/skills/` and `.ma/evidence/` are seeded
 - `mcp/`, `docs/`, and `sprint/` surfaces exist
 - `ma` launches the local Codex CLI when run with no arguments
 
@@ -59,8 +59,8 @@ meta-architect setup
 ====================
 ready: .codex/agents
 ready: .codex/prompts
-ready: .meta-architect/skills
-ready: .meta-architect/evidence
+ready: .ma/skills
+ready: .ma/evidence
 ready: mcp
 ready: docs
 ready: docs/qa
@@ -98,12 +98,12 @@ ma idea "Build a real-time collaborative whiteboard for product teams"
 ```
 
 Expected effects:
-- an idea decision entry is appended to `.meta-architect/decisions.json`
+- an idea decision entry is appended to `.ma/decisions.json`
 - `idea_status = CLEAR`
 
 If this fails:
 - ensure the idea text is not empty
-- inspect `.meta-architect/decisions.json` for malformed local data
+- inspect `.ma/decisions.json` for malformed local data
 
 ## 5. Run the skill sequence
 
@@ -118,8 +118,8 @@ Expected effects:
 - `architecture_status = APPROVED`
 
 Generated or updated:
-- `.meta-architect/decisions.json`
-- `.meta-architect/release.json`
+- `.ma/decisions.json`
+- `.ma/release.json`
 
 ### 5.2 Evidence
 
@@ -132,16 +132,16 @@ Expected effects:
 - configured GitMCP endpoints are validated
 - the latest architecture summary is used as the probe query basis
 - the first configured live source is probed when live mode is enabled
-- `.meta-architect/evidence/sources.json` is updated
+- `.ma/evidence/sources.json` is updated
 - `evidence_status` becomes:
   - `VERIFIED` on a real successful live probe
   - `PARTIAL` when configured evidence exists but live proof is incomplete or disabled
   - `MISSING` when no usable approved source exists
 
 Generated or updated:
-- `.meta-architect/evidence/sources.json`
-- `.meta-architect/decisions.json`
-- `.meta-architect/release.json`
+- `.ma/evidence/sources.json`
+- `.ma/decisions.json`
+- `.ma/release.json`
 
 If this fails:
 - check endpoint URLs in `mcp/servers.json`
@@ -167,7 +167,7 @@ ma run '$vet'
 ```
 
 Expected effects:
-- `.meta-architect/evidence/audits.json` and `.meta-architect/evidence/cves.json` are updated
+- `.ma/evidence/audits.json` and `.ma/evidence/cves.json` are updated
 - `security_status = GREEN` on a baseline pass
 - `security_status = RED` when prerequisite gates are not ready
 
@@ -179,7 +179,7 @@ ma run '$vibe' --waive --reason "Accepted for this release line"
 ```
 
 Expected effects:
-- `.meta-architect/evidence/outcomes.json` is updated
+- `.ma/evidence/outcomes.json` is updated
 - `experience_status = GREEN` on a baseline pass
 - `experience_status = RED` when prerequisite gates are not ready
 - `experience_status = WAIVED` when the waiver path is used explicitly
@@ -282,12 +282,12 @@ Expected effects:
 
 ## 10. Files generated or updated during a normal run
 
-- `.meta-architect/decisions.json`
-- `.meta-architect/release.json`
-- `.meta-architect/evidence/sources.json`
-- `.meta-architect/evidence/audits.json`
-- `.meta-architect/evidence/cves.json`
-- `.meta-architect/evidence/outcomes.json`
+- `.ma/decisions.json`
+- `.ma/release.json`
+- `.ma/evidence/sources.json`
+- `.ma/evidence/audits.json`
+- `.ma/evidence/cves.json`
+- `.ma/evidence/outcomes.json`
 
 These are local product artifacts created by the runtime. They are not a reason to bypass gate logic manually.
 
@@ -303,7 +303,7 @@ Common examples:
 - `logic_status = RED` -> fix upstream evidence/architecture issues, rerun `$flow`
 - `security_status = RED` -> resolve issues surfaced by `$vet`
 - `experience_status = RED` -> rerun `$vibe` after clearing prerequisites
-- `experience_status = WAIVED` -> verify the waiver reason recorded in `.meta-architect/release.json`
+- `experience_status = WAIVED` -> verify the waiver reason recorded in `.ma/release.json`
 
 ## Related docs
 

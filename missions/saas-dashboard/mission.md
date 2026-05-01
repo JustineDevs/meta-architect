@@ -26,10 +26,10 @@ Use Meta-Architect to move a SaaS dashboard idea into a disciplined build-ready 
 
 ## Expected generated artifacts
 
-- `.meta-architect/decisions.json`
-- `.meta-architect/release.json`
-- `.meta-architect/evidence/sources.json`
-- `.meta-architect/evidence/outcomes.json`
+- `.ma/decisions.json`
+- `.ma/release.json`
+- `.ma/evidence/sources.json`
+- `.ma/evidence/outcomes.json`
 
 ## Pass criteria
 

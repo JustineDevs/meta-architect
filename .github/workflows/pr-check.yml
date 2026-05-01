@@ -62,11 +62,11 @@ jobs:
           echo "Current base: $BASE_REF"
           exit 1
 
-      - name: Fail on forbidden tracked runtime .omx files
+      - name: Fail on forbidden tracked runtime .ma files
         run: |
-          forbidden=$(git ls-files '.omx/logs/*' '.omx/state/*' '.omx/tmp/*' '.omx/cache/*' || true)
+          forbidden=$(git ls-files '.ma/logs/*' '.ma/state/*' '.ma/tmp/*' '.ma/cache/*' || true)
           if [ -n "$forbidden" ]; then
-            echo "Forbidden runtime .omx files are tracked:"
+            echo "Forbidden runtime .ma files are tracked:"
             echo "$forbidden"
             exit 1
           fi

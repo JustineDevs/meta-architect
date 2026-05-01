@@ -1,8 +1,8 @@
-# V0.2.0 Requirements & Rules
+# V0.1.0 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.2.0` is production only when all three are true at the same time:
+Meta-Architect `v0.1.0` is production only when all three are true at the same time:
 
 1. Core workflows are reliable end-to-end.
 2. The public interface and contract are stable.
@@ -10,12 +10,12 @@ Meta-Architect `v0.2.0` is production only when all three are true at the same t
 
 Production here means safe to recommend for real projects and expensive to break without a major version change.
 
-## What v0.2.0 MUST have
+## What v0.1.0 MUST have
 
 ### 1. Core workflow working end-to-end
 
 1. `ma setup`
-   - Creates `.codex/`, `.meta-architect/`, `mcp/`, and baseline `docs/` without breaking existing files.
+   - Creates `.codex/`, `.ma/`, `mcp/`, and baseline `docs/` without breaking existing files.
    - Leaves the repo in a valid Git + MCP state.
 
 2. MCP / GitMCP wiring
@@ -41,7 +41,7 @@ Production here means safe to recommend for real projects and expensive to break
 
 ### 2. Gate and status rules
 
-Status fields in `.meta-architect/decisions.json`:
+Status fields in `.ma/decisions.json`:
 - `idea_status`
 - `architecture_status`
 - `evidence_status`
@@ -73,7 +73,7 @@ Build lock rule:
   - `experience_status` is `GREEN` or `WAIVED`
   - `build_status` is `LOCKED` or `READY`
 
-Public contract freeze for `v0.2.0`:
+Public contract freeze for `v0.1.0`:
 - Core triggers remain stable:
   - `ma setup`
   - `ma idea`
@@ -129,7 +129,7 @@ Required repository checks on both `development` and `main`:
 ### 4. Evidence and MCP rules
 
 - `$sage` and `$arch` must provide at least one OSS source for each major library/framework recommendation.
-- All such sources must be logged into `.meta-architect/evidence/sources.json` with `repo`, `endpoint`, and `category`.
+- All such sources must be logged into `.ma/evidence/sources.json` with `repo`, `endpoint`, and `category`.
 - If no suitable source is found, the recommendation must be marked `UNVERIFIED` and must not flip `evidence_status` to `VERIFIED`.
 - Meta-Architect must never invent fake repos or endpoints.
 
@@ -143,7 +143,7 @@ Minimum required tests:
 - Skill packaging validation tests
 
 Required QA artifact:
-- `docs/qa/release-readiness-0.2.0.md`
+- `docs/qa/release-readiness-0.1.0.md`
 
 Required release evidence:
 - release tag
@@ -158,11 +158,11 @@ Required release evidence:
 - `docs/skills.md`
 - `docs/release-spec.md`
 - `docs/mcp-setup.md`
-- `docs/qa/release-readiness-0.2.0.md`
+- `docs/qa/release-readiness-0.1.0.md`
 
 ## Production rule
 
-Meta-Architect `v0.2.0` is considered production-ready only if:
+Meta-Architect `v0.1.0` is considered production-ready only if:
 - a new project can be initialized,
 - at least one real GitMCP endpoint is wired and successfully queried,
 - the full `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` workflow runs with exact gate enforcement,

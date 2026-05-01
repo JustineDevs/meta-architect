@@ -1,9 +1,9 @@
 # Changelog
 
-## v0.2.0
+## v0.1.0
 
 - Switched the product to a standalone `ma` launcher that delegates directly to `codex` instead of a separate wrapper runtime.
-- Moved runtime state and workflow artifacts into `.meta-architect/`.
+- Moved runtime state and workflow artifacts into `.ma/`.
 - Removed the legacy wrapper/runtime traces from code, docs, templates, and packaging.
 - Updated setup and release docs for the standalone package-first flow.
 

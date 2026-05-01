@@ -28,6 +28,6 @@ The CLI currently supports:
 
 ## What not to do
 
-- Do not edit `.omx/release.json` or `.omx/decisions.json` manually to bypass the gate model.
-- Do not treat `.omx/logs/` or `.omx/state/` as source.
+- Do not edit `.ma/release.json` or `.ma/decisions.json` manually to bypass the gate model.
+- Do not treat `.ma/logs/` or `.ma/state/` as source.
 - Do not claim release channels succeeded without proof.

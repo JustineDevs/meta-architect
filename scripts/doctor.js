@@ -7,6 +7,8 @@ const checks = [
   ["skills/index.json", fs.existsSync("skills/index.json")],
   ["dist/meta-architect-skills.tgz", fs.existsSync("dist/meta-architect-skills.tgz")],
   [".codex/hooks.json", fs.existsSync(".codex/hooks.json")],
+  [".ma/decisions.json", fs.existsSync(".ma/decisions.json")],
+  [".ma/release.json", fs.existsSync(".ma/release.json")],
   ["docs/release-spec.md", fs.existsSync("docs/release-spec.md")],
   ["plugins/meta-architect/.app.json", fs.existsSync("plugins/meta-architect/.app.json")],
   [

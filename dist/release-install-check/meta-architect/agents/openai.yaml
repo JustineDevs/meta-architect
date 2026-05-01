@@ -1,4 +1,0 @@
-interface:
-  display_name: "Meta-Architect"
-  short_description: "Core orchestration and gated build workflows"
-  default_prompt: "Use $meta-architect to initialize, run, and release a gated Meta-Architect workflow in this repo."

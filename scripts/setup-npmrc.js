@@ -22,7 +22,7 @@ async function main() {
 
   const content = [
     `registry=${registry}`,
-    `${scope}:registry=${registry}`,
+    ...(scope ? [`${scope}:registry=${registry}`] : []),
     `//${host}/:_authToken=${token}`,
     "",
   ].join("\n");

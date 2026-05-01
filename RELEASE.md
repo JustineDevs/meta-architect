@@ -1,12 +1,12 @@
-# Meta-Architect v0.2.0
+# Meta-Architect v0.1.0
 
 ## Summary
 
 This release converts Meta-Architect into a standalone product surface. The public launcher is now
-`ma`, runtime state lives under `.meta-architect/`, and the package no longer depends on an
+`ma`, runtime state lives under `.ma/`, and the package no longer depends on an
 external wrapper runtime.
 
-`v0.2.0` is the standalone release line. In this repo, production means:
+`v0.1.0` is the standalone release line. In this repo, production means:
 - the core workflows are reliable end-to-end,
 - the public interface and contract are stable for the `1.x` line,
 - and the release is backed by explicit QA and publishing evidence.
@@ -21,7 +21,7 @@ the core trigger/status/branch contract unless introduced as a major-version bre
 - `npm run skills:manifest`
 - `npm run skills:validate`
 - `npm run skills:pack`
-- manual CLI flow recorded in `docs/qa/release-readiness-0.2.0.md`
+- manual CLI flow recorded in `docs/qa/release-readiness-0.1.0.md`
 
 ## Operational bar
 

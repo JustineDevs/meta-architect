@@ -4,7 +4,7 @@ import { appendDecision } from "./decision-log.js";
 import { readJson, writeFileIfMissing, writeJson } from "./fs-utils.js";
 import { validateMcpServers } from "./mcp-config.js";
 import { McpSseClient } from "./mcp-live-client.js";
-import { auditsPath, cvesPath, outcomesPath, packageRoot, repoRoot, sourcesPath } from "./paths.js";
+import { getRepoRoot, getRuntimeReadPath, getRuntimeWritePath, packageRoot } from "./paths.js";
 import { syncStatusUpdates } from "./state-sync.js";
 
 const skillNames = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
@@ -27,7 +27,7 @@ export function listSkills() {
 }
 
 async function readIdeaText() {
-  const decisions = await readJson(path.join(repoRoot, ".meta-architect", "decisions.json"));
+  const decisions = await readJson(getRuntimeReadPath("decisions.json"));
   const ideaDecision = [...decisions.decisions].reverse().find((entry) => entry.kind === "idea");
   return ideaDecision?.idea ?? null;
 }
@@ -149,9 +149,9 @@ export async function runSage() {
     }
   }
 
-  const existing = await readJson(sourcesPath);
+  const existing = await readJson(getRuntimeWritePath("evidence", "sources.json"));
   existing.items = sourceEntries;
-  await writeJson(sourcesPath, existing);
+  await writeJson(getRuntimeWritePath("evidence", "sources.json"), existing);
 
   const verified = sourceEntries.length > 0 && (disableLiveProbe || liveSuccessCount > 0);
   await appendDecision({
@@ -189,21 +189,21 @@ export async function runFlow() {
 }
 
 export async function runVet() {
-  const auditLog = await readJson(auditsPath);
-  const cveLog = await readJson(cvesPath);
+  const auditLog = await readJson(getRuntimeWritePath("evidence", "audits.json"));
+  const cveLog = await readJson(getRuntimeWritePath("evidence", "cves.json"));
   const finding = {
     severity: "INFO",
     summary: "Baseline review completed for the approved kernel",
     unresolved: false,
   };
   auditLog.items.push(finding);
-  await writeJson(auditsPath, auditLog);
+  await writeJson(getRuntimeWritePath("evidence", "audits.json"), auditLog);
   cveLog.items.push({
     id: "baseline-review",
     severity: "INFO",
     unresolved: false,
   });
-  await writeJson(cvesPath, cveLog);
+  await writeJson(getRuntimeWritePath("evidence", "cves.json"), cveLog);
 
   await appendDecision({
     kind: "skill",
@@ -219,13 +219,13 @@ export async function runVet() {
 }
 
 export async function runVibe() {
-  const outcomes = await readJson(outcomesPath);
+  const outcomes = await readJson(getRuntimeWritePath("evidence", "outcomes.json"));
   const note = {
     area: "developer-experience",
     summary: "Core CLI and gated workflow remain the primary operator surface",
   };
   outcomes.items.push(note);
-  await writeJson(outcomesPath, outcomes);
+  await writeJson(getRuntimeWritePath("evidence", "outcomes.json"), outcomes);
 
   await appendDecision({
     kind: "skill",
@@ -245,8 +245,8 @@ export async function runInit() {
   const targets = [
     ".codex/agents",
     ".codex/prompts",
-    ".meta-architect/skills",
-    ".meta-architect/evidence",
+    ".ma/skills",
+    ".ma/evidence",
     "mcp",
     "docs",
     "docs/qa",
@@ -254,7 +254,7 @@ export async function runInit() {
   ];
 
   for (const relative of targets) {
-    const target = path.join(repoRoot, relative);
+    const target = path.join(getRepoRoot(), relative);
     await fs.mkdir(target, { recursive: true });
     created.push(relative);
   }
@@ -262,59 +262,65 @@ export async function runInit() {
   const templateCopies = [
     [
       path.join(packageRoot, ".codex", "agents", "Architect.toml"),
-      path.join(repoRoot, ".codex", "agents", "Architect.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Architect.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Sage.toml"),
-      path.join(repoRoot, ".codex", "agents", "Sage.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Sage.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Auditor.toml"),
-      path.join(repoRoot, ".codex", "agents", "Auditor.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Auditor.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Flow.toml"),
-      path.join(repoRoot, ".codex", "agents", "Flow.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Flow.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Vibe.toml"),
-      path.join(repoRoot, ".codex", "agents", "Vibe.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Vibe.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Builder.toml"),
-      path.join(repoRoot, ".codex", "agents", "Builder.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Builder.toml"),
     ],
-    [path.join(packageRoot, ".codex", "hooks.json"), path.join(repoRoot, ".codex", "hooks.json")],
+    [
+      path.join(packageRoot, ".codex", "hooks.json"),
+      path.join(getRepoRoot(), ".codex", "hooks.json"),
+    ],
     [
       path.join(packageRoot, ".codex", "prompts", "enforcement.md"),
-      path.join(repoRoot, ".codex", "prompts", "enforcement.md"),
+      path.join(getRepoRoot(), ".codex", "prompts", "enforcement.md"),
     ],
     [
       path.join(packageRoot, ".codex", "prompts", "release-rules.md"),
-      path.join(repoRoot, ".codex", "prompts", "release-rules.md"),
+      path.join(getRepoRoot(), ".codex", "prompts", "release-rules.md"),
     ],
     [
       path.join(packageRoot, ".codex", "prompts", "skill-contract.md"),
-      path.join(repoRoot, ".codex", "prompts", "skill-contract.md"),
+      path.join(getRepoRoot(), ".codex", "prompts", "skill-contract.md"),
     ],
     [
       path.join(packageRoot, ".codex", "prompts", "onboarding.md"),
-      path.join(repoRoot, ".codex", "prompts", "onboarding.md"),
+      path.join(getRepoRoot(), ".codex", "prompts", "onboarding.md"),
     ],
-    [path.join(packageRoot, "docs", "README.md"), path.join(repoRoot, "docs", "README.md")],
+    [path.join(packageRoot, "docs", "README.md"), path.join(getRepoRoot(), "docs", "README.md")],
     [
       path.join(packageRoot, "docs", "getting-started.md"),
-      path.join(repoRoot, "docs", "getting-started.md"),
+      path.join(getRepoRoot(), "docs", "getting-started.md"),
     ],
-    [path.join(packageRoot, "docs", "skills.md"), path.join(repoRoot, "docs", "skills.md")],
-    [path.join(packageRoot, "docs", "mcp-setup.md"), path.join(repoRoot, "docs", "mcp-setup.md")],
+    [path.join(packageRoot, "docs", "skills.md"), path.join(getRepoRoot(), "docs", "skills.md")],
+    [
+      path.join(packageRoot, "docs", "mcp-setup.md"),
+      path.join(getRepoRoot(), "docs", "mcp-setup.md"),
+    ],
     [
       path.join(packageRoot, "docs", "release-spec.md"),
-      path.join(repoRoot, "docs", "release-spec.md"),
+      path.join(getRepoRoot(), "docs", "release-spec.md"),
     ],
     [
-      path.join(packageRoot, "docs", "qa", "release-readiness-0.2.0.md"),
-      path.join(repoRoot, "docs", "qa", "release-readiness-0.2.0.md"),
+      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.0.md"),
+      path.join(getRepoRoot(), "docs", "qa", "release-readiness-0.1.0.md"),
     ],
   ];
 
@@ -332,12 +338,15 @@ export async function runInit() {
   for (const file of sprintFiles) {
     templateCopies.push([
       path.join(packageRoot, "sprint", file),
-      path.join(repoRoot, "sprint", file),
+      path.join(getRepoRoot(), "sprint", file),
     ]);
   }
 
   for (const file of ["servers.json", "collections.json", "fallback.json"]) {
-    templateCopies.push([path.join(packageRoot, "mcp", file), path.join(repoRoot, "mcp", file)]);
+    templateCopies.push([
+      path.join(packageRoot, "mcp", file),
+      path.join(getRepoRoot(), "mcp", file),
+    ]);
   }
 
   for (const [src, dest] of templateCopies) {
@@ -349,7 +358,7 @@ export async function runInit() {
   }
 
   await writeFileIfMissing(
-    path.join(repoRoot, ".meta-architect", "decisions.json"),
+    getRuntimeWritePath("decisions.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -370,7 +379,7 @@ export async function runInit() {
   );
 
   await writeFileIfMissing(
-    path.join(repoRoot, ".meta-architect", "release.json"),
+    getRuntimeWritePath("release.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -392,19 +401,19 @@ export async function runInit() {
   );
 
   for (const [fileName, content] of Object.entries(workflowTemplates)) {
-    await writeFileIfMissing(path.join(repoRoot, ".meta-architect", "skills", fileName), content);
+    await writeFileIfMissing(getRuntimeWritePath("skills", fileName), content);
   }
 
   await writeFileIfMissing(
-    path.join(repoRoot, "mcp", "servers.json"),
+    path.join(getRepoRoot(), "mcp", "servers.json"),
     `${JSON.stringify({ schemaVersion: "0.1.0", servers: [] }, null, 2)}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, "mcp", "collections.json"),
+    path.join(getRepoRoot(), "mcp", "collections.json"),
     `${JSON.stringify({ schemaVersion: "0.1.0", collections: {} }, null, 2)}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, "mcp", "fallback.json"),
+    path.join(getRepoRoot(), "mcp", "fallback.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -418,7 +427,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".meta-architect", "evidence", "sources.json"),
+    getRuntimeWritePath("evidence", "sources.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -429,7 +438,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".meta-architect", "evidence", "audits.json"),
+    getRuntimeWritePath("evidence", "audits.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -440,7 +449,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".meta-architect", "evidence", "outcomes.json"),
+    getRuntimeWritePath("evidence", "outcomes.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -451,7 +460,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".meta-architect", "evidence", "cves.json"),
+    getRuntimeWritePath("evidence", "cves.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -463,8 +472,8 @@ export async function runInit() {
   );
 
   await writeFileIfMissing(
-    path.join(repoRoot, "docs", "onboarding.md"),
-    "# Onboarding\n\nMeta-Architect initializes the core scaffold, MCP config, and release-state files.\n",
+    path.join(getRepoRoot(), "docs", "onboarding.md"),
+    "# Onboarding\n\nMeta-Architect initializes the core scaffold, MCP config, and canonical .ma runtime files.\n",
   );
 
   return created;

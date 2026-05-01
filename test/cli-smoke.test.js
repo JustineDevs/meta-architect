@@ -41,7 +41,7 @@ async function copyDir(src, dest) {
     if (
       entry.name === ".git" ||
       entry.name === "node_modules" ||
-      entry.name === ".meta-architect" ||
+      entry.name === ".ma" ||
       entry.name === ".claude" ||
       entry.name === ".agents"
     ) {
@@ -83,13 +83,13 @@ process.exit(${exitCode});
 test("ma status succeeds against the default scaffold", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-status-"));
   await copyDir(repoRoot, tempRoot);
-  await fs.mkdir(path.join(tempRoot, ".meta-architect"), { recursive: true });
+  await fs.mkdir(path.join(tempRoot, ".ma"), { recursive: true });
   await fs.writeFile(
-    path.join(tempRoot, ".meta-architect", "decisions.json"),
+    path.join(tempRoot, ".ma", "decisions.json"),
     `${JSON.stringify(cleanDecisions, null, 2)}\n`,
   );
   await fs.writeFile(
-    path.join(tempRoot, ".meta-architect", "release.json"),
+    path.join(tempRoot, ".ma", "release.json"),
     `${JSON.stringify(cleanRelease, null, 2)}\n`,
   );
   const result = spawnSync(process.execPath, [path.join(repoRoot, "bin/ma.js"), "status"], {
@@ -99,22 +99,20 @@ test("ma status succeeds against the default scaffold", async () => {
   });
 
   assert.equal(result.status, 0);
-  const release = JSON.parse(
-    await fs.readFile(path.join(tempRoot, ".meta-architect", "release.json"), "utf8"),
-  );
+  const release = JSON.parse(await fs.readFile(path.join(tempRoot, ".ma", "release.json"), "utf8"));
   assert.equal(release.build_status, "LOCKED");
 });
 
 test("ma run $build fails closed against the default scaffold", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-build-"));
   await copyDir(repoRoot, tempRoot);
-  await fs.mkdir(path.join(tempRoot, ".meta-architect"), { recursive: true });
+  await fs.mkdir(path.join(tempRoot, ".ma"), { recursive: true });
   await fs.writeFile(
-    path.join(tempRoot, ".meta-architect", "decisions.json"),
+    path.join(tempRoot, ".ma", "decisions.json"),
     `${JSON.stringify(cleanDecisions, null, 2)}\n`,
   );
   await fs.writeFile(
-    path.join(tempRoot, ".meta-architect", "release.json"),
+    path.join(tempRoot, ".ma", "release.json"),
     `${JSON.stringify(cleanRelease, null, 2)}\n`,
   );
   const result = spawnSync(process.execPath, [path.join(repoRoot, "bin/ma.js"), "run", "$build"], {
@@ -125,12 +123,12 @@ test("ma run $build fails closed against the default scaffold", async () => {
 
   assert.equal(result.status, 1);
   const decisions = JSON.parse(
-    await fs.readFile(path.join(tempRoot, ".meta-architect", "decisions.json"), "utf8"),
+    await fs.readFile(path.join(tempRoot, ".ma", "decisions.json"), "utf8"),
   );
   assert.equal(decisions.decisions.at(-1).status, "BLOCKED");
 });
 
-test("ma setup seeds standalone meta-architect state", async () => {
+test("ma setup seeds canonical .ma runtime state", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-setup-"));
   await copyDir(repoRoot, tempRoot);
   const result = spawnSync(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
@@ -141,11 +139,11 @@ test("ma setup seeds standalone meta-architect state", async () => {
 
   assert.equal(result.status, 0);
   const releaseState = JSON.parse(
-    await fs.readFile(path.join(tempRoot, ".meta-architect", "release.json"), "utf8"),
+    await fs.readFile(path.join(tempRoot, ".ma", "release.json"), "utf8"),
   );
   assert.equal(releaseState.build_status, "LOCKED");
   const sourcesState = JSON.parse(
-    await fs.readFile(path.join(tempRoot, ".meta-architect", "evidence", "sources.json"), "utf8"),
+    await fs.readFile(path.join(tempRoot, ".ma", "evidence", "sources.json"), "utf8"),
   );
   assert.deepEqual(sourcesState.items, []);
 });

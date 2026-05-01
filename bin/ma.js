@@ -74,7 +74,7 @@ async function runBuild(releaseState) {
       evidence: [
         {
           kind: "release-state",
-          path: ".meta-architect/release.json",
+          path: ".ma/release.json",
         },
       ],
       blockers,
@@ -97,7 +97,7 @@ async function runBuild(releaseState) {
     evidence: [
       {
         kind: "release-state",
-        path: ".meta-architect/release.json",
+        path: ".ma/release.json",
       },
       {
         branches: ["feature/ui", "feature/api"],

@@ -7,7 +7,7 @@ Meta-Architect ships skills through a deliberate source-to-package pipeline. Thi
 ### 1. Internal runtime surface
 
 Location:
-- `.meta-architect/skills/`
+- `.ma/skills/`
 
 Purpose:
 - local runtime behavior
@@ -24,7 +24,7 @@ Purpose:
 - UI metadata via `agents/openai.yaml`
 - versionable public skill contract
 
-Do not confuse these two layers. The repo publishes `skills/`, not `.meta-architect/`.
+Do not confuse these two layers. The repo publishes `skills/`, not `.ma/`.
 
 ## Canonical packaging flow
 
@@ -107,7 +107,7 @@ Important:
 The npm package and tarball should stay explicit.
 
 Current package intent:
-- package name: `@jstn-sdk/meta-architect-skills`
+- package name: `@jstn-sdk/meta-architect`
 - public scoped publish config
 - explicit `files` list in `package.json`
 
@@ -121,7 +121,7 @@ The publishable package should include:
 - `LICENSE`
 
 It should not include:
-- runtime `.meta-architect` state
+- runtime `.ma` state
 - local logs
 - temp install targets
 - generated local caches

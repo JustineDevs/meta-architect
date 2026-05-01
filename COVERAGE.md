@@ -1,6 +1,6 @@
 # Meta-Architect Feature Coverage Matrix
 
-**Target: Production-ready core orchestration + publishable skills for v0.2.0**  
+**Target: Production-ready core orchestration + publishable skills for v0.1.0**  
 **Last Updated:** 2026-04-30
 
 ## Coverage Summary
@@ -37,12 +37,12 @@
 
 | Skill | Trigger | Status | Mechanism |
 |-------|---------|--------|-----------|
-| Architect | `$arch` | DONE | `src/skills.js` + `.meta-architect/skills/arch.skill.md` |
-| OSS Sage | `$sage` | DONE | live GitMCP SSE/JSON-RPC probe + `.meta-architect/skills/sage.skill.md` |
-| Logic Specialist | `$flow` | DONE | `src/skills.js` + `.meta-architect/skills/flow.skill.md` |
-| Security Auditor | `$vet` | DONE | `src/skills.js` + `.meta-architect/skills/vet.skill.md` |
-| DX/UX Specialist | `$vibe` | DONE | `src/skills.js` + `.meta-architect/skills/vibe.skill.md` |
-| Builder | `$build` | DONE | `src/build-gate.js` + `.meta-architect/skills/build.skill.md` |
+| Architect | `$arch` | DONE | `src/skills.js` + `.ma/skills/arch.skill.md` |
+| OSS Sage | `$sage` | DONE | live GitMCP SSE/JSON-RPC probe + `.ma/skills/sage.skill.md` |
+| Logic Specialist | `$flow` | DONE | `src/skills.js` + `.ma/skills/flow.skill.md` |
+| Security Auditor | `$vet` | DONE | `src/skills.js` + `.ma/skills/vet.skill.md` |
+| DX/UX Specialist | `$vibe` | DONE | `src/skills.js` + `.ma/skills/vibe.skill.md` |
+| Builder | `$build` | DONE | `src/build-gate.js` + `.ma/skills/build.skill.md` |
 
 ## Status & Gate Contract
 
@@ -119,14 +119,14 @@
    Meta-Architect suggests worktree commands but does not automate add/remove/prune.
 
 2. **NPM publish contract is not finalized**  
-   The repo still needs an explicitly approved `@jstn-sdk/<name>` package identity and public npm metadata before publish.
+   The repo still needs an explicitly approved `meta-architect` package identity and public npm metadata before publish.
 
 3. **Marketplace distribution is not part of this repo**  
    There is no real extension/gallery package manifest or publisher config.
 
 ## Production Interpretation
 
-Meta-Architect currently covers the production `v0.2.0` core bar for:
+Meta-Architect currently covers the production `v0.1.0` core bar for:
 - reliable core orchestration,
 - stable status/branch contract,
 - publishable repo-local skill artifacts,

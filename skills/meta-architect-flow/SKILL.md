@@ -12,7 +12,7 @@ ma run $flow
 ```
 
 Expected effects:
-- Records a logic and state-transition review in `.meta-architect/decisions.json`.
+- Records a logic and state-transition review in `.ma/decisions.json`.
 - Advances `logic_status` to `GREEN` or leaves blockers visible when unresolved.
 
 Use this skill after evidence binding and before `$vet`.

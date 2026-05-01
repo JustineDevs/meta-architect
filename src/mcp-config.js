@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { mcpServersPath } from "./paths.js";
+import { getMcpServersPath } from "./paths.js";
 
 const gitMcpRepoPattern = /^https:\/\/gitmcp\.io\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 
@@ -8,7 +8,7 @@ export function isValidGitMcpEndpoint(url) {
 }
 
 export async function loadMcpServers() {
-  const raw = await fs.readFile(mcpServersPath, "utf8");
+  const raw = await fs.readFile(getMcpServersPath(), "utf8");
   const parsed = JSON.parse(raw);
 
   if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.servers)) {
