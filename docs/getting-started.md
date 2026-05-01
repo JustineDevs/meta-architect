@@ -20,7 +20,70 @@ By the end of this guide you should be able to:
 - an MCP-capable runtime
 - network access if you want live `$sage` verification against a real GitMCP server
 
-## 1. Clone and install
+## 1. Canonical install and launch
+
+Canonical public install:
+
+```bash
+npm i -g @openai/codex@latest meta-architect@latest
+ma --madmax --high
+```
+
+That is the default operator posture. The rest of this guide should match the real workflow shape in [example/usage-workflow.md](../example/usage-workflow.md).
+
+## 2. Real usage workflow
+
+Start with the structured `$arch` prompt:
+
+```text
+$arch I want to build: [PROJECT IDEA]
+
+Context:
+- Product type: [web app / mobile app / API / marketplace / agent system / internal tool]
+- Users: [who will use it]
+- Core problem: [what problem it solves]
+- Main features:
+  1. [feature one]
+  2. [feature two]
+  3. [feature three]
+- Constraints:
+  - Budget: [low / medium / high]
+  - Team size: [solo / small / medium]
+  - Timeline: [e.g. 2 weeks MVP, 3 months beta]
+  - Preferred stack: [optional]
+  - Avoid: [optional]
+- Quality priorities:
+  - [e.g. speed, low cost, security, DX, maintainability, scalability]
+- Deployment target:
+  - [Vercel / Docker / VPS / AWS / GCP / local-first / hybrid]
+
+Required output:
+1. Problem framing
+2. Recommended architecture
+3. Stack decision with justification
+4. System components and responsibilities
+5. Data model and storage choices
+6. Auth/security considerations
+7. DX/UX considerations
+8. Delivery plan for v0.1.0
+9. Risks and trade-offs
+10. Decision log
+11. Exact next trigger to run after this
+```
+
+Then continue with:
+
+```text
+$sage
+$flow
+$vet
+$vibe
+$build
+```
+
+Use the full prompt blocks from [example/usage-workflow.md](../example/usage-workflow.md) when you want the exact handoff format between lanes.
+
+## 3. Contributor clone and link
 
 ```bash
 git clone https://github.com/JustineDevs/meta-architect.git
@@ -33,7 +96,7 @@ Why `npm link` matters:
 - the docs use the `ma` command directly
 - `npm link` makes the local CLI available without requiring a global publish step
 
-## 2. Initialize Meta-Architect
+## 4. Secondary repository setup flow
 
 ```bash
 ma setup
@@ -67,7 +130,9 @@ ready: docs/qa
 ready: sprint
 ```
 
-## 3. Configure MCP / GitMCP
+This setup path is secondary to the canonical `ma --madmax --high` runtime launch. Use it when you need local repo scaffolding.
+
+## 5. Configure MCP / GitMCP
 
 Edit:
 - `mcp/servers.json`
@@ -91,7 +156,7 @@ Recommended first set:
 
 See [docs/mcp-setup.md](./mcp-setup.md) for endpoint policy and evidence semantics.
 
-## 4. Capture the project idea
+## 6. Secondary helper flow
 
 ```bash
 ma idea "Build a real-time collaborative whiteboard for product teams"
@@ -105,7 +170,7 @@ If this fails:
 - ensure the idea text is not empty
 - inspect `.ma/decisions.json` for malformed local data
 
-## 5. Run the skill sequence
+## 7. Run the helper skill sequence
 
 ### 5.1 Architecture
 
@@ -184,7 +249,7 @@ Expected effects:
 - `experience_status = RED` when prerequisite gates are not ready
 - `experience_status = WAIVED` when the waiver path is used explicitly
 
-## 6. Inspect gate status
+## 8. Inspect gate status
 
 ```bash
 ma status
@@ -206,7 +271,7 @@ Next allowed triggers:
 $build
 ```
 
-## 7. Unlock and run build planning
+## 9. Unlock and run build planning
 
 ```bash
 ma run '$build'
@@ -236,7 +301,7 @@ If `$build` fails:
 - fix the corresponding upstream lane
 - rerun that lane, then rerun `$build`
 
-## 8. Example walkthrough: collaborative whiteboard
+## 10. Example walkthrough: collaborative whiteboard
 
 ```bash
 ma setup

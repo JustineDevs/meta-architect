@@ -72,16 +72,15 @@ Default operator path:
 
 ```bash
 npm i -g @openai/codex@latest meta-architect@latest
-ma setup
-ma
+ma --madmax --high
 ```
 
 What this assumes:
 
 - Codex CLI is installed globally
 - Meta-Architect is installed globally as a package
-- `ma setup` is run inside the repository you want Meta-Architect to scaffold
-- `ma` starts the local Codex session after scaffolding is in place
+- you want the Codex-hosted Meta-Architect runtime posture immediately
+- you will operate through the skill-driven workflow inside the Codex session
 
 > [!IMPORTANT]
 > The recommended default flow is package-first.
@@ -110,6 +109,7 @@ Install the consumer package directly:
 
 ```bash
 npm i -g @openai/codex@latest meta-architect@latest
+ma --madmax --high
 ```
 
 This gives you:
@@ -117,7 +117,7 @@ This gives you:
 - `codex`
 - `ma`
 - `meta-architect`
-- the canonical Meta-Architect runtime entrypoints
+- the canonical Meta-Architect runtime entrypoints and launch posture
 
 ### Contributor setup: source checkout
 
@@ -134,21 +134,78 @@ npm link
 
 ## Quick Start
 
-### 1. Initialize the project
+### 1. Launch the runtime
 
-Initialize the repository you want Meta-Architect to govern:
+```bash
+ma --madmax --high
+```
+
+### 2. Start with the real usage-workflow prompt
+
+Use the same operator shape defined in [example/usage-workflow.md](./example/usage-workflow.md).
+
+Quick-start prompt:
+
+```text
+$arch I want to build: [PROJECT IDEA]
+
+Context:
+- Product type: [web app / mobile app / API / marketplace / agent system / internal tool]
+- Users: [who will use it]
+- Core problem: [what problem it solves]
+- Main features:
+  1. [feature one]
+  2. [feature two]
+  3. [feature three]
+- Constraints:
+  - Budget: [low / medium / high]
+  - Team size: [solo / small / medium]
+  - Timeline: [e.g. 2 weeks MVP, 3 months beta]
+  - Preferred stack: [optional]
+  - Avoid: [optional]
+- Quality priorities:
+  - [e.g. speed, low cost, security, DX, maintainability, scalability]
+- Deployment target:
+  - [Vercel / Docker / VPS / AWS / GCP / local-first / hybrid]
+
+Required output:
+1. Problem framing
+2. Recommended architecture
+3. Stack decision with justification
+4. System components and responsibilities
+5. Data model and storage choices
+6. Auth/security considerations
+7. DX/UX considerations
+8. Delivery plan for v0.1.0
+9. Risks and trade-offs
+10. Decision log
+11. Exact next trigger to run after this
+```
+
+### 3. Run the full trigger sequence inside Codex
+
+After `$arch`, continue exactly like the usage workflow:
+
+```text
+$sage
+$flow
+$vet
+$vibe
+$build
+```
+
+See [example/usage-workflow.md](./example/usage-workflow.md) for the full prompt templates for each step.
+
+### 4. Secondary maintenance path
+
+If you are working from a repository directly and need scaffolded local support files, use:
 
 ```bash
 ma setup
-```
-
-Then start the local Codex session through `ma`:
-
-```bash
 ma
 ```
 
-Expected output:
+Expected output for `ma setup`:
 
 ```text
 meta-architect setup
@@ -163,11 +220,7 @@ ready: docs/qa
 ready: sprint
 ```
 
-`ma --madmax --high` is the canonical runtime launch.
-`ma` with no arguments still delegates to the local Codex CLI, but the explicit high-agency launch
-posture remains the recommended path for public docs.
-
-### 2. Configure GitMCP sources
+### 5. Configure GitMCP sources
 
 Add real repository-backed endpoints in `mcp/servers.json`.
 
@@ -191,20 +244,12 @@ Recommended starter endpoints:
 > Verified release evidence must come from repository-form GitMCP endpoints such as `https://gitmcp.io/{owner}/{repo}`.
 > A generic documentation endpoint such as `https://gitmcp.io/docs` does not count as VERIFIED evidence for build unlocking.
 
-### 3. Record the idea
+### 6. Secondary helper flow outside Codex
+
+If you need scripted repo-local validation rather than the interactive runtime workflow:
 
 ```bash
 ma idea "Build a real-time collaborative whiteboard for product teams"
-```
-
-Expected effect:
-
-- appends an idea entry to `.ma/decisions.json`
-- sets `idea_status = CLEAR`
-
-### 4. Run the gated workflow
-
-```bash
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'
@@ -214,7 +259,7 @@ ma status
 ma run '$build'
 ```
 
-Expected status before `$build`:
+Expected status before the helper-path `$build`:
 
 ```text
 Meta-Architect Status
@@ -230,7 +275,7 @@ Next allowed triggers:
 $build
 ```
 
-Expected build output:
+Expected helper-path build output:
 
 ```text
 Build gate is green.
