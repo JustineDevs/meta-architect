@@ -1,5 +1,5 @@
 {
-  "name": "@jstn-sdk/meta-architect",
+  "name": "meta-architect",
   "version": "0.1.0",
   "description": "Meta-Architect skills bundle and orchestration tooling for verified engineering workflows.",
   "license": "MIT",

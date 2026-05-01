@@ -71,7 +71,7 @@ Meta-Architect is intended to be consumed as an installed package, not primarily
 Default operator path:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect@0.1.0
+npm i -g @openai/codex@latest meta-architect@latest
 ma setup
 ma
 ```
@@ -109,7 +109,7 @@ Meta-Architect’s repository workflow follows a stricter release posture focuse
 Install the consumer package directly:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect@0.1.0
+npm i -g @openai/codex@latest meta-architect@latest
 ```
 
 This gives you:
@@ -163,9 +163,9 @@ ready: docs/qa
 ready: sprint
 ```
 
-`ma` with no arguments launches the local Codex CLI.
-Legacy compatibility flags such as `ma --madmax --high` are still accepted, but they are no longer
-the recommended path.
+`ma --madmax --high` is the canonical runtime launch.
+`ma` with no arguments still delegates to the local Codex CLI, but the explicit high-agency launch
+posture remains the recommended path for public docs.
 
 ### 2. Configure GitMCP sources
 

@@ -25,7 +25,6 @@ jobs:
       - name: Load npm auth
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_SCOPE: "@jstn-sdk"
           NPM_REGISTRY_URL: "https://registry.npmjs.org/"
         run: node ./scripts/setup-npmrc.js
 

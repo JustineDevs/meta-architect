@@ -107,8 +107,8 @@ Important:
 The npm package and tarball should stay explicit.
 
 Current package intent:
-- package name: `@jstn-sdk/meta-architect`
-- public scoped publish config
+- package name: `meta-architect`
+- public publish config
 - explicit `files` list in `package.json`
 
 The publishable package should include:
