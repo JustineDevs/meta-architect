@@ -1,0 +1,52 @@
+name: PR Auto Assign
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+      - synchronize
+
+jobs:
+  assign-and-request-review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Assign and request review from JustineDevs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pull_number = context.payload.pull_request.number;
+            const login = "JustineDevs";
+
+            const pr = context.payload.pull_request;
+            const assignees = (pr.assignees || []).map((user) => user.login.toLowerCase());
+            const requested = ((pr.requested_reviewers || []).map((user) => user.login.toLowerCase()));
+
+            if (!assignees.includes(login.toLowerCase())) {
+              await github.rest.issues.addAssignees({
+                owner,
+                repo,
+                issue_number: pull_number,
+                assignees: [login],
+              });
+            } else {
+              core.info(`${login} is already assigned.`);
+            }
+
+            if (!requested.includes(login.toLowerCase()) && pr.user.login.toLowerCase() !== login.toLowerCase()) {
+              await github.rest.pulls.requestReviewers({
+                owner,
+                repo,
+                pull_number,
+                reviewers: [login],
+              });
+            } else {
+              core.info(`${login} is already a requested reviewer or is the PR author.`);
+            }
