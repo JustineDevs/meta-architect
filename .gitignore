@@ -5,7 +5,9 @@ node_modules/
 # Legacy runtime folders kept ignored for migration cleanup only
 .meta-architect/
 .omx/
-.agents/
+.agents/*
+!.agents/plugins/
+!.agents/plugins/marketplace.json
 .claude/
 skills-lock.json
 

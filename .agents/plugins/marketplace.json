@@ -1,0 +1,20 @@
+{
+  "name": "meta-architect-local",
+  "interface": {
+    "displayName": "Meta-Architect Local Plugins"
+  },
+  "plugins": [
+    {
+      "name": "meta-architect",
+      "source": {
+        "source": "local",
+        "path": "./plugins/meta-architect"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
