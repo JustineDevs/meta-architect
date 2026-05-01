@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="148" height="148">
+  <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="320" height="160">
   <h1>Meta-Architect</h1>
   <p>Production-grade skills package and CLI for programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking.</p>
   <p>
@@ -11,11 +11,24 @@
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.1.0` is a serious production-grade skills line.
-> The version describes scope, not engineering looseness.
-> From `v0.1.0` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest publish/install surfaces.
+> Meta-Architect `v0.1.0` is a production-grade skills line.
+> It is not a lightweight demo branch.
+> From `v0.1.0` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
 
 ## Overview
+
+Meta-Architect is a workflow layer for teams that want architecture, evidence, review, and release discipline before build execution.
+
+It adds:
+
+- an architecture-first lane before implementation
+- evidence-backed OSS selection through GitMCP-connected sources
+- explicit logic, security, and DX/UX review gates
+- installable skills and a reproducible package surface
+
+> [!NOTE]
+> Meta-Architect does not replace your coding runtime.
+> It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
 
 <table>
   <tr>
@@ -40,57 +53,58 @@
   </tr>
 </table>
 
-## What It Does
+## Prerequisites
 
-Meta-Architect is for teams that do not want to move directly from idea to implementation without structure.
+- Node.js `>=20`
+- npm `>=10`
+- Git
+- an MCP-capable coding runtime
+- OpenAI Codex CLI for the recommended package-first path
+- macOS, Linux, or WSL2 recommended
 
-It adds:
+> [!TIP]
+> The most reliable default environment is a Unix-like shell with Git, Node.js, and an MCP-capable runtime already configured.
 
-- an architecture-first workflow before coding
-- evidence-backed OSS selection through GitMCP-connected sources
-- explicit logic, security, and DX/UX gates before build execution
-- installable skills and a reproducible package surface instead of loose prompt files
+## Recommended Default Flow
 
-> [!NOTE]
-> Meta-Architect does not replace your coding runtime.
-> It wraps that runtime with architecture, evidence, review, and release discipline.
+Meta-Architect is intended to be consumed as an installed package, not primarily as a git clone.
 
-## Core Triggers
+Default operator path:
 
-| Trigger | Purpose | Main output | Gate effect |
-| --- | --- | --- | --- |
-| `$arch` | Produce the first-pass architecture blueprint | decision entry | `architecture_status = APPROVED` |
-| `$sage` | Ground major choices in configured GitMCP evidence | evidence records | `evidence_status = VERIFIED | PARTIAL | MISSING` |
-| `$flow` | Review baseline logic and state transitions | logic review entry | `logic_status = GREEN | RED` |
-| `$vet` | Run baseline security and dependency review | audit and CVE records | `security_status = GREEN | RED` |
-| `$vibe` | Review developer and user experience implications | DX/UX outcome record | `experience_status = GREEN | RED | WAIVED` |
-| `$build` | Unlock bounded build planning | build-ready decision | `build_status = READY` |
+```bash
+npm install -g @openai/codex @jstn-sdk/meta-architect-skills
+omx --madmax --high
+```
 
-## Gate Model
+What this assumes:
 
-Meta-Architect is intentionally fail-closed.
+- Codex CLI is installed globally
+- Meta-Architect is installed globally as a package
+- `omx` is available in your environment as the recommended orchestration launcher
 
-| Status | Meaning |
-| --- | --- |
-| `CLEAR` | enough input exists to proceed |
-| `APPROVED` | the architecture lane produced an acceptable first-pass blueprint |
-| `VERIFIED` | live evidence was grounded through approved GitMCP sources |
-| `PARTIAL` | evidence is configured but live proof is incomplete or unavailable |
-| `GREEN` | the current baseline review passed |
-| `RED` | the lane is blocked or failed |
-| `WAIVED` | the lane was intentionally waived with a recorded reason |
-| `LOCKED` | downstream work is not allowed yet |
-| `READY` | the next gated step is allowed |
+> [!IMPORTANT]
+> The recommended default flow is package-first.
+> The git clone path is for contributors and maintainers, not the main user-facing install story.
 
-> [!CAUTION]
-> `$build` must stay locked until the upstream release state in `.omx/release.json` satisfies the gate contract.
-> Meta-Architect is designed to stop on blockers rather than silently continue.
+## Setup
 
-## Installation
+### Package setup
 
-### Recommended current path: source checkout
+Install the consumer package directly:
 
-Use this path if you want to run or develop Meta-Architect immediately from the repository.
+```bash
+npm install -g @openai/codex @jstn-sdk/meta-architect-skills
+```
+
+This gives you:
+
+- `codex`
+- `ma`
+- `meta-architect`
+
+### Contributor setup: source checkout
+
+Use this path only if you want to work on Meta-Architect itself.
 
 ```bash
 git clone https://github.com/JustineDevs/meta-architect.git
@@ -99,54 +113,19 @@ npm install
 npm link
 ```
 
-`npm link` makes `ma` and `meta-architect` available in your shell from the local checkout.
+`npm link` makes `ma` and `meta-architect` available from the local checkout.
 
-### Public package install path
+## Quick Start
 
-This is the intended consumer command for the published package:
+### 1. Initialize the project
+
+Launch the recommended high-intensity OMX session:
 
 ```bash
-npm install -g @jstn-sdk/meta-architect-skills
+omx --madmax --high
 ```
 
-> [!WARNING]
-> Only treat the npm install command as active once npm publication for the scoped package has actually succeeded.
-> The README should never imply a live public channel before the registry release exists.
-
-### Install path summary
-
-<table>
-  <tr>
-    <td><strong>Path</strong></td>
-    <td><strong>Use when</strong></td>
-    <td><strong>Command</strong></td>
-  </tr>
-  <tr>
-    <td>Source checkout</td>
-    <td>You want to use or develop the repository immediately</td>
-    <td><code>git clone ... &amp;&amp; npm install &amp;&amp; npm link</code></td>
-  </tr>
-  <tr>
-    <td>npm package</td>
-    <td>You want the released consumer package</td>
-    <td><code>npm install -g @jstn-sdk/meta-architect-skills</code></td>
-  </tr>
-  <tr>
-    <td>Package inspection</td>
-    <td>You want to inspect the exact npm package surface</td>
-    <td><code>npm pack --dry-run</code></td>
-  </tr>
-</table>
-
-> [!TIP]
-> Use macOS, Linux, or WSL2 as the default environment.
-> The package is designed around a Unix-like shell, Git, Node.js, and an MCP-capable runtime.
-
-## Quickstart
-
-### 1. Initialize a project
-
-Run this in the repository you want Meta-Architect to manage:
+Then initialize the repository you want Meta-Architect to govern:
 
 ```bash
 ma init
@@ -202,7 +181,7 @@ Expected effect:
 - appends an idea entry to `.omx/decisions.json`
 - sets `idea_status = CLEAR`
 
-### 4. Run the gated sequence
+### 4. Run the gated workflow
 
 ```bash
 ma run '$arch'
@@ -242,6 +221,52 @@ git worktree add ../ui feature/ui
 git worktree add ../api feature/api
 ```
 
+## Core Maintainers
+
+<table>
+  <tr>
+    <td><strong>Role</strong></td>
+    <td><strong>Name</strong></td>
+    <td><strong>GitHub</strong></td>
+  </tr>
+  <tr>
+    <td>Creator / Maintainer</td>
+    <td>JustineDevs</td>
+    <td><a href="https://github.com/JustineDevs">@JustineDevs</a></td>
+  </tr>
+</table>
+
+## Core Triggers
+
+| Trigger | Purpose | Main output | Gate effect |
+| --- | --- | --- | --- |
+| `$arch` | Produce the first-pass architecture blueprint | decision entry | `architecture_status = APPROVED` |
+| `$sage` | Ground major choices in configured GitMCP evidence | evidence records | `evidence_status = VERIFIED | PARTIAL | MISSING` |
+| `$flow` | Review baseline logic and state transitions | logic review entry | `logic_status = GREEN | RED` |
+| `$vet` | Run baseline security and dependency review | audit and CVE records | `security_status = GREEN | RED` |
+| `$vibe` | Review developer and user experience implications | DX/UX outcome record | `experience_status = GREEN | RED | WAIVED` |
+| `$build` | Unlock bounded build planning | build-ready decision | `build_status = READY` |
+
+## Gate Model
+
+Meta-Architect is intentionally fail-closed.
+
+| Status | Meaning |
+| --- | --- |
+| `CLEAR` | enough input exists to proceed |
+| `APPROVED` | the architecture lane produced an acceptable first-pass blueprint |
+| `VERIFIED` | live evidence was grounded through approved GitMCP sources |
+| `PARTIAL` | evidence is configured but live proof is incomplete or unavailable |
+| `GREEN` | the current baseline review passed |
+| `RED` | the lane is blocked or failed |
+| `WAIVED` | the lane was intentionally waived with a recorded reason |
+| `LOCKED` | downstream work is not allowed yet |
+| `READY` | the next gated step is allowed |
+
+> [!CAUTION]
+> `$build` must stay locked until the upstream release state in `.omx/release.json` satisfies the gate contract.
+> Meta-Architect is designed to stop on blockers rather than silently continue.
+
 ## Release and Packaging
 
 Meta-Architect has two related but different distribution surfaces.
@@ -251,7 +276,7 @@ Meta-Architect has two related but different distribution surfaces.
 | npm package | public package containing CLI, docs, scripts, and canonical skills | `npm publish` or `npm pack` |
 | skills bundle | narrower tarball containing `skills/` only | `npm run skills:pack` |
 
-### Required packaging commands
+Required packaging commands:
 
 ```bash
 npm run skills:manifest
@@ -261,7 +286,7 @@ npm run skills:install -- --path ./dist/installed-skills
 npm run pack:inspect
 ```
 
-### Pre-publish rules
+Pre-publish rules:
 
 - `skills/index.json` must be current
 - `npm run skills:validate` must pass
@@ -275,86 +300,16 @@ npm run pack:inspect
 
 ## Package Surface
 
-### Included
-
 <table>
   <tr>
-    <td><strong>Path</strong></td>
-    <td><strong>Reason</strong></td>
+    <td><strong>Included</strong></td>
+    <td><code>bin/</code>, <code>skills/</code>, <code>docs/</code>, <code>scripts/</code>, <code>index.js</code>, <code>README.md</code>, <code>LICENSE</code></td>
   </tr>
   <tr>
-    <td><code>bin/</code></td>
-    <td>CLI entrypoints</td>
-  </tr>
-  <tr>
-    <td><code>skills/</code></td>
-    <td>canonical public skill contracts</td>
-  </tr>
-  <tr>
-    <td><code>docs/</code></td>
-    <td>operator and publishing guidance</td>
-  </tr>
-  <tr>
-    <td><code>scripts/</code></td>
-    <td>validation and packaging helpers</td>
-  </tr>
-  <tr>
-    <td><code>index.js</code></td>
-    <td>programmatic exports</td>
-  </tr>
-  <tr>
-    <td><code>README.md</code></td>
-    <td>public package contract</td>
-  </tr>
-  <tr>
-    <td><code>LICENSE</code></td>
-    <td>license surface</td>
+    <td><strong>Excluded</strong></td>
+    <td><code>.omx/</code> runtime state, logs, caches, and temp install outputs</td>
   </tr>
 </table>
-
-### Excluded
-
-<table>
-  <tr>
-    <td><strong>Path</strong></td>
-    <td><strong>Reason</strong></td>
-  </tr>
-  <tr>
-    <td><code>.omx/</code> runtime state</td>
-    <td>local execution residue, not distributable product</td>
-  </tr>
-  <tr>
-    <td>logs and caches</td>
-    <td>not part of the public contract</td>
-  </tr>
-  <tr>
-    <td>temp install outputs</td>
-    <td>not stable release artifacts</td>
-  </tr>
-</table>
-
-## Example Flow
-
-```bash
-ma init
-ma idea "Build a SaaS billing dashboard for small teams"
-ma run '$arch'
-ma run '$sage'
-ma run '$flow'
-ma run '$vet'
-ma run '$vibe'
-ma run '$build'
-ma merge feature/ui development
-ma release development prod
-```
-
-This flow:
-
-- records a first-pass architecture blueprint
-- grounds major choices in configured evidence sources
-- blocks unsafe or incomplete release progression
-- unlocks build planning only when the gate state allows it
-- enforces merge and promotion origin rules
 
 ## Repository Structure
 
@@ -365,7 +320,7 @@ This flow:
   </tr>
   <tr>
     <td><code>.codex/</code></td>
-    <td>runtime prompts, hooks, and agent-facing repo guidance</td>
+    <td>runtime prompts, hooks, and repo guidance</td>
   </tr>
   <tr>
     <td><code>skills/</code></td>
