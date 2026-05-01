@@ -8,9 +8,9 @@
 - the helper flow remains valid for scripted verification
 - release docs, package metadata, and workflows all agree on `0.1.1`
 
-Published release state:
+Target release state:
 - npm package: `@jstn-sdk/meta-architect@0.1.1`
-- npm dist-tag: `latest`
+- target dist-tag: `latest`
 - published at: pending publish
 - git tag: `v0.1.1`
 
