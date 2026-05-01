@@ -9,6 +9,12 @@ This release ships Meta-Architect as a Codex-native runtime layer with:
 - helper commands for setup, scripted validation, and branch/release gating
 - package, skill bundle, and release surfaces aligned to `v0.1.0`
 
+Published package state:
+- npm package: `@jstn-sdk/meta-architect@0.1.0`
+- npm dist-tag: `latest`
+- published at: `2026-05-01T16:05:21Z`
+- release tag: `v0.1.0`
+
 ## Verification
 
 - `npm run release:check`

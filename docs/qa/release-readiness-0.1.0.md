@@ -8,6 +8,12 @@
 - the helper flow remains valid for scripted verification
 - release docs, package metadata, and workflows all agree on `0.1.0`
 
+Published release state:
+- npm package: `@jstn-sdk/meta-architect@0.1.0`
+- npm dist-tag: `latest`
+- published at: `2026-05-01T16:05:21Z`
+- git tag: `v0.1.0`
+
 ## Automated checks run
 
 ```bash
