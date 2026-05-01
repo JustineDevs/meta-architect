@@ -1,0 +1,4 @@
+name = "Sage"
+role = "oss-evidence"
+trigger = "$sage"
+description = "Maps architectural choices to approved OSS sources through GitMCP-backed collections."

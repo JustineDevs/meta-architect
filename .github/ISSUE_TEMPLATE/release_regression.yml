@@ -1,0 +1,62 @@
+name: Release Regression
+description: Report a regression affecting release readiness, packaging, publishing, or installability
+title: "[release] "
+labels: ["release", "regression", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for regressions that affect CI, packaging, release assets, npm publishing, or versioned release behavior.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Regression summary
+      description: What release-related behavior regressed?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected release area
+      options:
+        - skills manifest
+        - skills validation
+        - skills packaging
+        - skills install smoke test
+        - GitHub release
+        - npm publish
+        - plugin surface
+        - versioning
+        - release docs
+        - CI workflow
+    validations:
+      required: true
+  - type: textarea
+    id: previous_behavior
+    attributes:
+      label: Previously working behavior
+      description: What used to work?
+    validations:
+      required: false
+  - type: textarea
+    id: current_behavior
+    attributes:
+      label: Current broken behavior
+      description: What is failing now?
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Release impact
+      description: Explain whether this blocks release and why.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction commands
+      description: Provide commands or steps to reproduce the regression.
+      render: shell
+    validations:
+      required: false

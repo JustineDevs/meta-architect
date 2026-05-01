@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "hooks": [
+    {
+      "event": "prebuild",
+      "action": "deny-unless-gates-green",
+      "source": ".omx/decisions.json"
+    },
+    {
+      "event": "prerelease",
+      "action": "deny-unless-release-origin-valid",
+      "allowedOrigins": ["development", "release/*"]
+    }
+  ]
+}

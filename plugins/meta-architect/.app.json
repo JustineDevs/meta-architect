@@ -1,0 +1,8 @@
+{
+  "name": "meta-architect",
+  "displayName": "Meta-Architect",
+  "version": "1.0.0",
+  "description": "Programmatic architecture and verified engineering skills for Codex-native workflows.",
+  "entry": "./README.md",
+  "skillsDir": "./skills"
+}

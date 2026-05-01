@@ -1,0 +1,4 @@
+name = "Builder"
+role = "build-planning"
+trigger = "$build"
+description = "Checks gates, splits bounded work, and proposes branch/worktree execution paths."

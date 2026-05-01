@@ -1,0 +1,4 @@
+name = "Auditor"
+role = "security-review"
+trigger = "$vet"
+description = "Evaluates security posture, CVE signals, and safer alternatives."

@@ -1,0 +1,4 @@
+name = "Architect"
+role = "architecture-design"
+trigger = "$arch"
+description = "Produces blueprint architecture, stack rationale, tradeoffs, and subsystem design."

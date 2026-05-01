@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "skills": [
+    "meta-architect",
+    "meta-architect-arch",
+    "meta-architect-sage",
+    "meta-architect-flow",
+    "meta-architect-vet",
+    "meta-architect-vibe",
+    "meta-architect-build"
+  ],
+  "prompts": [
+    "architect",
+    "sage",
+    "flow",
+    "security-reviewer",
+    "vibe",
+    "builder",
+    "release-manager",
+    "verifier"
+  ]
+}

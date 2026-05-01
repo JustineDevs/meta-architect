@@ -1,0 +1,63 @@
+name: Skill Contract Issue
+description: Report a problem with a skill trigger, contract, status, or output shape
+title: "[skill] "
+labels: ["skills", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when a skill behaves differently from its documented contract.
+  - type: input
+    id: skill
+    attributes:
+      label: Skill name
+      placeholder: meta-architect-vet
+    validations:
+      required: true
+  - type: input
+    id: trigger
+    attributes:
+      label: Trigger
+      placeholder: $vet
+    validations:
+      required: false
+  - type: textarea
+    id: contract_problem
+    attributes:
+      label: Contract problem
+      description: What part of the skill contract is wrong or unclear?
+      placeholder: The skill output omitted blockers / changed status unexpectedly / accepted invalid input...
+    validations:
+      required: true
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected contract behavior
+      description: What should the skill have done?
+    validations:
+      required: true
+  - type: textarea
+    id: observed_behavior
+    attributes:
+      label: Observed behavior
+      description: What actually happened?
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - low
+        - medium
+        - high
+        - release-blocking
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / examples
+      description: Include sample outputs, files, screenshots, or logs if useful.
+    validations:
+      required: false

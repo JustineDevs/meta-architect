@@ -1,0 +1,73 @@
+{
+  "name": "@jstn-sdk/meta-architect-skills",
+  "version": "1.0.0",
+  "description": "Meta-Architect skills bundle and orchestration tooling for verified engineering workflows.",
+  "license": "MIT",
+  "author": "jstn-sdk",
+  "homepage": "https://github.com/JustineDevs/meta-architect#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JustineDevs/meta-architect.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JustineDevs/meta-architect/issues"
+  },
+  "keywords": [
+    "meta-architect",
+    "codex",
+    "skills",
+    "mcp",
+    "gitmcp",
+    "ai",
+    "agent",
+    "orchestration",
+    "cli",
+    "developer-tools"
+  ],
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "meta-architect": "./bin/meta-architect.js",
+    "ma": "./bin/meta-architect.js"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "docs/",
+    "scripts/",
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "test": "node --test",
+    "status": "node ./bin/ma.js status",
+    "build:gate": "node ./bin/ma.js run '$build'",
+    "release:check": "npm run skills:manifest && npm run skills:validate && npm run skills:pack",
+    "skills:manifest": "node ./scripts/skills-manifest.js",
+    "skills:validate": "node ./scripts/skills-validate.js",
+    "skills:install": "node ./scripts/skills-install.js",
+    "skills:pack": "node ./scripts/skills-pack.js",
+    "pack:inspect": "npm pack --dry-run",
+    "doctor": "node ./scripts/doctor.js",
+    "lint": "biome lint .",
+    "format": "biome format .",
+    "check": "biome check ."
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@10",
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
+    "husky": "^9.1.7"
+  }
+}

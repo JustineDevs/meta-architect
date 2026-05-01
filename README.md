@@ -7,12 +7,13 @@
   <em>The AI OS for Programmatic Architecture &amp; Verified Engineering.</em>
 </p>
 
+<div align="center">
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
 [![MCP](https://img.shields.io/badge/MCP-enabled-blue)](https://modelcontextprotocol.io/docs/getting-started/intro)
 
-**Website:** <!-- TODO -->  
-**Docs:** <!-- TODO: Getting Started --> · <!-- TODO: Skills --> · <!-- TODO: MCP Setup --> · <!-- TODO: Demo -->
+</div>
 
 Meta-Architect (MA) is a workflow layer for **Codex-style CLIs and MCP-enabled runtimes**. It keeps your existing LLM execution engine and adds:
 
@@ -20,6 +21,11 @@ Meta-Architect (MA) is a workflow layer for **Codex-style CLIs and MCP-enabled r
 - **MCP-connected OSS collections** as the “Library of Truth” via serverless GitMCP endpoints
 - **strict security and release gates** before any build runs
 - **optional linked git worktrees** for isolated, parallel implementation once a plan is approved
+
+Production rule for `v1.0.0`:
+- core workflows must be reliable end-to-end,
+- the public skill/status/branch contract must be stable,
+- and release evidence must exist in docs and packaged skills.
 
 <table>
 <tr>
@@ -34,9 +40,9 @@ Meta-Architect (MA) is a workflow layer for **Codex-style CLIs and MCP-enabled r
 Use Meta-Architect when you want your AI dev workflow to behave like a **system architect + auditor**, not a freeform “vibe coder”:
 
 - Turn an idea into a **blueprinted architecture** with explicit tradeoffs.
-- Select **proven OSS** from curated “awesome” collections exposed through GitMCP, not from model vibes. [web:6][web:61]
+- Select **proven OSS** from curated “awesome” collections exposed through GitMCP, not from model vibes.
 - Run **business-logic, security, and DX/UX reviews** as first-class steps.
-- Only then unlock **build execution**, optionally in isolated git worktrees, before merge and release. [web:24][web:17]
+- Only then unlock **build execution**, optionally in isolated git worktrees, before merge and release.
 
 If you just want a plain coding chat with no gates, you don’t need Meta-Architect.
 
@@ -48,7 +54,7 @@ If you just want a plain coding chat with no gates, you don’t need Meta-Archit
 
 | Role | Name | GitHub |
 | --- | --- | --- |
-| Creator & Lead | <!-- you --> | <!-- @you --> |
+| Creator & Lead | Justine | [@Justinedevs](https://github.com/JustineDevs) |
 
 ---
 
@@ -74,14 +80,18 @@ ma run $vet
 ma run $vibe
 # 5. Only after gates are GREEN, start the build
 ma run $build
+# 6. Enforce merge and release policy
+ma merge feature/ui development
+ma release development prod
 ```
 
 Under the hood:
 
-- MA uses **MCP** to discover tools/resources/prompts from the connected GitMCP servers. [web:2][web:93][web:145]
+- MA uses **MCP** to discover tools, resources, and prompts from the connected GitMCP servers.
 - Each skill is a **Codex/LLM skill** with a strict contract and evidence requirements.
 - Decisions and statuses are logged into `.omx/decisions.json` for auditability.
-- If configured, `$build` can spawn **linked Git worktrees** for bounded tasks like `ui`, `api`, `auth`, sharing the underlying repo while keeping separate working trees. [web:24][web:17]
+- If configured, `$build` can spawn **linked Git worktrees** for bounded tasks like `ui`, `api`, `auth`, sharing the underlying repo while keeping separate working trees.
+- `ma merge` and `ma release` enforce branch-origin policy before state promotion.
 
 ---
 
@@ -91,10 +101,10 @@ Meta-Architect does **not** replace your LLM or dev tools.
 
 It adds a **verified engineering layer** around them:
 
-- **MCP + GitMCP** give you a structured, live view of curated OSS and security sources instead of hardcoded integrations. [web:6][web:61][web:11]
+- **MCP + GitMCP** give you a structured, live view of curated OSS and security sources instead of hardcoded integrations.
 - **Skills** (`$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`) turn that context into decisions and gates.
 - **`.omx/`** stores architecture, evidence, gates, and release decisions.
-- **Git worktrees** (optional) give each approved build task its own isolated working tree attached to the same repository. [web:24][web:19]
+- **Git worktrees** (optional) give each approved build task its own isolated working tree attached to the same repository.
 
 Most users should think of Meta-Architect as **better project decisions + better gates + safer execution**, not as a general-purpose chatbot.
 
@@ -104,14 +114,14 @@ Most users should think of Meta-Architect as **better project decisions + better
 
 1. **Install requirements**
    - Node.js 20+
-   - Git 2.30+ with `git worktree` support [web:17]
+   - Git 2.30+ with `git worktree` support
    - An MCP-capable LLM CLI (Codex-like tool) with auth configured in the same shell/profile.
 2. **Initialize Meta-Architect**
    ```bash
    ma init
    ```
 3. **Connect your OSS collections via GitMCP**
-   - GitMCP turns any GitHub repo into an MCP server by swapping `github.com` → `gitmcp.io`. [web:6][web:61]
+   - GitMCP turns any GitHub repo into an MCP server by swapping `github.com` → `gitmcp.io`.
    ```bash
    mcp add https://gitmcp.io/sindresorhus/awesome
    mcp add https://gitmcp.io/dzharii/awesome-typescript
@@ -136,6 +146,11 @@ Most users should think of Meta-Architect as **better project decisions + better
    ma status      # check gates
    ma run $build  # only if gates are GREEN
    ```
+7. **Enforce merge and release policy**
+   ```bash
+   ma merge feature/ui development
+   ma release development prod
+   ```
 
 ---
 
@@ -155,6 +170,13 @@ Inside a session, use the short, human-style triggers:
 | `$build` | When all gates are green, split work into tasks and (optionally) spawn isolated git worktrees for each bounded concern. |
 
 Use `$build` only after `$arch`, `$sage`, `$flow`, and `$vet` have done their job.
+
+Supporting commands:
+- `ma init` scaffolds the repo shape and baseline files.
+- `ma idea "..."` records the project brief and unlocks `$arch`.
+- `ma skills` lists the core skill triggers.
+- `ma merge <feature/*> development` enforces merge policy and marks merge state.
+- `ma release <development|release/*> prod` enforces release-origin policy and marks release state.
 
 ---
 
@@ -212,10 +234,14 @@ meta-architect/
 │
 ├── docs/
 │   ├── README.md
-│   ├── architecture.md
-│   ├── release-spec.md
+│   ├── getting-started.md
+│   ├── mcp-setup.md
 │   ├── onboarding.md
-│   └── oss-map.md
+│   ├── qa/
+│   │   └── release-readiness-1.0.0.md
+│   ├── release-spec.md
+│   ├── skills.md
+│   └── skills-publishing.md
 │
 └── package.json
 ```
@@ -233,24 +259,25 @@ Meta-Architect enforces a **gated release path**:
 
 1. **Idea** – captured via `ma idea`.
 2. **Architecture ($arch)** – blueprint and stack, must be logged.
-3. **Evidence ($sage)** – OSS mapping from GitMCP sources. [web:6][web:61]
+3. **Evidence ($sage)** – OSS mapping from GitMCP sources.
 4. **Logic ($flow)** – business logic and state validation.
 5. **Security ($vet)** – security posture and CVE checks.
 6. **DX/UX ($vibe)** – developer and user experience implications.
-7. **Build ($build)** – work split and isolated execution (optional worktrees). [web:24][web:19]
-8. **Merge & Release** – merge feature branches into `development`, then promote to `prod` once gates are green.
+7. **Build ($build)** – work split and isolated execution (optional worktrees).
+8. **Merge & Release** – merge feature branches into `development`, optionally stabilize on an approved `release/*` branch, then promote to `prod` once gates are green.
 
 Default branch policy:
 
 - `feature/*` — task branches (may be used in worktrees).
 - `development` — integration branch.
+- `release/*` — optional stabilization branch before `prod`.
 - `prod` — production-ready, deployable branch.
 
 ---
 
 ## Workspace and worktrees
 
-When `$build` is allowed, MA can create **linked working trees** for bounded tasks. Git defines `git worktree` as a way to manage multiple working trees attached to the same repository. [web:24][web:17][web:19]
+When `$build` is allowed, MA can create **linked working trees** for bounded tasks. Git manages multiple working trees attached to the same repository while keeping branch work isolated.
 
 Example:
 
@@ -290,15 +317,29 @@ If anything is unclear, MA should stop and show you **which gate is blocking** a
 
 ## Documentation
 
-> TODO — once you have docs, wire them here.
-
-- Getting Started
-- Skills reference
-- MCP / GitMCP setup
-- Release & gate spec
-- Troubleshooting
+- [Getting Started](./docs/getting-started.md)
+- [Skills Reference](./docs/skills.md)
+- [Skills Publishing](./docs/skills-publishing.md)
+- [MCP / GitMCP Setup](./docs/mcp-setup.md)
+- [Release & Gate Spec](./docs/release-spec.md)
+- [QA / Release Readiness](./docs/qa/release-readiness-1.0.0.md)
+- [Release Body](./RELEASE.md)
+- [Changelog](./CHANGELOG.md)
 
 ---
 
 ## License
 [MIT](./LICENSE)
+
+---
+
+## Renovate
+
+This repo uses Renovate to keep dependencies current during business hours.
+
+- Update window: once per weekday in the configured timezone.
+- Grouping: production dependencies and devDependencies are grouped separately.
+- Automerge: only patch-level updates for `devDependencies` are auto-merged.
+
+To disable Renovate for one package, add a `packageRules` entry in `renovate.json` with
+`matchPackageNames` for that dependency and `"enabled": false`.

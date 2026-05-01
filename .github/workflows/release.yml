@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate release bundle
+        run: |
+          npm run skills:manifest
+          npm run skills:validate
+          npm run skills:pack
+          npm run check
+          npm test
+
+      - name: Validate release assets
+        run: node .github/scripts/validate-release-assets.js
+
+      - name: Publish GitHub release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/meta-architect-skills.tgz
+          body_path: RELEASE.md

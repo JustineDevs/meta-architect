@@ -1,0 +1,12 @@
+{
+  "name": "meta-architect",
+  "version": "1.0.0",
+  "collections": [
+    "sindresorhus/awesome",
+    "dzharii/awesome-typescript",
+    "rust-unofficial/awesome-rust",
+    "sbilly/awesome-security",
+    "awesome-selfhosted/awesome-selfhosted"
+  ],
+  "notes": "Replace with repo-specific gitmcp.io endpoints in consuming environments."
+}

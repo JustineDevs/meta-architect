@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "servers": [
+    {
+      "category": "meta-list",
+      "repo": "sindresorhus/awesome",
+      "endpoint": "https://gitmcp.io/sindresorhus/awesome"
+    },
+    {
+      "category": "typescript",
+      "repo": "dzharii/awesome-typescript",
+      "endpoint": "https://gitmcp.io/dzharii/awesome-typescript"
+    },
+    {
+      "category": "rust",
+      "repo": "rust-unofficial/awesome-rust",
+      "endpoint": "https://gitmcp.io/rust-unofficial/awesome-rust"
+    },
+    {
+      "category": "go",
+      "repo": "avelino/awesome-go",
+      "endpoint": "https://gitmcp.io/avelino/awesome-go"
+    },
+    {
+      "category": "python",
+      "repo": "vinta/awesome-python",
+      "endpoint": "https://gitmcp.io/vinta/awesome-python"
+    },
+    {
+      "category": "java",
+      "repo": "akullpp/awesome-java",
+      "endpoint": "https://gitmcp.io/akullpp/awesome-java"
+    },
+    {
+      "category": "dotnet",
+      "repo": "quozd/awesome-dotnet",
+      "endpoint": "https://gitmcp.io/quozd/awesome-dotnet"
+    },
+    {
+      "category": "security",
+      "repo": "sbilly/awesome-security",
+      "endpoint": "https://gitmcp.io/sbilly/awesome-security"
+    },
+    {
+      "category": "self-hosted",
+      "repo": "awesome-selfhosted/awesome-selfhosted",
+      "endpoint": "https://gitmcp.io/awesome-selfhosted/awesome-selfhosted"
+    },
+    {
+      "category": "system-design",
+      "repo": "checkcheckzz/system-design-interview",
+      "endpoint": "https://gitmcp.io/checkcheckzz/system-design-interview"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MA Vet"
+  short_description: "Security, CVE, and risk review for MA"
+  default_prompt: "Use $meta-architect-vet to review security risks, CVEs, and safer alternatives in a Meta-Architect project."

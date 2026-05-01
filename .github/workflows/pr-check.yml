@@ -1,0 +1,53 @@
+name: PR Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+jobs:
+  pr-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify skills manifest is current
+        run: |
+          npm run skills:manifest
+          git diff --exit-code skills/index.json
+
+      - name: Validate skills
+        run: npm run skills:validate
+
+      - name: Fail on forbidden tracked runtime .omx files
+        run: |
+          forbidden=$(git ls-files '.omx/logs/*' '.omx/state/*' '.omx/tmp/*' '.omx/cache/*' || true)
+          if [ -n "$forbidden" ]; then
+            echo "Forbidden runtime .omx files are tracked:"
+            echo "$forbidden"
+            exit 1
+          fi
+
+      - name: Check release docs when package version changes
+        run: |
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q '^package.json$'; then
+            changed=$(git diff origin/${{ github.base_ref }}...HEAD -- package.json)
+            if echo "$changed" | grep -q '"version"'; then
+              files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+              echo "$files" | grep -q '^RELEASE.md$' || (echo "RELEASE.md must be updated when version changes" && exit 1)
+            fi
+          fi

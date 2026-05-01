@@ -1,0 +1,67 @@
+name: Feature Request
+description: Propose a new capability or improvement
+title: "[feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for feature requests, product improvements, or new repository surfaces.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem are you trying to solve?
+      placeholder: Describe the gap, friction, or missing capability.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should Meta-Architect do?
+      placeholder: Describe the change you want.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What alternatives or workarounds did you consider?
+    validations:
+      required: false
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact area
+      options:
+        - architecture workflow
+        - skill contracts
+        - prompts
+        - publishing
+        - GitHub automation
+        - MCP integration
+        - docs
+        - developer experience
+        - user experience
+        - other
+    validations:
+      required: true
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Could this be breaking?
+      options:
+        - "no"
+        - "possibly"
+        - "yes"
+    validations:
+      required: true
+  - type: textarea
+    id: success
+    attributes:
+      label: Success criteria
+      description: How should we know this feature is complete?
+      placeholder: Define observable outcomes.
+    validations:
+      required: false

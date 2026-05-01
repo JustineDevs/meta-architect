@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "collections": {
+    "arch": [
+      "meta-list",
+      "typescript",
+      "rust",
+      "go",
+      "python",
+      "java",
+      "dotnet",
+      "self-hosted",
+      "system-design"
+    ],
+    "sage": ["meta-list", "typescript", "rust", "go", "python", "java", "dotnet", "self-hosted"],
+    "vet": ["security"],
+    "flow": [],
+    "vibe": [],
+    "build": []
+  }
+}

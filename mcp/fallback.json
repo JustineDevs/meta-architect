@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0.0",
+  "fallback": {
+    "endpoint": "https://gitmcp.io/docs",
+    "policy": "Use only when no approved exact endpoint exists and log the exception as UNVERIFIED."
+  }
+}

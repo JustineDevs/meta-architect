@@ -1,0 +1,4 @@
+interface:
+  display_name: "MA Sage"
+  short_description: "GitMCP-backed OSS evidence selection"
+  default_prompt: "Use $meta-architect-sage to bind major technical choices to approved GitMCP-backed OSS sources."

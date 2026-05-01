@@ -1,0 +1,88 @@
+name: Bug Report
+description: Report a defect in Meta-Architect
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please provide enough detail for us to reproduce and verify the issue.
+  - type: checkboxes
+    id: existing
+    attributes:
+      label: Existing issue check
+      description: Confirm that you searched for an existing issue first.
+      options:
+        - label: I searched the existing issues before filing this report.
+          required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken?
+      placeholder: A short, clear description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the exact steps needed to reproduce the issue.
+      placeholder: |
+        1. Run ...
+        2. Open ...
+        3. Trigger ...
+        4. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - skills
+        - prompts
+        - MCP config
+        - plugin surface
+        - release workflow
+        - packaging
+        - documentation
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include runtime and tool versions.
+      render: shell
+      placeholder: |
+        OS:
+        Node:
+        npm:
+        Git:
+        Meta-Architect version:
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or output
+      description: Paste any relevant command output or logs.
+      render: shell
+    validations:
+      required: false
