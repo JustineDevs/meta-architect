@@ -13,7 +13,7 @@ ma run $arch
 
 Expected effects:
 - Reads the recorded idea brief.
-- Appends an architecture decision entry to `.omx/decisions.json`.
+- Appends an architecture decision entry to `.meta-architect/decisions.json`.
 - Advances `architecture_status` to `APPROVED`.
 
 Use this skill only after `ma idea` has captured a project brief.

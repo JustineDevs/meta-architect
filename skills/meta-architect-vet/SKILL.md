@@ -12,8 +12,8 @@ ma run $vet
 ```
 
 Expected effects:
-- Writes audit findings to `.omx/evidence/audits.json` and `.omx/evidence/cves.json`.
-- Appends a security decision entry to `.omx/decisions.json`.
+- Writes audit findings to `.meta-architect/evidence/audits.json` and `.meta-architect/evidence/cves.json`.
+- Appends a security decision entry to `.meta-architect/decisions.json`.
 - Advances `security_status` to `GREEN` unless unresolved blockers remain.
 
 Use this skill after `$flow` and before `$vibe`.

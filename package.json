@@ -1,6 +1,6 @@
 {
   "name": "@jstn-sdk/meta-architect-skills",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Meta-Architect skills bundle and orchestration tooling for verified engineering workflows.",
   "license": "MIT",
   "author": "jstn-sdk",
@@ -32,6 +32,7 @@
   },
   "files": [
     "bin/",
+    "src/",
     "skills/",
     "docs/",
     "scripts/",

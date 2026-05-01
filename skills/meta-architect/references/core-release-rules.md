@@ -1,6 +1,6 @@
 # Core Release Rules
 
-- Required status fields live in `.omx/decisions.json` and `.omx/release.json`.
+- Required status fields live in `.meta-architect/decisions.json` and `.meta-architect/release.json`.
 - `$build` is blocked unless:
   - `idea_status = CLEAR`
   - `architecture_status = APPROVED`

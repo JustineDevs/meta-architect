@@ -8,7 +8,7 @@ import { auditsPath, cvesPath, outcomesPath, packageRoot, repoRoot, sourcesPath 
 import { syncStatusUpdates } from "./state-sync.js";
 
 const skillNames = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
-const omxSkillTemplates = {
+const workflowTemplates = {
   "arch.skill.md":
     "# `$arch`\n\nProduces blueprint architecture, stack rationale, subsystem design, and tradeoffs.\n",
   "sage.skill.md":
@@ -27,7 +27,7 @@ export function listSkills() {
 }
 
 async function readIdeaText() {
-  const decisions = await readJson(path.join(repoRoot, ".omx", "decisions.json"));
+  const decisions = await readJson(path.join(repoRoot, ".meta-architect", "decisions.json"));
   const ideaDecision = [...decisions.decisions].reverse().find((entry) => entry.kind === "idea");
   return ideaDecision?.idea ?? null;
 }
@@ -245,8 +245,8 @@ export async function runInit() {
   const targets = [
     ".codex/agents",
     ".codex/prompts",
-    ".omx/skills",
-    ".omx/evidence",
+    ".meta-architect/skills",
+    ".meta-architect/evidence",
     "mcp",
     "docs",
     "docs/qa",
@@ -313,8 +313,8 @@ export async function runInit() {
       path.join(repoRoot, "docs", "release-spec.md"),
     ],
     [
-      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.0.md"),
-      path.join(repoRoot, "docs", "qa", "release-readiness-0.1.0.md"),
+      path.join(packageRoot, "docs", "qa", "release-readiness-0.2.0.md"),
+      path.join(repoRoot, "docs", "qa", "release-readiness-0.2.0.md"),
     ],
   ];
 
@@ -349,7 +349,7 @@ export async function runInit() {
   }
 
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "decisions.json"),
+    path.join(repoRoot, ".meta-architect", "decisions.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -370,7 +370,7 @@ export async function runInit() {
   );
 
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "release.json"),
+    path.join(repoRoot, ".meta-architect", "release.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -391,8 +391,8 @@ export async function runInit() {
     )}\n`,
   );
 
-  for (const [fileName, content] of Object.entries(omxSkillTemplates)) {
-    await writeFileIfMissing(path.join(repoRoot, ".omx", "skills", fileName), content);
+  for (const [fileName, content] of Object.entries(workflowTemplates)) {
+    await writeFileIfMissing(path.join(repoRoot, ".meta-architect", "skills", fileName), content);
   }
 
   await writeFileIfMissing(
@@ -418,7 +418,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "evidence", "sources.json"),
+    path.join(repoRoot, ".meta-architect", "evidence", "sources.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -429,7 +429,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "evidence", "audits.json"),
+    path.join(repoRoot, ".meta-architect", "evidence", "audits.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -440,7 +440,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "evidence", "outcomes.json"),
+    path.join(repoRoot, ".meta-architect", "evidence", "outcomes.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -451,7 +451,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "evidence", "cves.json"),
+    path.join(repoRoot, ".meta-architect", "evidence", "cves.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",

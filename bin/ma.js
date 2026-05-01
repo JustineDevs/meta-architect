@@ -6,6 +6,7 @@ import {
   formatNextAllowedTriggers,
 } from "../src/build-gate.js";
 import { appendDecision } from "../src/decision-log.js";
+import { runCodex, shouldDelegateToCodex } from "../src/launcher.js";
 import {
   canMarkBuildDone,
   rejectsDirectProdPromotion,
@@ -27,6 +28,8 @@ import { syncStatusUpdates } from "../src/state-sync.js";
 
 function printUsage() {
   console.error("Usage:");
+  console.error("  ma setup");
+  console.error("  ma --madmax --high");
   console.error("  ma init");
   console.error('  ma idea "..."');
   console.error("  ma skills");
@@ -71,7 +74,7 @@ async function runBuild(releaseState) {
       evidence: [
         {
           kind: "release-state",
-          path: ".omx/release.json",
+          path: ".meta-architect/release.json",
         },
       ],
       blockers,
@@ -94,7 +97,7 @@ async function runBuild(releaseState) {
     evidence: [
       {
         kind: "release-state",
-        path: ".omx/release.json",
+        path: ".meta-architect/release.json",
       },
       {
         branches: ["feature/ui", "feature/api"],
@@ -178,7 +181,23 @@ async function runRelease(originBranch, targetBranch) {
 
 async function main() {
   const [, , command, ...rest] = process.argv;
+  const args = process.argv.slice(2);
   const arg = rest[0];
+
+  if (shouldDelegateToCodex(args)) {
+    process.exitCode = runCodex(args);
+    return;
+  }
+
+  if (command === "setup") {
+    const created = await runInit();
+    console.log("meta-architect setup");
+    console.log("====================");
+    for (const item of created) {
+      console.log(`ready: ${item}`);
+    }
+    return;
+  }
 
   if (command === "init") {
     const created = await runInit();

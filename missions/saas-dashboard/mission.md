@@ -26,10 +26,10 @@ Use Meta-Architect to move a SaaS dashboard idea into a disciplined build-ready 
 
 ## Expected generated artifacts
 
-- `.omx/decisions.json`
-- `.omx/release.json`
-- `.omx/evidence/sources.json`
-- `.omx/evidence/outcomes.json`
+- `.meta-architect/decisions.json`
+- `.meta-architect/release.json`
+- `.meta-architect/evidence/sources.json`
+- `.meta-architect/evidence/outcomes.json`
 
 ## Pass criteria
 

@@ -14,7 +14,7 @@ ma run $sage
 Expected effects:
 - Validates configured endpoints in `mcp/servers.json`.
 - Performs a live MCP probe against at least one configured GitMCP server when network access is available.
-- Writes evidence records to `.omx/evidence/sources.json`.
+- Writes evidence records to `.meta-architect/evidence/sources.json`.
 - Advances `evidence_status` to `VERIFIED`, `PARTIAL`, or `MISSING`.
 
 Do not invent repos or endpoints. If no valid evidence is available, keep the result unverified.

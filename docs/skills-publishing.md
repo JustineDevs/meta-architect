@@ -7,7 +7,7 @@ Meta-Architect ships skills through a deliberate source-to-package pipeline. Thi
 ### 1. Internal runtime surface
 
 Location:
-- `.omx/skills/`
+- `.meta-architect/skills/`
 
 Purpose:
 - local runtime behavior
@@ -24,7 +24,7 @@ Purpose:
 - UI metadata via `agents/openai.yaml`
 - versionable public skill contract
 
-Do not confuse these two layers. The repo publishes `skills/`, not `.omx/`.
+Do not confuse these two layers. The repo publishes `skills/`, not `.meta-architect/`.
 
 ## Canonical packaging flow
 
@@ -121,7 +121,7 @@ The publishable package should include:
 - `LICENSE`
 
 It should not include:
-- runtime `.omx` state
+- runtime `.meta-architect` state
 - local logs
 - temp install targets
 - generated local caches

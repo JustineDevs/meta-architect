@@ -1,8 +1,8 @@
-# Release Readiness 0.1.0
+# Release Readiness 0.2.0
 
 ## Production bar
 
-`v0.1.0` is treated as production only when:
+`v0.2.0` is treated as production only when:
 - the core workflows are reliable end-to-end,
 - the public interface and release contract are stable,
 - and the release has documented verification evidence.
@@ -20,7 +20,7 @@ npm run skills:validate
 Typical release-critical flow:
 
 ```bash
-ma init
+ma setup
 ma idea "Build a demo app"
 ma run '$arch'
 ma run '$sage'

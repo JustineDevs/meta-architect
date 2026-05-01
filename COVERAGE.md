@@ -1,6 +1,6 @@
 # Meta-Architect Feature Coverage Matrix
 
-**Target: Production-ready core orchestration + publishable skills for v0.1.0**  
+**Target: Production-ready core orchestration + publishable skills for v0.2.0**  
 **Last Updated:** 2026-04-30
 
 ## Coverage Summary
@@ -37,12 +37,12 @@
 
 | Skill | Trigger | Status | Mechanism |
 |-------|---------|--------|-----------|
-| Architect | `$arch` | DONE | `src/skills.js` + `.omx/skills/arch.skill.md` |
-| OSS Sage | `$sage` | DONE | live GitMCP SSE/JSON-RPC probe + `.omx/skills/sage.skill.md` |
-| Logic Specialist | `$flow` | DONE | `src/skills.js` + `.omx/skills/flow.skill.md` |
-| Security Auditor | `$vet` | DONE | `src/skills.js` + `.omx/skills/vet.skill.md` |
-| DX/UX Specialist | `$vibe` | DONE | `src/skills.js` + `.omx/skills/vibe.skill.md` |
-| Builder | `$build` | DONE | `src/build-gate.js` + `.omx/skills/build.skill.md` |
+| Architect | `$arch` | DONE | `src/skills.js` + `.meta-architect/skills/arch.skill.md` |
+| OSS Sage | `$sage` | DONE | live GitMCP SSE/JSON-RPC probe + `.meta-architect/skills/sage.skill.md` |
+| Logic Specialist | `$flow` | DONE | `src/skills.js` + `.meta-architect/skills/flow.skill.md` |
+| Security Auditor | `$vet` | DONE | `src/skills.js` + `.meta-architect/skills/vet.skill.md` |
+| DX/UX Specialist | `$vibe` | DONE | `src/skills.js` + `.meta-architect/skills/vibe.skill.md` |
+| Builder | `$build` | DONE | `src/build-gate.js` + `.meta-architect/skills/build.skill.md` |
 
 ## Status & Gate Contract
 
@@ -126,7 +126,7 @@
 
 ## Production Interpretation
 
-Meta-Architect currently covers the production `v0.1.0` core bar for:
+Meta-Architect currently covers the production `v0.2.0` core bar for:
 - reliable core orchestration,
 - stable status/branch contract,
 - publishable repo-local skill artifacts,

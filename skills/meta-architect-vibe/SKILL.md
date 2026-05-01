@@ -12,8 +12,8 @@ ma run $vibe
 ```
 
 Expected effects:
-- Writes experience notes to `.omx/evidence/outcomes.json`.
-- Appends a DX/UX decision entry to `.omx/decisions.json`.
+- Writes experience notes to `.meta-architect/evidence/outcomes.json`.
+- Appends a DX/UX decision entry to `.meta-architect/decisions.json`.
 - Advances `experience_status` to `GREEN` when the flow is acceptable.
 
 Use this skill before `$build`.

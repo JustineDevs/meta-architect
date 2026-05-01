@@ -36,24 +36,24 @@ Why `npm link` matters:
 ## 2. Initialize Meta-Architect
 
 ```bash
-ma init
+ma setup
 ```
 
 Expected effects:
 - `.codex/agents/` exists
 - `.codex/prompts/` exists
-- local `.omx/skills/` and `.omx/evidence/` are seeded
+- local `.meta-architect/skills/` and `.meta-architect/evidence/` are seeded
 - `mcp/`, `docs/`, and `sprint/` surfaces exist
 
 Expected output:
 
 ```text
-meta-architect init
-===================
+meta-architect setup
+====================
 ready: .codex/agents
 ready: .codex/prompts
-ready: .omx/skills
-ready: .omx/evidence
+ready: .meta-architect/skills
+ready: .meta-architect/evidence
 ready: mcp
 ready: docs
 ready: docs/qa
@@ -91,12 +91,12 @@ ma idea "Build a real-time collaborative whiteboard for product teams"
 ```
 
 Expected effects:
-- an idea decision entry is appended to `.omx/decisions.json`
+- an idea decision entry is appended to `.meta-architect/decisions.json`
 - `idea_status = CLEAR`
 
 If this fails:
 - ensure the idea text is not empty
-- inspect `.omx/decisions.json` for malformed local data
+- inspect `.meta-architect/decisions.json` for malformed local data
 
 ## 5. Run the skill sequence
 
@@ -111,8 +111,8 @@ Expected effects:
 - `architecture_status = APPROVED`
 
 Generated or updated:
-- `.omx/decisions.json`
-- `.omx/release.json`
+- `.meta-architect/decisions.json`
+- `.meta-architect/release.json`
 
 ### 5.2 Evidence
 
@@ -125,16 +125,16 @@ Expected effects:
 - configured GitMCP endpoints are validated
 - the latest architecture summary is used as the probe query basis
 - the first configured live source is probed when live mode is enabled
-- `.omx/evidence/sources.json` is updated
+- `.meta-architect/evidence/sources.json` is updated
 - `evidence_status` becomes:
   - `VERIFIED` on a real successful live probe
   - `PARTIAL` when configured evidence exists but live proof is incomplete or disabled
   - `MISSING` when no usable approved source exists
 
 Generated or updated:
-- `.omx/evidence/sources.json`
-- `.omx/decisions.json`
-- `.omx/release.json`
+- `.meta-architect/evidence/sources.json`
+- `.meta-architect/decisions.json`
+- `.meta-architect/release.json`
 
 If this fails:
 - check endpoint URLs in `mcp/servers.json`
@@ -160,7 +160,7 @@ ma run '$vet'
 ```
 
 Expected effects:
-- `.omx/evidence/audits.json` and `.omx/evidence/cves.json` are updated
+- `.meta-architect/evidence/audits.json` and `.meta-architect/evidence/cves.json` are updated
 - `security_status = GREEN` on a baseline pass
 - `security_status = RED` when prerequisite gates are not ready
 
@@ -172,7 +172,7 @@ ma run '$vibe' --waive --reason "Accepted for this release line"
 ```
 
 Expected effects:
-- `.omx/evidence/outcomes.json` is updated
+- `.meta-architect/evidence/outcomes.json` is updated
 - `experience_status = GREEN` on a baseline pass
 - `experience_status = RED` when prerequisite gates are not ready
 - `experience_status = WAIVED` when the waiver path is used explicitly
@@ -232,7 +232,7 @@ If `$build` fails:
 ## 8. Example walkthrough: collaborative whiteboard
 
 ```bash
-ma init
+ma setup
 ma idea "Build a collaborative whiteboard with live cursors and shared boards"
 ma run '$arch'
 ma run '$sage'
@@ -273,12 +273,12 @@ Expected effects:
 
 ## 10. Files generated or updated during a normal run
 
-- `.omx/decisions.json`
-- `.omx/release.json`
-- `.omx/evidence/sources.json`
-- `.omx/evidence/audits.json`
-- `.omx/evidence/cves.json`
-- `.omx/evidence/outcomes.json`
+- `.meta-architect/decisions.json`
+- `.meta-architect/release.json`
+- `.meta-architect/evidence/sources.json`
+- `.meta-architect/evidence/audits.json`
+- `.meta-architect/evidence/cves.json`
+- `.meta-architect/evidence/outcomes.json`
 
 These are local product artifacts created by the runtime. They are not a reason to bypass gate logic manually.
 
@@ -294,7 +294,7 @@ Common examples:
 - `logic_status = RED` -> fix upstream evidence/architecture issues, rerun `$flow`
 - `security_status = RED` -> resolve issues surfaced by `$vet`
 - `experience_status = RED` -> rerun `$vibe` after clearing prerequisites
-- `experience_status = WAIVED` -> verify the waiver reason recorded in `.omx/release.json`
+- `experience_status = WAIVED` -> verify the waiver reason recorded in `.meta-architect/release.json`
 
 ## Related docs
 

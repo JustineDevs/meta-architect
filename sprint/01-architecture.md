@@ -11,7 +11,7 @@ Produce a structured first-pass architecture blueprint, stack rationale, and dow
 
 ## Expected outputs
 
-- architecture decision in `.omx/decisions.json`
+- architecture decision in `.meta-architect/decisions.json`
 - `architecture_status = APPROVED`
 
 ## Exit criteria

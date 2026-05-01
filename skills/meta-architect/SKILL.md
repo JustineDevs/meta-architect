@@ -38,7 +38,7 @@ Run the end-to-end Meta-Architect operator workflow through the local `ma` CLI a
 ## Rules
 
 - Treat the local `ma` CLI as the source of truth for status transitions.
-- Do not bypass build gates by editing `.omx/decisions.json` or `.omx/release.json` manually.
+- Do not bypass build gates by editing `.meta-architect/decisions.json` or `.meta-architect/release.json` manually.
 - Use repo-specific GitMCP endpoints from `mcp/servers.json`.
 - Keep worktrees optional and operator-driven.
 

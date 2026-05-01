@@ -42,11 +42,11 @@ If a required gate does not turn green, `$build` must remain locked.
 ## Expected generated artifacts
 
 The mission should cause updates to:
-- `.omx/decisions.json`
-- `.omx/release.json`
-- `.omx/evidence/sources.json`
-- `.omx/evidence/audits.json` when relevant
-- `.omx/evidence/outcomes.json` when relevant
+- `.meta-architect/decisions.json`
+- `.meta-architect/release.json`
+- `.meta-architect/evidence/sources.json`
+- `.meta-architect/evidence/audits.json` when relevant
+- `.meta-architect/evidence/outcomes.json` when relevant
 
 ## Pass criteria
 
@@ -65,7 +65,7 @@ Fail if:
 - state transitions are not recorded
 - security review is skipped
 - `$build` unlocks before required gates are green
-- required `.omx` product artifacts are not updated
+- required `.meta-architect` product artifacts are not updated
 
 ## Evaluation notes
 

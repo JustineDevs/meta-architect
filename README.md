@@ -4,15 +4,15 @@
   <p>
     <img src="https://img.shields.io/badge/npm-%40jstn--sdk%2Fmeta--architect--skills-CB3837" alt="npm package">
     <img src="https://img.shields.io/badge/node-%3E%3D20-339933" alt="Node.js 20+">
-    <img src="https://img.shields.io/badge/release-v0.1.0-2563EB" alt="Release v0.1.0">
+    <img src="https://img.shields.io/badge/release-v0.2.0-2563EB" alt="Release v0.2.0">
     <img src="https://img.shields.io/badge/license-MIT-16A34A" alt="MIT License">
   </p>
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.1.0` is a production-grade skills line.
+> Meta-Architect `v0.2.0` is a production-grade skills line.
 > It is not a lightweight demo branch.
-> From `v0.1.0` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> From `v0.2.0` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
 
 ## Overview
 
@@ -44,7 +44,7 @@ It adds:
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.1.0</code></td>
+    <td><code>v0.2.0</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -71,15 +71,16 @@ Meta-Architect is intended to be consumed as an installed package, not primarily
 Default operator path:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect-skills
-omx --madmax --high
+npm install -g @openai/codex @jstn-sdk/meta-architect-skills@latest
+ma setup
+ma --madmax --high
 ```
 
 What this assumes:
 
 - Codex CLI is installed globally
 - Meta-Architect is installed globally as a package
-- `omx` is available in your environment as the recommended orchestration launcher
+- `ma setup` has initialized the local Meta-Architect project scaffold before launch
 
 > [!IMPORTANT]
 > The recommended default flow is package-first.
@@ -87,7 +88,7 @@ What this assumes:
 
 ## Repository Branch Strategy
 
-Meta-Architect’s repository workflow follows a stricter release posture inspired by OMX:
+Meta-Architect’s repository workflow follows a stricter release posture focused on gated promotion:
 
 - `main` = release-facing protected branch
 - `development` = normal integration branch
@@ -107,7 +108,8 @@ Meta-Architect’s repository workflow follows a stricter release posture inspir
 Install the consumer package directly:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect-skills
+npm install -g @openai/codex @jstn-sdk/meta-architect-skills@latest
+ma setup
 ```
 
 This gives you:
@@ -115,6 +117,7 @@ This gives you:
 - `codex`
 - `ma`
 - `meta-architect`
+- the standalone Meta-Architect CLI and project scaffold
 
 ### Contributor setup: source checkout
 
@@ -133,27 +136,27 @@ npm link
 
 ### 1. Initialize the project
 
-Launch the recommended high-intensity OMX session:
+Launch the recommended high-intensity Meta-Architect session:
 
 ```bash
-omx --madmax --high
+ma --madmax --high
 ```
 
 Then initialize the repository you want Meta-Architect to govern:
 
 ```bash
-ma init
+ma setup
 ```
 
 Expected output:
 
 ```text
-meta-architect init
-===================
+meta-architect setup
+====================
 ready: .codex/agents
 ready: .codex/prompts
-ready: .omx/skills
-ready: .omx/evidence
+ready: .meta-architect/skills
+ready: .meta-architect/evidence
 ready: mcp
 ready: docs
 ready: docs/qa
@@ -192,7 +195,7 @@ ma idea "Build a real-time collaborative whiteboard for product teams"
 
 Expected effect:
 
-- appends an idea entry to `.omx/decisions.json`
+- appends an idea entry to `.meta-architect/decisions.json`
 - sets `idea_status = CLEAR`
 
 ### 4. Run the gated workflow
@@ -278,7 +281,7 @@ Meta-Architect is intentionally fail-closed.
 | `READY` | the next gated step is allowed |
 
 > [!CAUTION]
-> `$build` must stay locked until the upstream release state in `.omx/release.json` satisfies the gate contract.
+> `$build` must stay locked until the upstream release state in `.meta-architect/release.json` satisfies the gate contract.
 > Meta-Architect is designed to stop on blockers rather than silently continue.
 
 ## Release and Packaging
@@ -321,7 +324,7 @@ Pre-publish rules:
   </tr>
   <tr>
     <td><strong>Excluded</strong></td>
-    <td><code>.omx/</code> runtime state, logs, caches, and temp install outputs</td>
+    <td><code>.meta-architect/</code> runtime state, logs, caches, and temp install outputs</td>
   </tr>
 </table>
 
@@ -377,12 +380,12 @@ Pre-publish rules:
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
 | [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.1.0.md) | QA evidence for the `v0.1.0` line |
+| [Release Readiness](./docs/qa/release-readiness-0.2.0.md) | QA evidence for the `v0.2.0` line |
 
 ## Release Hygiene
 
 > [!WARNING]
-> Runtime `.omx` logs, state, tmp, and cache files must not be shipped.
+> Runtime `.meta-architect` logs, state, tmp, and cache files must not be shipped.
 > Public docs must match actual package behavior.
 > Publish statements must match reality.
 > Skill contracts must stay aligned across canonical and plugin-facing copies.

@@ -10,8 +10,8 @@ Record a baseline security pass and keep the workflow blocked if prerequisites a
 
 ## Expected outputs
 
-- `.omx/evidence/audits.json`
-- `.omx/evidence/cves.json`
+- `.meta-architect/evidence/audits.json`
+- `.meta-architect/evidence/cves.json`
 - `security_status = GREEN | RED`
 
 ## Exit criteria
