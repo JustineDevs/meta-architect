@@ -1,0 +1,26 @@
+version: 2
+
+registries:
+  npmjs-jstn-sdk:
+    type: npm-registry
+    url: https://registry.npmjs.org
+    token: ${{secrets.NPM_TOKEN}}
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    registries:
+      - npmjs-jstn-sdk
+    groups:
+      production-dependencies:
+        dependency-type: production
+      development-dependencies:
+        dependency-type: development
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

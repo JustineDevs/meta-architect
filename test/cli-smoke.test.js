@@ -38,7 +38,13 @@ async function copyDir(src, dest) {
   await fs.mkdir(dest, { recursive: true });
   const entries = await fs.readdir(src, { withFileTypes: true });
   for (const entry of entries) {
-    if (entry.name === ".git" || entry.name === "node_modules" || entry.name === ".omx") {
+    if (
+      entry.name === ".git" ||
+      entry.name === "node_modules" ||
+      entry.name === ".omx" ||
+      entry.name === ".claude" ||
+      entry.name === ".agents"
+    ) {
       continue;
     }
 
