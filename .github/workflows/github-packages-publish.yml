@@ -1,0 +1,49 @@
+name: GitHub Packages Publish
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  publish-github-packages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+          scope: "@jstn-sdk"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate package
+        run: |
+          npm run skills:manifest
+          npm run skills:validate
+          npm run check
+          npm test
+          npm pack --dry-run
+
+      - name: Create GitHub Packages .npmrc
+        run: |
+          cat > .npmrc <<'EOF'
+          @jstn-sdk:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
+          EOF
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to GitHub Packages
+        run: npm publish --registry https://npm.pkg.github.com
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
