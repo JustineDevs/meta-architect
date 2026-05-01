@@ -103,6 +103,29 @@ Rules:
 - Release happens from `development` or approved `release/*` into `prod`.
 - `$build` creates or recommends `feature/*` branches; it does not modify `development` or `prod` directly.
 
+## Repository workflow strategy
+
+This document also distinguishes the Meta-Architect product branch model from the Meta-Architect repository workflow.
+
+Repository workflow:
+
+- `main` = release-facing protected branch for this repository
+- `development` = normal integration branch for this repository
+- `feature/*` = normal contribution branches for this repository
+
+Repository rules:
+
+- contributors branch from `development`
+- normal PRs target `development`
+- only curated promotions move `development` into `main`
+- direct pushes to `main` should be avoided except for genuine emergency or admin recovery cases
+
+Required repository checks on both `development` and `main`:
+
+- `validate`
+- `pr-check`
+- `codex-review`
+
 ### 4. Evidence and MCP rules
 
 - `$sage` and `$arch` must provide at least one OSS source for each major library/framework recommendation.

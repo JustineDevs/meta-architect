@@ -2,6 +2,13 @@
 
 Describe what changed and why.
 
+## Base branch
+
+- [ ] This PR targets `development`.
+- [ ] This PR targets `main` only as a curated promotion or maintainer exception.
+
+If targeting `main`, explain why:
+
 ## Scope
 
 - [ ] Skills

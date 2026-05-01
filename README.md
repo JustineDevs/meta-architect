@@ -86,6 +86,21 @@ What this assumes:
 > The recommended default flow is package-first.
 > The git clone path is for contributors and maintainers, not the main user-facing install story.
 
+## Repository Branch Strategy
+
+Meta-Architect’s repository workflow follows a stricter release posture inspired by OMX:
+
+- `main` = release-facing protected branch
+- `development` = normal integration branch
+- `feature/*` = short-lived contribution branches
+- contributors branch from `development`
+- normal PRs target `development`
+- only curated promotions move `development` into `main`
+
+> [!CAUTION]
+> `main` is intended to be protected and exceptional.
+> Maintainers should stop bypass-pushing to `main` except for genuine emergency or admin recovery cases.
+
 ## Setup
 
 ### Package setup

@@ -151,12 +151,25 @@ If uncertain, ask before committing new `.omx` paths.
 
 ## Branching and commits
 
-Default workflow:
+Repository branch strategy:
 
-- branch from `main`
-- open focused PRs
+- `main` = release-facing protected branch
+- `development` = normal integration branch
+- `feature/*` = short-lived contribution branches
+
+Default contributor workflow:
+
+- branch from `development`
+- open focused PRs targeting `development`
 - avoid unrelated formatting churn
 - keep release changes separate from feature changes when possible
+- do not open ordinary feature PRs directly to `main`
+
+Curated promotion workflow:
+
+- promote `development` into `main` through a release-facing PR
+- treat direct `main` work as maintainer-only exception handling
+- do not bypass `main` protections except for genuine emergency or admin recovery cases
 
 Preferred commit styles:
 
@@ -179,6 +192,12 @@ Every PR should include:
 - whether release behavior changed
 
 If a PR changes skills, release automation, package metadata, or `.github/workflows`, it should be treated as release-sensitive.
+
+### Base branch policy
+
+- Normal contribution PRs must target `development`.
+- `main` is reserved for curated promotion PRs, normally `development -> main`.
+- If you open a PR to `main`, explain why it is a release-facing exception.
 
 ## Release-sensitive changes
 

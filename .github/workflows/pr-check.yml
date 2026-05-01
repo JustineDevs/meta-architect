@@ -40,6 +40,28 @@ jobs:
       - name: Validate skills
         run: npm run skills:validate
 
+      - name: Enforce PR base branch policy
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$BASE_REF" = "development" ]; then
+            echo "Normal integration PR targeting development: allowed."
+            exit 0
+          fi
+
+          if [ "$BASE_REF" = "main" ] && [ "$HEAD_REF" = "development" ]; then
+            echo "Curated promotion PR from development to main: allowed."
+            exit 0
+          fi
+
+          echo "Invalid PR target policy."
+          echo "Normal PRs must target development."
+          echo "Only curated promotion PRs from development may target main."
+          echo "Current head: $HEAD_REF"
+          echo "Current base: $BASE_REF"
+          exit 1
+
       - name: Fail on forbidden tracked runtime .omx files
         run: |
           forbidden=$(git ls-files '.omx/logs/*' '.omx/state/*' '.omx/tmp/*' '.omx/cache/*' || true)
