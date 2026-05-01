@@ -71,7 +71,7 @@ Meta-Architect is intended to be consumed as an installed package, not primarily
 Default operator path:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect@latest
+npm install -g @openai/codex @jstn-sdk/meta-architect@0.1.0
 ma setup
 ma
 ```
@@ -109,7 +109,7 @@ Meta-Architect’s repository workflow follows a stricter release posture focuse
 Install the consumer package directly:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect@latest
+npm install -g @openai/codex @jstn-sdk/meta-architect@0.1.0
 ```
 
 This gives you:
