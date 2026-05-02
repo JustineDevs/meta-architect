@@ -1,7 +1,7 @@
 # Meta-Architect Demo Guide
 
 Last verified: 2026-05-02  
-Release candidate package: `@jstn-sdk/meta-architect@0.1.1` (pending publish)
+Release candidate package: `@jstn-sdk/meta-architect@0.1.0` (pending publish)
 
 ## Canonical demo path
 
@@ -220,7 +220,7 @@ Expected:
 | `.codex` role prompts | 4 prompt files + 6 agent TOMLs |
 | MCP config files | 3 |
 | Test files | 7 |
-| Published npm package target | `@jstn-sdk/meta-architect@0.1.1` |
+| Published npm package target | `@jstn-sdk/meta-architect@0.1.0` |
 
 ## Troubleshooting
 

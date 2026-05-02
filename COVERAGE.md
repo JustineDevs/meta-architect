@@ -1,8 +1,8 @@
 # Meta-Architect Coverage Matrix
 
-Target release: `v0.1.1`  
+Target release: `v0.1.0`  
 Last verified: 2026-05-02  
-Release candidate package: `@jstn-sdk/meta-architect@0.1.1` (pending publish)
+Release candidate package: `@jstn-sdk/meta-architect@0.1.0` (pending publish)
 
 ## Coverage summary
 
@@ -74,7 +74,7 @@ Current automated verification count:
 
 | Surface | Status | Mechanism |
 |---|---|---|
-| npm package identity | DONE | `@jstn-sdk/meta-architect@0.1.1` |
+| npm package identity | DONE | `@jstn-sdk/meta-architect@0.1.0` |
 | public scoped package config | DONE | `publishConfig.access = public` |
 | package files whitelist | DONE | `package.json > files` |
 | skill bundle tarball | DONE | `npm run skills:pack` |
@@ -90,7 +90,7 @@ Current automated verification count:
 |---|---|---|
 | `README.md` canonical install block | DONE | scoped package + `ma --madmax --high` |
 | onboarding / quickstart docs | DONE | same canonical story |
-| release spec | DONE | `v0.1.1` aligned |
+| release spec | DONE | `v0.1.0` aligned |
 | release readiness doc | DONE | includes release-candidate publish state |
 | release summary doc | DONE | includes release-candidate publish state |
 | CI / PR workflows | DONE | skills manifest + plugin mirror enforced |
@@ -101,11 +101,11 @@ These are limits, not stale gaps:
 
 1. Live `$sage` verification still depends on reachable GitMCP endpoints.
 2. Worktree commands are suggested, not fully lifecycle-managed.
-3. npm publication is real for `0.1.0`, and `0.1.1` exists specifically to replace that stale public build with the corrected package contents.
+3. npm publication is real for `0.1.0`, and `0.1.0` exists specifically to replace that stale public build with the corrected package contents.
 
 ## Current truth statement
 
-Meta-Architect currently covers the `v0.1.1` release bar for:
+Meta-Architect currently covers the `v0.1.0` release bar for:
 - canonical install and launch
 - Codex-hosted runtime entry
 - skills-first orchestration

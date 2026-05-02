@@ -1,23 +1,18 @@
-# Release Readiness 0.1.1
+# Release Readiness 0.1.0
 
 ## Production bar
 
-`v0.1.1` is treated as production only when:
+`v0.1.0` is treated as production only when:
 - the package installs cleanly from the canonical public install command
 - the Codex-hosted runtime path works end to end
 - the helper flow remains valid for scripted verification
-- release docs, package metadata, and workflows all agree on `0.1.1`
+- release docs, package metadata, and workflows all agree on `0.1.0`
 
 Target release state:
-- npm package: `@jstn-sdk/meta-architect@0.1.1`
+- npm package: `@jstn-sdk/meta-architect@0.1.0`
 - target dist-tag: `latest`
 - published at: pending publish
-- git tag: `v0.1.1`
-
-Recovery state:
-- `@jstn-sdk/meta-architect@0.1.0` is deprecated on npm
-- remote `v0.1.0` release/tag surfaces were removed
-- `v0.1.1` is the forward-correct release line
+- git tag: `v0.1.0`
 
 ## Automated checks run
 

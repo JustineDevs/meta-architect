@@ -1,13 +1,13 @@
-# v0.1.1 Requirements & Rules
+# v0.1.0 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.1.1` is production only when:
+Meta-Architect `v0.1.0` is production only when:
 1. the package/install surface works
 2. the runtime workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
-## What `v0.1.1` must have
+## What `v0.1.0` must have
 
 ### 1. Canonical package/runtime path
 
@@ -45,16 +45,16 @@ Canonical state files:
 
 ### 4. Required release evidence
 
-- `package.json` version `0.1.1`
-- git tag `v0.1.1`
+- `package.json` version `0.1.0`
+- git tag `v0.1.0`
 - `RELEASE.md`
 - `CHANGELOG.md`
-- `docs/qa/release-readiness-0.1.1.md`
+- `docs/qa/release-readiness-0.1.0.md`
 - green `npm run release:check`
 
 ### 5. Dist-tag discipline
 
-- stable versions such as `0.1.1` publish to npm `latest`
+- stable versions such as `0.1.0` publish to npm `latest`
 - prerelease versions such as `0.2.0-beta.1` must publish with explicit tags such as `beta`
 - recommended alternate lanes are `next`, `beta`, and `canary`
 - prerelease publication must use `npm publish --tag <lane>`
@@ -69,6 +69,14 @@ Canonical state files:
 5. Run `npm run release:verify`
 6. Run `npm run release:check`
 7. Create and push tag `v<version>`
-8. Stable publish: `npm publish --access public --provenance`
-9. Prerelease publish: `npm publish --access public --provenance --tag <lane>`
+8. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
+9. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
+   - Stable publish: `npm publish --access public`
+   - Prerelease publish: `npm publish --access public --tag <lane>`
 10. Verify dist-tags with `npm view @jstn-sdk/meta-architect version dist-tags time --json`
+
+### 7. Provenance rule
+
+- `npm publish --provenance` is valid only from a supported cloud CI/CD provider
+- local shell publishes are expected to fail with `Automatic provenance generation not supported for provider: null`
+- use the repository publish workflow when provenance is part of the release bar

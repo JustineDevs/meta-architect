@@ -1,6 +1,6 @@
 {
   "name": "@jstn-sdk/meta-architect",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "Codex-native runtime layer for architecture, evidence, review, and gated build workflows.",
   "license": "MIT",
   "author": "JustineDevs",

@@ -10,9 +10,9 @@
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.1.1` is a production-grade skills line.
+> Meta-Architect `v0.1.0` is a production-grade skills line.
 > It is not a lightweight demo branch.
-> From `v0.1.1` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> From `v0.1.0` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
 
 ## Overview
 
@@ -44,7 +44,7 @@ It adds:
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.1.1</code></td>
+    <td><code>v0.1.0</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -195,7 +195,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.1
+8. Delivery plan for v0.1.0
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -390,9 +390,16 @@ Maintainer version-bump flow:
 3. Run `npm run release:verify`
 4. Run `npm run release:check`
 5. Create and push tag `v<version>`
-6. Stable publish: `npm publish --access public --provenance`
-7. Prerelease publish: `npm publish --access public --provenance --tag <lane>`
+6. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
+7. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
+   - Stable publish: `npm publish --access public`
+   - Prerelease publish: `npm publish --access public --tag <lane>`
 8. Verify publish state with `npm view @jstn-sdk/meta-architect version dist-tags time --json`
+
+Provenance note:
+- `npm publish --provenance` requires a supported cloud CI/CD provider
+- a local shell publish will fail with `Automatic provenance generation not supported for provider: null`
+- use the repository publish workflow when provenance is required
 
 > [!CAUTION]
 > Do not claim npm, GitHub release, or any other publish channel until that channel has actually succeeded.
@@ -463,7 +470,7 @@ Maintainer version-bump flow:
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
 | [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.1.1.md) | QA evidence for the `v0.1.1` line |
+| [Release Readiness](./docs/qa/release-readiness-0.1.0.md) | QA evidence for the `v0.1.0` line |
 
 ## Release Hygiene
 
