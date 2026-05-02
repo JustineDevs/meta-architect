@@ -1,0 +1,51 @@
+name: Release Sync
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "bin/**"
+      - "docs/**"
+      - "example/**"
+      - "mcp/**"
+      - "missions/**"
+      - "plugins/**"
+      - "prompts/**"
+      - ".codex/prompts/**"
+      - "sprint/**"
+      - "templates/**"
+      - "src/**"
+      - "skills/**"
+  workflow_dispatch:
+
+jobs:
+  sync-release-line:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Run release sync
+        id: sync
+        run: node ./scripts/release-sync.js --from-ref "${{ github.event.before }}" --to-ref "${{ github.sha }}" --github-output "$GITHUB_OUTPUT"
+
+      - name: Commit and push synced release files
+        if: steps.sync.outputs.updated == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json CHANGELOG.md README.md RELEASE.md docs/README.md docs/getting-started.md docs/release-spec.md docs/qa plugins/meta-architect/README.md plugins/meta-architect/.app.json plugins/meta-architect/.mcp.json plugins/meta-architect/.codex-plugin/plugin.json src/skills.js src/mcp-live-client.js test/package-install-smoke.test.js test/policy.test.js
+          git commit -m "chore(release): sync release line to v${{ steps.sync.outputs.version }}"
+          git push origin HEAD:main

@@ -60,6 +60,7 @@
     "status": "node ./bin/ma.js status",
     "build:gate": "node ./bin/ma.js run '$build'",
     "release:meta": "node ./scripts/release-metadata.js",
+    "release:sync": "node ./scripts/release-sync.js",
     "release:verify": "node ./scripts/release-verify.js",
     "release:check": "npm run release:verify && npm run skills:manifest && npm run plugin:sync && npm run skills:validate && npm run plugin:verify && npm run skills:pack && npm run check && npm test && npm run pack:inspect",
     "skills:manifest": "node ./scripts/skills-manifest.js",
