@@ -1,13 +1,13 @@
-# v0.1.2 Requirements & Rules
+# v0.1.3 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.1.2` is production only when:
+Meta-Architect `v0.1.3` is production only when:
 1. the package/install surface works
 2. the in-session skill workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
-## What `v0.1.2` must have
+## What `v0.1.3` must have
 
 ### 1. Canonical package/runtime path
 
@@ -49,11 +49,11 @@ Canonical state files:
 
 ### 4. Required release evidence
 
-- `package.json` version `0.1.2`
-- git tag `v0.1.2`
+- `package.json` version `0.1.3`
+- git tag `v0.1.3`
 - `RELEASE.md`
 - `CHANGELOG.md`
-- `docs/qa/release-readiness-0.1.2.md`
+- `docs/qa/release-readiness-0.1.3.md`
 - green `npm run release:check`
 
 ### 5. Dist-tag discipline

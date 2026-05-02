@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.1.2
+## v0.1.3
 
 - Adds the standardized installed support bundle under `CODEX_HOME/meta-architect-sdk` so relevant packaged files are available without path guessing.
 - Makes the helper launch self-healing by reinstalling missing Meta-Architect skills before starting Codex.
