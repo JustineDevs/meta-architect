@@ -1,8 +1,14 @@
 # Changelog
 
+## v0.1.2
+
+- Adds the standardized installed support bundle under `CODEX_HOME/meta-architect-sdk` so relevant packaged files are available without path guessing.
+- Makes the helper launch self-healing by reinstalling missing Meta-Architect skills before starting Codex.
+- Aligns installed skill display names to the real trigger names such as `$arch`, `$vibe`, and `$build`.
+
 ## v0.1.1
 
-- Carries the skills-first product sanitization, the `@jstn-sdk/ma` package identity, and the final repository state beyond the already-published `0.1.0` package.
+- Carries the skills-first product sanitization, the `@jstn-sdk/ma` package identity, and the repository state beyond the already-published `0.1.0` package.
 - Keeps the in-session skill workflow as the primary product surface and the `ma` helper path as secondary support only.
 - Aligns package metadata, plugin metadata, release docs, prompts, tests, and workflow wording to the `v0.1.1` release line.
 
