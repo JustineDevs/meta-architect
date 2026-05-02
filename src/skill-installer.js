@@ -47,3 +47,31 @@ export async function installSkills({ targetRoot = getSkillInstallRoot() } = {})
 
   return { targetRoot, installed };
 }
+
+export async function areSkillsInstalled({ targetRoot = getSkillInstallRoot() } = {}) {
+  const skills = await loadSkillManifest();
+
+  for (const skill of skills) {
+    const skillDir = path.join(targetRoot, path.basename(skill.path));
+    try {
+      await fs.access(path.join(skillDir, "SKILL.md"));
+    } catch {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export async function ensureSkillsInstalled({ targetRoot = getSkillInstallRoot() } = {}) {
+  if (process.env.MA_SKIP_AUTO_INSTALL === "1") {
+    return { targetRoot, installed: [], skipped: true };
+  }
+
+  if (await areSkillsInstalled({ targetRoot })) {
+    return { targetRoot, installed: [], skipped: false };
+  }
+
+  const result = await installSkills({ targetRoot });
+  return { ...result, skipped: false };
+}

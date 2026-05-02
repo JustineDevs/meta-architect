@@ -82,6 +82,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   await fs.access(path.join(codexHome, "skills", "vet", "SKILL.md"));
   await fs.access(path.join(codexHome, "skills", "vibe", "SKILL.md"));
   await fs.access(path.join(codexHome, "skills", "build", "SKILL.md"));
+  await fs.rm(path.join(codexHome, "skills", "arch"), { recursive: true, force: true });
 
   const maBin = path.join(
     installRoot,
@@ -95,6 +96,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
     cwd: workRoot,
     env: {
       ...process.env,
+      CODEX_HOME: codexHome,
       MA_CODEX_BIN: codexBin,
       MA_TEST_OUTPUT: outputPath,
       PATH: `${path.join(installRoot, "bin")}:${process.env.PATH}`,
@@ -102,6 +104,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
     encoding: "utf8",
   });
   assert.equal(launchResult.status, 0, launchResult.stderr || launchResult.stdout);
+  await fs.access(path.join(codexHome, "skills", "arch", "SKILL.md"));
 
   const codexOutput = JSON.parse(await fs.readFile(outputPath, "utf8"));
   assert.deepEqual(codexOutput.argv, ["--model", "gpt-5.4"]);

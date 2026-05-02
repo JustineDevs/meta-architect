@@ -15,6 +15,7 @@ import {
 } from "../src/policy.js";
 import { loadReleaseState } from "../src/release-state.js";
 import { writeBuildPlanArtifact } from "../src/runtime-artifacts.js";
+import { ensureSkillsInstalled } from "../src/skill-installer.js";
 import {
   listSkills,
   runArch,
@@ -198,6 +199,7 @@ async function main() {
   const arg = rest[0];
 
   if (shouldDelegateToCodex(args)) {
+    await ensureSkillsInstalled();
     process.exitCode = runCodex(args);
     return;
   }

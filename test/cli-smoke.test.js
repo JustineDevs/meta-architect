@@ -155,6 +155,7 @@ test("ma setup seeds canonical .ma runtime state", async () => {
 
 test("ma launcher delegates non-native commands to codex and strips compatibility flags", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-launcher-"));
+  const codexHome = path.join(tempRoot, "codex-home");
   await copyDir(repoRoot, tempRoot);
   const outputPath = path.join(tempRoot, "codex-output.json");
   const codexBin = await writeFakeCodex(tempRoot);
@@ -165,6 +166,7 @@ test("ma launcher delegates non-native commands to codex and strips compatibilit
       cwd: tempRoot,
       env: {
         ...process.env,
+        CODEX_HOME: codexHome,
         MA_CODEX_BIN: codexBin,
         MA_TEST_OUTPUT: outputPath,
       },
@@ -173,6 +175,8 @@ test("ma launcher delegates non-native commands to codex and strips compatibilit
   );
 
   assert.equal(result.status, 0);
+  await fs.access(path.join(codexHome, "skills", "arch", "SKILL.md"));
+  await fs.access(path.join(codexHome, "skills", "vibe", "SKILL.md"));
   const output = JSON.parse(await fs.readFile(outputPath, "utf8"));
   assert.deepEqual(output.argv, ["--model", "gpt-5.4", "hello"]);
 });
