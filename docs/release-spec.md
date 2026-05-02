@@ -1,13 +1,13 @@
-# v0.1.0 Requirements & Rules
+# v0.1.1 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.1.0` is production only when:
+Meta-Architect `v0.1.1` is production only when:
 1. the package/install surface works
 2. the in-session skill workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
-## What `v0.1.0` must have
+## What `v0.1.1` must have
 
 ### 1. Canonical package/runtime path
 
@@ -49,16 +49,16 @@ Canonical state files:
 
 ### 4. Required release evidence
 
-- `package.json` version `0.1.0`
-- git tag `v0.1.0`
+- `package.json` version `0.1.1`
+- git tag `v0.1.1`
 - `RELEASE.md`
 - `CHANGELOG.md`
-- `docs/qa/release-readiness-0.1.0.md`
+- `docs/qa/release-readiness-0.1.1.md`
 - green `npm run release:check`
 
 ### 5. Dist-tag discipline
 
-- stable versions such as `0.1.0` publish to npm `latest`
+- stable versions such as `0.1.1` publish to npm `latest`
 - prerelease versions such as `0.2.0-beta.1` must publish with explicit tags such as `beta`
 - recommended alternate lanes are `next`, `beta`, and `canary`
 - prerelease publication must use `npm publish --tag <lane>`
