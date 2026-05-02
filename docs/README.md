@@ -7,6 +7,7 @@ Meta-Architect documentation is organized by operator task.
 - [Getting Started](./getting-started.md)
 - [Release Spec](./release-spec.md)
 - [Skills Reference](./skills.md)
+- [Installed Support Bundle](./installed-sdk.md)
 
 ## Packaging and installation
 

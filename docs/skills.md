@@ -67,6 +67,34 @@ Important:
 - they only create local support files
 - they do not replace the in-session skill flow
 
+## Installed support bundle
+
+Meta-Architect also installs a standard packaged support bundle for relevant files.
+
+Default path:
+
+```text
+~/.codex/meta-architect-sdk/
+```
+
+Use:
+
+```bash
+ma sdk-path
+```
+
+when you want the exact active path.
+
+Relevant packaged assets there include:
+- `mcp/`
+- `sprint/`
+- `prompts/`
+- `scripts/`
+- `plugins/meta-architect/`
+- `templates/`
+
+This exists so Meta-Architect can use relevant packaged files without guessing paths.
+
 ## Shared output contract
 
 Every skill result must include:

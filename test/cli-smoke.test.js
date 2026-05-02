@@ -177,12 +177,41 @@ test("ma launcher delegates non-native commands to codex and strips compatibilit
   assert.equal(result.status, 0);
   await fs.access(path.join(codexHome, "skills", "arch", "SKILL.md"));
   await fs.access(path.join(codexHome, "skills", "vibe", "SKILL.md"));
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "mcp", "servers.json"));
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "templates", "AGENTS.md"));
   const output = JSON.parse(await fs.readFile(outputPath, "utf8"));
   assert.deepEqual(output.argv, ["--model", "gpt-5.4", "hello"]);
 });
 
+test("ma sdk-path prints the installed support bundle root", async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-sdk-path-"));
+  const codexHome = path.join(tempRoot, "codex-home");
+  const outputPath = path.join(tempRoot, "sdk-path.txt");
+  const result = spawnSync(
+    "/bin/sh",
+    [
+      "-lc",
+      `CODEX_HOME='${codexHome}' '${process.execPath}' '${path.join(repoRoot, "bin/ma.js")}' sdk-path > '${outputPath}'`,
+    ],
+    {
+      cwd: tempRoot,
+      env: {
+        ...process.env,
+      },
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(result.status, 0);
+  assert.equal(
+    (await fs.readFile(outputPath, "utf8")).trim(),
+    path.join(codexHome, "meta-architect-sdk"),
+  );
+});
+
 test("ma with no args delegates directly to codex", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-launcher-empty-"));
+  const codexHome = path.join(tempRoot, "codex-home");
   await copyDir(repoRoot, tempRoot);
   const outputPath = path.join(tempRoot, "codex-output.json");
   const codexBin = await writeFakeCodex(tempRoot);
@@ -190,6 +219,7 @@ test("ma with no args delegates directly to codex", async () => {
     cwd: tempRoot,
     env: {
       ...process.env,
+      CODEX_HOME: codexHome,
       MA_CODEX_BIN: codexBin,
       MA_TEST_OUTPUT: outputPath,
     },
@@ -203,12 +233,14 @@ test("ma with no args delegates directly to codex", async () => {
 
 test("ma launcher preserves the delegated codex exit code", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-launcher-exit-"));
+  const codexHome = path.join(tempRoot, "codex-home");
   await copyDir(repoRoot, tempRoot);
   const codexBin = await writeFakeCodex(tempRoot, 7);
   const result = spawnSync(process.execPath, [path.join(repoRoot, "bin/ma.js"), "--madmax"], {
     cwd: tempRoot,
     env: {
       ...process.env,
+      CODEX_HOME: codexHome,
       MA_CODEX_BIN: codexBin,
       MA_TEST_OUTPUT: path.join(tempRoot, "codex-output.json"),
     },

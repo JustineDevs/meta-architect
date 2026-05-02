@@ -1,4 +1,4 @@
 interface:
-  display_name: "Meta-Architect"
-  short_description: "Core orchestration and gated build workflows"
+  display_name: "$meta-architect"
+  short_description: "Full Meta-Architect skill workflow"
   default_prompt: "Use $meta-architect to run the full Meta-Architect workflow inside Codex, then route through $arch, $sage, $flow, $vet, $vibe, and $build as needed."

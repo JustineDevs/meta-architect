@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import process from "node:process";
-import { installSkills } from "../src/skill-installer.js";
+import { installSkills, installSupportBundle } from "../src/skill-installer.js";
 
 async function main() {
   if (process.env.MA_SKIP_AUTO_INSTALL === "1") {
@@ -9,8 +9,12 @@ async function main() {
     return;
   }
 
-  const { targetRoot, installed } = await installSkills();
-  console.log(`meta-architect: installed ${installed.length} Codex skills into ${targetRoot}`);
+  const [
+    { targetRoot: skillRoot, installed: skills },
+    { targetRoot: bundleRoot, installed: assets },
+  ] = await Promise.all([installSkills(), installSupportBundle()]);
+  console.log(`meta-architect: installed ${skills.length} Codex skills into ${skillRoot}`);
+  console.log(`meta-architect: installed ${assets.length} support assets into ${bundleRoot}`);
 }
 
 main().catch((error) => {

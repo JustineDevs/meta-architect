@@ -155,6 +155,7 @@ Terminal commands are normal shell commands:
 ```bash
 ma setup
 ma init
+ma sdk-path
 ma status
 ma run '$arch'
 ```
@@ -178,6 +179,8 @@ Easy rule:
 - they create local `.ma/` support files
 - they prepare context, specs, plans, evidence, and runbook files
 - they do not automatically run the skill workflow
+
+`ma sdk-path` prints the installed packaged support-bundle root for relevant files such as prompts, MCP files, sprint files, scripts, plugin metadata, and templates.
 
 ## 5. Configure MCP / GitMCP
 

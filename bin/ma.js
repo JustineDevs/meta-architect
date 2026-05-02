@@ -15,7 +15,11 @@ import {
 } from "../src/policy.js";
 import { loadReleaseState } from "../src/release-state.js";
 import { writeBuildPlanArtifact } from "../src/runtime-artifacts.js";
-import { ensureSkillsInstalled } from "../src/skill-installer.js";
+import {
+  ensureSkillsInstalled,
+  ensureSupportBundleInstalled,
+  getSupportBundleRoot,
+} from "../src/skill-installer.js";
 import {
   listSkills,
   runArch,
@@ -35,6 +39,7 @@ function printUsage() {
   console.error("  ma init");
   console.error('  ma idea "..."');
   console.error("  ma skills");
+  console.error("  ma sdk-path");
   console.error("  ma status");
   console.error("  ma run $arch|$sage|$flow|$vet|$vibe|$build");
   console.error("  ma merge <source-branch> <target-branch>");
@@ -199,7 +204,7 @@ async function main() {
   const arg = rest[0];
 
   if (shouldDelegateToCodex(args)) {
-    await ensureSkillsInstalled();
+    await Promise.all([ensureSkillsInstalled(), ensureSupportBundleInstalled()]);
     process.exitCode = runCodex(args);
     return;
   }
@@ -235,6 +240,11 @@ async function main() {
     for (const skill of listSkills()) {
       console.log(skill);
     }
+    return;
+  }
+
+  if (command === "sdk-path") {
+    process.stdout.write(`${getSupportBundleRoot()}\n`);
     return;
   }
 

@@ -6,6 +6,7 @@ const nativeCommands = new Set([
   "init",
   "idea",
   "skills",
+  "sdk-path",
   "status",
   "merge",
   "release",

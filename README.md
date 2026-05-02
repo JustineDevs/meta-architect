@@ -349,6 +349,7 @@ What to use when:
 - use Codex and run the skills in-session
 - use `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` inside the Codex session
 - use `ma setup` or `ma init` only when you want local scaffolding or scripted helper automation from the terminal
+- use `ma sdk-path` when you need the exact installed support-bundle path for packaged prompts, MCP files, sprint files, scripts, plugin metadata, or templates
 
 ## Core Maintainers
 
@@ -510,6 +511,7 @@ Provenance note:
 | --- | --- |
 | [Getting Started](./docs/getting-started.md) | end-to-end local onboarding |
 | [Skills Reference](./docs/skills.md) | trigger-by-trigger contract guide |
+| [Installed Support Bundle](./docs/installed-sdk.md) | standard packaged asset path for skills and helper flows |
 | [Skills Publishing](./docs/skills-publishing.md) | source-to-package pipeline |
 | [MCP Setup](./docs/mcp-setup.md) | evidence endpoint policy |
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |

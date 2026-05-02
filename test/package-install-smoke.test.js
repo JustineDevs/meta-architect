@@ -82,7 +82,26 @@ test("packed package installs and supports the documented runtime/helper flow", 
   await fs.access(path.join(codexHome, "skills", "vet", "SKILL.md"));
   await fs.access(path.join(codexHome, "skills", "vibe", "SKILL.md"));
   await fs.access(path.join(codexHome, "skills", "build", "SKILL.md"));
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "asset-manifest.json"));
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "mcp", "servers.json"));
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "sprint", "07-release.md"));
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "prompts", "onboarding.md"));
+  await fs.access(
+    path.join(
+      codexHome,
+      "meta-architect-sdk",
+      "plugins",
+      "meta-architect",
+      ".codex-plugin",
+      "plugin.json",
+    ),
+  );
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "templates", "AGENTS.md"));
   await fs.rm(path.join(codexHome, "skills", "arch"), { recursive: true, force: true });
+  await fs.rm(path.join(codexHome, "meta-architect-sdk", "templates"), {
+    recursive: true,
+    force: true,
+  });
 
   const maBin = path.join(
     installRoot,
@@ -105,6 +124,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   });
   assert.equal(launchResult.status, 0, launchResult.stderr || launchResult.stdout);
   await fs.access(path.join(codexHome, "skills", "arch", "SKILL.md"));
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "templates", "AGENTS.md"));
 
   const codexOutput = JSON.parse(await fs.readFile(outputPath, "utf8"));
   assert.deepEqual(codexOutput.argv, ["--model", "gpt-5.4"]);
