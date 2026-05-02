@@ -48,16 +48,16 @@ Canonical package/runtime path:
 
 ```bash
 # Install
-npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
 
 # Launch
 ma --madmax --high
 
 # Remove Meta-Architect only
-npm uninstall -g @jstn-sdk/meta-architect
+npm uninstall -g @jstn-sdk/ma
 
 # Remove Meta-Architect and Codex
-npm uninstall -g @jstn-sdk/meta-architect @openai/codex
+npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 Use the plugin bundle when you need installable skill metadata or local marketplace discovery. Use the package and launcher when you want the full Meta-Architect runtime posture.

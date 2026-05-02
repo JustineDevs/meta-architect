@@ -26,16 +26,16 @@ Canonical public install:
 
 ```bash
 # Install
-npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
 
 # Launch
 ma --madmax --high
 
 # Remove Meta-Architect only
-npm uninstall -g @jstn-sdk/meta-architect
+npm uninstall -g @jstn-sdk/ma
 
 # Remove Meta-Architect and Codex
-npm uninstall -g @jstn-sdk/meta-architect @openai/codex
+npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 That is the default operator posture. `ma` is the Meta-Architect launcher for a Codex session, and the rest of this guide should match the in-session workflow shape in [example/usage-workflow.md](../example/usage-workflow.md).

@@ -9,9 +9,9 @@
 - release docs, package metadata, and workflows all agree on `0.1.0`
 
 Target release state:
-- npm package: `@jstn-sdk/meta-architect@0.1.0`
-- npm registry state: unpublished on `2026-05-02T10:55:40.950Z`
-- publishability note: npm will not allow `0.1.0` to be reused after unpublish
+- npm package: `@jstn-sdk/ma@0.1.0`
+- npm registry state: pending manual publish
+- publishability note: this renamed package line is intended to publish as `0.1.0`
 - git tag: `v0.1.0`
 - GitHub release: published at `2026-05-02T10:59:33Z`
 

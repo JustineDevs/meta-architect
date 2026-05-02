@@ -1,7 +1,7 @@
 # Meta-Architect Demo Guide
 
 Last verified: 2026-05-02  
-Registry state: `@jstn-sdk/meta-architect@0.1.0` was unpublished on `2026-05-02T10:55:40.950Z`
+Registry state: `@jstn-sdk/ma@0.1.0` pending manual publish
 GitHub release: `v0.1.0` published on `2026-05-02T10:59:33Z`
 
 ## Canonical demo path
@@ -9,7 +9,7 @@ GitHub release: `v0.1.0` published on `2026-05-02T10:59:33Z`
 This is the real primary Meta-Architect flow:
 
 ```bash
-npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
 ma --madmax --high
 ```
 
@@ -31,7 +31,7 @@ Meta-Architect is a skills-first Codex layer. The `ma` launcher is the canonical
 Goal: prove the public package launches Codex through `ma`.
 
 ```bash
-npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
 ma --madmax --high
 ```
 
@@ -63,6 +63,9 @@ ready: .codex/agents
 ready: .codex/prompts
 ready: .ma/skills
 ready: .ma/evidence
+ready: .ma/context
+ready: .ma/specs
+ready: .ma/plans
 ready: mcp
 ready: docs
 ready: docs/qa
@@ -221,7 +224,7 @@ Expected:
 | `.codex` role prompts | 4 prompt files + 6 agent TOMLs |
 | MCP config files | 3 |
 | Test files | 7 |
-| Published npm package target | `@jstn-sdk/meta-architect@0.1.0` |
+| Published npm package target | `@jstn-sdk/ma@0.1.0` |
 
 ## Troubleshooting
 

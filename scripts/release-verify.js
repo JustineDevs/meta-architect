@@ -4,11 +4,11 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-const CANONICAL_PACKAGE = "@jstn-sdk/meta-architect";
-const CANONICAL_INSTALL = "npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest";
+const CANONICAL_PACKAGE = "@jstn-sdk/ma";
+const CANONICAL_INSTALL = "npm i -g @openai/codex@latest @jstn-sdk/ma@latest";
 const CANONICAL_LAUNCH = "ma --madmax --high";
-const UNINSTALL_MA = "npm uninstall -g @jstn-sdk/meta-architect";
-const UNINSTALL_BOTH = "npm uninstall -g @jstn-sdk/meta-architect @openai/codex";
+const UNINSTALL_MA = "npm uninstall -g @jstn-sdk/ma";
+const UNINSTALL_BOTH = "npm uninstall -g @jstn-sdk/ma @openai/codex";
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));

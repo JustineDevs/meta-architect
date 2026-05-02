@@ -11,10 +11,10 @@ Meta-Architect `v0.1.0` is production only when:
 
 ### 1. Canonical package/runtime path
 
-- install: `npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest`
+- install: `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
 - launch: `ma --madmax --high`
-- uninstall Meta-Architect only: `npm uninstall -g @jstn-sdk/meta-architect`
-- uninstall Meta-Architect and Codex: `npm uninstall -g @jstn-sdk/meta-architect @openai/codex`
+- uninstall Meta-Architect only: `npm uninstall -g @jstn-sdk/ma`
+- uninstall Meta-Architect and Codex: `npm uninstall -g @jstn-sdk/ma @openai/codex`
 - runtime trigger surface:
   - `$arch`
   - `$sage`
@@ -77,7 +77,7 @@ Canonical state files:
 9. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
    - Stable publish: `npm publish --access public`
    - Prerelease publish: `npm publish --access public --tag <lane>`
-10. Verify dist-tags with `npm view @jstn-sdk/meta-architect version dist-tags time --json`
+10. Verify dist-tags with `npm view @jstn-sdk/ma version dist-tags time --json`
 
 ### 7. Provenance rule
 

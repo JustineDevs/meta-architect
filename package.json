@@ -1,5 +1,5 @@
 {
-  "name": "@jstn-sdk/meta-architect",
+  "name": "@jstn-sdk/ma",
   "version": "0.1.0",
   "description": "Codex-native runtime layer for architecture, evidence, review, and gated build workflows.",
   "license": "MIT",

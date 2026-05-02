@@ -2,7 +2,7 @@
   <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="1024" height="240">
   <p>Production-grade skills package and CLI for programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking.</p>
   <p>
-    <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fmeta-architect" alt="npm version">
+    <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fma" alt="npm version">
     <img src="https://img.shields.io/badge/node-%3E%3D20-339933" alt="Node.js 20+">
     <img src="https://img.shields.io/github/v/release/JustineDevs/meta-architect" alt="GitHub release">
     <img src="https://img.shields.io/badge/license-MIT-16A34A" alt="MIT License">
@@ -32,7 +32,7 @@ It adds:
 <table>
   <tr>
     <td><strong>npm package</strong></td>
-    <td><code>@jstn-sdk/meta-architect</code></td>
+    <td><code>@jstn-sdk/ma</code></td>
   </tr>
   <tr>
     <td><strong>CLI commands</strong></td>
@@ -72,16 +72,16 @@ Default operator path:
 
 ```bash
 # Install
-npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
 
 # Launch
 ma --madmax --high
 
 # Remove Meta-Architect only
-npm uninstall -g @jstn-sdk/meta-architect
+npm uninstall -g @jstn-sdk/ma
 
 # Remove Meta-Architect and Codex
-npm uninstall -g @jstn-sdk/meta-architect @openai/codex
+npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 What this assumes:
@@ -119,16 +119,16 @@ Install the consumer package directly:
 
 ```bash
 # Install
-npm i -g @openai/codex@latest @jstn-sdk/meta-architect@latest
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
 
 # Launch
 ma --madmax --high
 
 # Remove Meta-Architect only
-npm uninstall -g @jstn-sdk/meta-architect
+npm uninstall -g @jstn-sdk/ma
 
 # Remove Meta-Architect and Codex
-npm uninstall -g @jstn-sdk/meta-architect @openai/codex
+npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 This gives you:
@@ -441,7 +441,7 @@ Maintainer version-bump flow:
 7. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
    - Stable publish: `npm publish --access public`
    - Prerelease publish: `npm publish --access public --tag <lane>`
-8. Verify publish state with `npm view @jstn-sdk/meta-architect version dist-tags time --json`
+8. Verify publish state with `npm view @jstn-sdk/ma version dist-tags time --json`
 
 Provenance note:
 - `npm publish --provenance` requires a supported cloud CI/CD provider

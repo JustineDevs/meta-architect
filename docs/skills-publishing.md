@@ -119,7 +119,7 @@ Important:
 The npm package and tarball should stay explicit.
 
 Current package intent:
-- package name: `@jstn-sdk/meta-architect`
+- package name: `@jstn-sdk/ma`
 - public publish config
 - explicit `files` list in `package.json`
 
@@ -159,7 +159,7 @@ Before publish:
 6. publish the package with the correct lane behavior
    - preferred: run `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
    - local fallback: omit `--provenance` and publish with `npm publish --access public` or `npm publish --access public --tag <lane>`
-7. verify the resulting dist-tags with `npm view @jstn-sdk/meta-architect version dist-tags time --json`
+7. verify the resulting dist-tags with `npm view @jstn-sdk/ma version dist-tags time --json`
 
 ## Plugin relation
 
