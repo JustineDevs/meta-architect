@@ -119,6 +119,10 @@ test("packed package installs and supports the documented runtime/helper flow", 
   await fs.access(path.join(workRoot, ".ma", "release.json"));
   await fs.access(path.join(workRoot, ".ma", "decisions.json"));
   await fs.access(path.join(workRoot, ".ma", "skills", "arch.skill.md"));
+  await fs.access(path.join(workRoot, ".ma", "context", "project.md"));
+  await fs.access(path.join(workRoot, ".ma", "specs", "architecture.md"));
+  await fs.access(path.join(workRoot, ".ma", "plans", "implementation.md"));
+  await fs.access(path.join(workRoot, ".ma", "runbook.md"));
 
   await fs.writeFile(
     path.join(workRoot, "mcp", "servers.json"),
@@ -161,6 +165,9 @@ test("packed package installs and supports the documented runtime/helper flow", 
     });
     assert.equal(result.status, 0, result.stderr || result.stdout);
   }
+
+  const buildPlan = await fs.readFile(path.join(workRoot, ".ma", "plans", "build.md"), "utf8");
+  assert.match(buildPlan, /READY/);
 
   await fs.rm(tarballPath, { force: true });
 });

@@ -2,7 +2,7 @@
 
 Target release: `v0.1.0`  
 Last verified: 2026-05-02  
-Release candidate package: `@jstn-sdk/meta-architect@0.1.0` (pending publish)
+Registry state: `@jstn-sdk/meta-architect@0.1.0` was unpublished on `2026-05-02T10:55:40.950Z`
 
 ## Coverage summary
 
@@ -101,7 +101,7 @@ These are limits, not stale gaps:
 
 1. Live `$sage` verification still depends on reachable GitMCP endpoints.
 2. Worktree commands are suggested, not fully lifecycle-managed.
-3. npm publication is real for `0.1.0`, and `0.1.0` exists specifically to replace that stale public build with the corrected package contents.
+3. The GitHub `v0.1.0` release is real, but npm publication is not: `@jstn-sdk/meta-architect@0.1.0` was unpublished and npm will not allow that exact version to be reused.
 
 ## Current truth statement
 

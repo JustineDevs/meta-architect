@@ -14,6 +14,7 @@ import {
   validateReleaseOrigin,
 } from "../src/policy.js";
 import { loadReleaseState } from "../src/release-state.js";
+import { writeBuildPlanArtifact } from "../src/runtime-artifacts.js";
 import {
   listSkills,
   runArch,
@@ -68,6 +69,11 @@ async function runBuild(releaseState) {
 
   if (!evaluation.allowed) {
     const blockers = formatBuildBlockers(evaluation);
+    await writeBuildPlanArtifact({
+      allowed: false,
+      blockers,
+      nextTriggers: formatNextAllowedTriggers(evaluation),
+    });
     await appendDecision({
       decision: "Blocked build execution",
       status: "BLOCKED",
@@ -89,6 +95,13 @@ async function runBuild(releaseState) {
     return;
   }
 
+  const suggestedBranches = ["feature/ui", "feature/api"];
+  await writeBuildPlanArtifact({
+    allowed: true,
+    blockers: [],
+    nextTriggers: ["$build"],
+    suggestedBranches,
+  });
   await appendDecision({
     kind: "skill",
     skill: "$build",
@@ -111,8 +124,8 @@ async function runBuild(releaseState) {
 
   console.log("Build gate is green.");
   console.log("Suggested branches:");
-  console.log("- feature/ui");
-  console.log("- feature/api");
+  console.log(`- ${suggestedBranches[0]}`);
+  console.log(`- ${suggestedBranches[1]}`);
   console.log("Optional worktree commands:");
   console.log("git worktree add ../ui feature/ui");
   console.log("git worktree add ../api feature/api");

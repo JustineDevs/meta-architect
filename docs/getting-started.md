@@ -120,7 +120,7 @@ ma
 Expected effects:
 - `.codex/agents/` exists
 - `.codex/prompts/` exists
-- local `.ma/skills/` and `.ma/evidence/` are seeded
+- local `.ma/skills/`, `.ma/evidence/`, `.ma/context/`, `.ma/specs/`, `.ma/plans/`, and `.ma/runbook.md` are seeded
 - `mcp/`, `docs/`, and `sprint/` surfaces exist
 - `ma` launches the local Codex CLI when run with no arguments
 
@@ -133,6 +133,9 @@ ready: .codex/agents
 ready: .codex/prompts
 ready: .ma/skills
 ready: .ma/evidence
+ready: .ma/context
+ready: .ma/specs
+ready: .ma/plans
 ready: mcp
 ready: docs
 ready: docs/qa
@@ -140,6 +143,42 @@ ready: sprint
 ```
 
 This setup path is secondary to the canonical `ma --madmax --high` runtime launch. Use it when you need local repo scaffolding.
+
+## 4.1 Understand the two surfaces
+
+Meta-Architect works in two simple ways:
+
+- terminal commands
+- in-session skills
+
+Terminal commands are normal shell commands:
+
+```bash
+ma setup
+ma init
+ma status
+ma run '$arch'
+```
+
+In-session skills are prompts used after you are already inside Codex:
+
+```text
+$arch
+$sage
+$flow
+$vet
+$vibe
+$build
+```
+
+Easy rule:
+- `ma ...` = terminal helper command
+- `$...` = in-session skill
+
+`ma setup` and `ma init` currently do the same thing:
+- they create local `.ma/` support files
+- they prepare context, specs, plans, evidence, and runbook files
+- they do not automatically run the skill workflow
 
 ## 5. Configure MCP / GitMCP
 
@@ -194,6 +233,9 @@ Expected effects:
 Generated or updated:
 - `.ma/decisions.json`
 - `.ma/release.json`
+- `.ma/context/project.md`
+- `.ma/specs/architecture.md`
+- `.ma/plans/implementation.md`
 
 ### 5.2 Evidence
 
@@ -216,6 +258,7 @@ Generated or updated:
 - `.ma/evidence/sources.json`
 - `.ma/decisions.json`
 - `.ma/release.json`
+- `.ma/specs/evidence.md`
 
 If this fails:
 - check endpoint URLs in `mcp/servers.json`
@@ -234,6 +277,9 @@ Expected effects:
 - `logic_status = GREEN` when current prerequisites and transition modeling are acceptable
 - `logic_status = RED` when prerequisite gates are not ready
 
+Generated or updated:
+- `.ma/specs/logic.md`
+
 ### 5.4 Security
 
 ```bash
@@ -244,6 +290,9 @@ Expected effects:
 - `.ma/evidence/audits.json` and `.ma/evidence/cves.json` are updated
 - `security_status = GREEN` on a baseline pass
 - `security_status = RED` when prerequisite gates are not ready
+
+Generated or updated:
+- `.ma/specs/security.md`
 
 ### 5.5 Experience
 
@@ -257,6 +306,9 @@ Expected effects:
 - `experience_status = GREEN` on a baseline pass
 - `experience_status = RED` when prerequisite gates are not ready
 - `experience_status = WAIVED` when the waiver path is used explicitly
+
+Generated or updated:
+- `.ma/specs/experience.md`
 
 ## 8. Inspect gate status
 
@@ -291,6 +343,7 @@ Expected effects:
 - if allowed, `build_status = READY`
 - branch suggestions are printed
 - worktree commands are suggested
+- `.ma/plans/build.md` is updated
 
 Expected output shape:
 
@@ -362,6 +415,15 @@ Expected effects:
 - `.ma/evidence/audits.json`
 - `.ma/evidence/cves.json`
 - `.ma/evidence/outcomes.json`
+- `.ma/context/project.md`
+- `.ma/specs/architecture.md`
+- `.ma/specs/evidence.md`
+- `.ma/specs/logic.md`
+- `.ma/specs/security.md`
+- `.ma/specs/experience.md`
+- `.ma/plans/implementation.md`
+- `.ma/plans/build.md`
+- `.ma/runbook.md`
 
 These are local product artifacts created by the runtime. They are not a reason to bypass gate logic manually.
 

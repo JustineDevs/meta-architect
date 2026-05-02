@@ -1,7 +1,8 @@
 # Meta-Architect Demo Guide
 
 Last verified: 2026-05-02  
-Release candidate package: `@jstn-sdk/meta-architect@0.1.0` (pending publish)
+Registry state: `@jstn-sdk/meta-architect@0.1.0` was unpublished on `2026-05-02T10:55:40.950Z`
+GitHub release: `v0.1.0` published on `2026-05-02T10:59:33Z`
 
 ## Canonical demo path
 

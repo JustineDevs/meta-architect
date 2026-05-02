@@ -42,6 +42,10 @@ Canonical state files:
 - `.ma/decisions.json`
 - `.ma/release.json`
 - `.ma/evidence/*`
+- `.ma/context/*`
+- `.ma/specs/*`
+- `.ma/plans/*`
+- `.ma/runbook.md`
 
 ### 4. Required release evidence
 

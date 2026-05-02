@@ -97,6 +97,21 @@ test("full documented skill flow reaches build-ready state", async () => {
   const releaseState = await loadReleaseState();
   const evaluation = evaluateBuildGate(releaseState);
   assert.equal(evaluation.allowed, true);
+  const projectContext = await fs.readFile(
+    path.join(tempRoot, ".ma", "context", "project.md"),
+    "utf8",
+  );
+  const architectureSpec = await fs.readFile(
+    path.join(tempRoot, ".ma", "specs", "architecture.md"),
+    "utf8",
+  );
+  const implementationPlan = await fs.readFile(
+    path.join(tempRoot, ".ma", "plans", "implementation.md"),
+    "utf8",
+  );
+  assert.match(projectContext, /Build a demo/);
+  assert.match(architectureSpec, /Blueprint derived from idea: Build a demo/);
+  assert.match(implementationPlan, /Validate evidence through approved GitMCP sources/);
 
   if (previousRoot === undefined) {
     delete process.env.MA_ROOT;

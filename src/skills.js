@@ -5,6 +5,15 @@ import { readJson, writeFileIfMissing, writeJson } from "./fs-utils.js";
 import { validateMcpServers } from "./mcp-config.js";
 import { McpSseClient } from "./mcp-live-client.js";
 import { getRepoRoot, getRuntimeReadPath, getRuntimeWritePath, packageRoot } from "./paths.js";
+import {
+  seedRuntimeArtifacts,
+  writeArchitectureArtifacts,
+  writeEvidenceSpec,
+  writeExperienceSpec,
+  writeLogicSpec,
+  writeProjectContext,
+  writeSecuritySpec,
+} from "./runtime-artifacts.js";
 import { syncStatusUpdates } from "./state-sync.js";
 
 const skillNames = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
@@ -38,6 +47,8 @@ export async function runIdea(idea) {
     throw new Error("Idea text is required");
   }
 
+  await writeProjectContext(trimmed);
+
   await appendDecision({
     kind: "idea",
     idea: trimmed,
@@ -62,6 +73,8 @@ export async function runArch() {
     suggestedStack: ["Node.js", "MCP", "GitMCP", "Git worktree"],
     outcome: "Produce a gated architecture and implementation plan",
   };
+
+  await writeArchitectureArtifacts({ idea, blueprint });
 
   await appendDecision({
     kind: "skill",
@@ -154,6 +167,7 @@ export async function runSage() {
   await writeJson(getRuntimeWritePath("evidence", "sources.json"), existing);
 
   const verified = sourceEntries.length > 0 && (disableLiveProbe || liveSuccessCount > 0);
+  await writeEvidenceSpec({ idea, sourceEntries, verified, blockers });
   await appendDecision({
     kind: "skill",
     skill: "$sage",
@@ -174,6 +188,8 @@ export async function runFlow() {
     states: ["idea", "architecture", "evidence", "logic", "security", "experience", "build"],
     blockers: [],
   };
+
+  await writeLogicSpec(logicMap);
 
   await appendDecision({
     kind: "skill",
@@ -204,6 +220,11 @@ export async function runVet() {
     unresolved: false,
   });
   await writeJson(getRuntimeWritePath("evidence", "cves.json"), cveLog);
+  await writeSecuritySpec({
+    finding,
+    auditCount: auditLog.items.length,
+    cveCount: cveLog.items.length,
+  });
 
   await appendDecision({
     kind: "skill",
@@ -226,6 +247,7 @@ export async function runVibe() {
   };
   outcomes.items.push(note);
   await writeJson(getRuntimeWritePath("evidence", "outcomes.json"), outcomes);
+  await writeExperienceSpec({ note, outcomeCount: outcomes.items.length });
 
   await appendDecision({
     kind: "skill",
@@ -247,6 +269,9 @@ export async function runInit() {
     ".codex/prompts",
     ".ma/skills",
     ".ma/evidence",
+    ".ma/context",
+    ".ma/specs",
+    ".ma/plans",
     "mcp",
     "docs",
     "docs/qa",
@@ -356,6 +381,8 @@ export async function runInit() {
       await fs.copyFile(src, dest);
     }
   }
+
+  await seedRuntimeArtifacts();
 
   await writeFileIfMissing(
     getRuntimeWritePath("decisions.json"),

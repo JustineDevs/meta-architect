@@ -233,6 +233,9 @@ ready: .codex/agents
 ready: .codex/prompts
 ready: .ma/skills
 ready: .ma/evidence
+ready: .ma/context
+ready: .ma/specs
+ready: .ma/plans
 ready: mcp
 ready: docs
 ready: docs/qa
@@ -306,6 +309,49 @@ git worktree add ../ui feature/ui
 git worktree add ../api feature/api
 ```
 
+### 7. Simple command guide
+
+There are two different ways to use Meta-Architect.
+
+1. Terminal commands
+2. In-session skills
+
+Terminal commands are normal shell commands you run in the terminal:
+
+```bash
+ma setup
+ma init
+ma idea "Build a product"
+ma status
+ma run '$arch'
+```
+
+In-session skills are prompts you use inside the Codex conversation after launch:
+
+```text
+$arch
+$sage
+$flow
+$vet
+$vibe
+$build
+```
+
+Plain-language difference:
+- `ma ...` = terminal helper commands
+- `$...` = in-session skill prompts
+
+What `ma setup` and `ma init` do:
+- both currently do the same thing
+- they create the local support files and folders
+- they prepare `.ma/` runtime files such as context, specs, plans, evidence, and runbook files
+- they do not run the skill workflow by themselves
+
+What to use when:
+- use `ma --madmax --high` or `ma` to enter Codex
+- use `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` inside the Codex session
+- use `ma setup` or `ma init` only when you want local scaffolding or scripted helper automation from the terminal
+
 ## Core Maintainers
 
 <table>
@@ -330,7 +376,7 @@ git worktree add ../api feature/api
 | `$flow` | Review baseline logic and state transitions | logic review entry | `logic_status = GREEN | RED` |
 | `$vet` | Run baseline security and dependency review | audit and CVE records | `security_status = GREEN | RED` |
 | `$vibe` | Review developer and user experience implications | DX/UX outcome record | `experience_status = GREEN | RED | WAIVED` |
-| `$build` | Unlock bounded build planning | build-ready decision | `build_status = READY` |
+| `$build` | Unlock bounded build planning | build-ready decision + `.ma/plans/build.md` | `build_status = READY` |
 
 ## Gate Model
 
@@ -351,6 +397,7 @@ Meta-Architect is intentionally fail-closed.
 > [!CAUTION]
 > `$build` must stay locked until the upstream release state in `.ma/release.json` satisfies the gate contract.
 > Meta-Architect is designed to stop on blockers rather than silently continue.
+> Rich runtime artifacts live in `.ma/context/`, `.ma/specs/`, `.ma/plans/`, and `.ma/runbook.md`.
 
 ## Release and Packaging
 
@@ -414,7 +461,7 @@ Provenance note:
   </tr>
   <tr>
     <td><strong>Excluded</strong></td>
-    <td><code>.ma/</code> runtime state, logs, caches, and temp install outputs</td>
+    <td><code>.ma/</code> runtime state, context, specs, plans, logs, caches, and temp install outputs</td>
   </tr>
 </table>
 

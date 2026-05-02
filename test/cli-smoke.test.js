@@ -146,6 +146,11 @@ test("ma setup seeds canonical .ma runtime state", async () => {
     await fs.readFile(path.join(tempRoot, ".ma", "evidence", "sources.json"), "utf8"),
   );
   assert.deepEqual(sourcesState.items, []);
+  await fs.access(path.join(tempRoot, ".ma", "context", "project.md"));
+  await fs.access(path.join(tempRoot, ".ma", "specs", "architecture.md"));
+  await fs.access(path.join(tempRoot, ".ma", "plans", "implementation.md"));
+  await fs.access(path.join(tempRoot, ".ma", "plans", "build.md"));
+  await fs.access(path.join(tempRoot, ".ma", "runbook.md"));
 });
 
 test("ma launcher delegates non-native commands to codex and strips compatibility flags", async () => {

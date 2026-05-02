@@ -10,9 +10,10 @@
 
 Target release state:
 - npm package: `@jstn-sdk/meta-architect@0.1.0`
-- target dist-tag: `latest`
-- published at: pending publish
+- npm registry state: unpublished on `2026-05-02T10:55:40.950Z`
+- publishability note: npm will not allow `0.1.0` to be reused after unpublish
 - git tag: `v0.1.0`
+- GitHub release: published at `2026-05-02T10:59:33Z`
 
 ## Automated checks run
 

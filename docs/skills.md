@@ -30,6 +30,43 @@ Then inside the Codex session:
 1. Start with the structured `$arch` prompt
 2. Continue through `$sage -> $flow -> $vet -> $vibe -> $build`
 
+## Simple difference
+
+Meta-Architect has two surfaces:
+
+- terminal commands
+- in-session skills
+
+Terminal commands are run in the shell:
+
+```bash
+ma setup
+ma init
+ma idea "Build a product"
+ma status
+ma run '$arch'
+```
+
+In-session skills are used inside the Codex conversation:
+
+```text
+$arch
+$sage
+$flow
+$vet
+$vibe
+$build
+```
+
+Short rule:
+- `ma ...` means "run a helper command in the terminal"
+- `$...` means "run a Meta-Architect skill inside the Codex session"
+
+Important:
+- `ma setup` and `ma init` currently do the same thing
+- they only create local support files
+- they do not replace the in-session skill flow
+
 ## Shared output contract
 
 Every skill result must include:
