@@ -9,13 +9,7 @@
   "homepage": "https://github.com/JustineDevs/meta-architect",
   "repository": "https://github.com/JustineDevs/meta-architect.git",
   "license": "MIT",
-  "keywords": [
-    "codex",
-    "skills",
-    "architecture",
-    "workflow",
-    "review"
-  ],
+  "keywords": ["codex", "skills", "architecture", "workflow", "review"],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "apps": "./.app.json",
