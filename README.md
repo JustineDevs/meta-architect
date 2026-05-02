@@ -65,6 +65,26 @@ It adds:
   </tr>
 </table>
 
+## Screenshots
+
+<table>
+  <tr>
+    <td><img src="./docs/assets/image/Screenshot(1).png" alt="Meta-Architect screenshot 1" width="280"></td>
+    <td><img src="./docs/assets/image/Screenshot(2).png" alt="Meta-Architect screenshot 2" width="280"></td>
+    <td><img src="./docs/assets/image/Screenshot(3).png" alt="Meta-Architect screenshot 3" width="280"></td>
+  </tr>
+  <tr>
+    <td><img src="./docs/assets/image/Screenshot(4).png" alt="Meta-Architect screenshot 4" width="280"></td>
+    <td><img src="./docs/assets/image/Screenshot(5).png" alt="Meta-Architect screenshot 5" width="280"></td>
+    <td><img src="./docs/assets/image/Screenshot(6).png" alt="Meta-Architect screenshot 6" width="280"></td>
+  </tr>
+  <tr>
+    <td><img src="./docs/assets/image/Screenshot(7).png" alt="Meta-Architect screenshot 7" width="280"></td>
+    <td><img src="./docs/assets/image/Screenshot(8).png" alt="Meta-Architect screenshot 8" width="280"></td>
+    <td><img src="./docs/assets/image/Screenshot(9).png" alt="Meta-Architect screenshot 9" width="280"></td>
+  </tr>
+</table>
+
 ## Prerequisites
 
 - Node.js `>=20`
