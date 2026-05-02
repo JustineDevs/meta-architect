@@ -10,7 +10,7 @@ Record a baseline developer and user experience pass before build unlock.
 
 ## Expected outputs
 
-- `.omx/evidence/outcomes.json`
+- `.ma/evidence/outcomes.json`
 - `experience_status = GREEN | RED | WAIVED`
 
 ## Exit criteria

@@ -2,39 +2,44 @@
   "schemaVersion": "0.1.0",
   "skills": [
     {
+      "name": "arch",
+      "path": "skills/arch",
+      "description": "Use when the user wants architecture-first product and system design with explicit stack rationale, boundaries, tradeoffs, data model choices, and phased delivery planning."
+    },
+    {
+      "name": "build",
+      "path": "skills/build",
+      "description": "Use when the user wants to decide whether implementation is ready, what remains blocked, and what the exact next build step should be."
+    },
+    {
+      "name": "flow",
+      "path": "skills/flow",
+      "description": "Use when the user wants logic validation: states, transitions, invariants, edge cases, dead ends, and blockers before implementation."
+    },
+    {
+      "name": "maestro",
+      "path": "skills/maestro",
+      "description": "Use when the user wants Meta-Architect to choose the best next workflow step, explain why, and recommend the right lane or assignment."
+    },
+    {
       "name": "meta-architect",
       "path": "skills/meta-architect",
-      "description": "Use when Codex needs to run the full Meta-Architect workflow in this repo: initialize a project, capture an idea, execute the gated architecture, evidence, logic, security, experience, and build path, inspect status, and enforce merge/release policy. Trigger for requests about Meta-Architect orchestration, build gating, GitMCP-backed evidence, branch/worktree planning, or releasing through `development` and `prod`."
+      "description": "Use when the user wants the full Meta-Architect workflow inside Codex: architecture-first planning, evidence-backed OSS selection, logic review, security review, DX/UX review, and build readiness without leaving the Codex session."
     },
     {
-      "name": "meta-architect-arch",
-      "path": "skills/meta-architect-arch",
-      "description": "Use when Codex needs to run or explain the Meta-Architect `$arch` lane for architecture, stack rationale, subsystem layout, and blueprint decisions. Trigger for requests about architecture design inside a Meta-Architect-managed repo or for producing the first design artifact after `ma idea`."
+      "name": "sage",
+      "path": "skills/sage",
+      "description": "Use when the user wants evidence-backed technology choices, OSS evaluation, and source-grounded validation of the stack proposed in `$arch`."
     },
     {
-      "name": "meta-architect-build",
-      "path": "skills/meta-architect-build",
-      "description": "Use when Codex needs to run or inspect the Meta-Architect `$build` lane for gate evaluation, branch suggestions, worktree planning, and build readiness. Trigger for requests about whether the build is unlocked, which gate is blocking, or what feature branches and worktree commands should be used next."
+      "name": "vet",
+      "path": "skills/vet",
+      "description": "Use when the user wants a security and trust-boundary review of the current design before implementation or release."
     },
     {
-      "name": "meta-architect-flow",
-      "path": "skills/meta-architect-flow",
-      "description": "Use when Codex needs to run or inspect the Meta-Architect `$flow` lane for business logic, state transitions, and blockers. Trigger for requests about logic maps, dead ends, state validation, or whether the workflow is ready to proceed to security review."
-    },
-    {
-      "name": "meta-architect-sage",
-      "path": "skills/meta-architect-sage",
-      "description": "Use when Codex needs to run or inspect the Meta-Architect `$sage` lane for OSS evidence binding through GitMCP and MCP. Trigger for requests about verifying repos, collecting evidence from configured GitMCP endpoints, or checking whether a recommendation is VERIFIED, PARTIAL, or UNVERIFIED."
-    },
-    {
-      "name": "meta-architect-vet",
-      "path": "skills/meta-architect-vet",
-      "description": "Use when Codex needs to run or inspect the Meta-Architect `$vet` lane for security review, risk logging, and CVE-style findings. Trigger for requests about security posture, safer alternatives, audit evidence, or whether the build should stay blocked on security grounds."
-    },
-    {
-      "name": "meta-architect-vibe",
-      "path": "skills/meta-architect-vibe",
-      "description": "Use when Codex needs to run or inspect the Meta-Architect `$vibe` lane for developer-experience and user-experience review before build execution. Trigger for requests about DX friction, UX risks, operator flow quality, or whether the experience gate should be GREEN or WAIVED."
+      "name": "vibe",
+      "path": "skills/vibe",
+      "description": "Use when the user wants a DX and UX review of the planned workflow before implementation proceeds."
     }
   ]
 }

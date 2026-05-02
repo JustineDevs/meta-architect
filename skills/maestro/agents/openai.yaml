@@ -1,0 +1,4 @@
+interface:
+  display_name: "$maestro"
+  short_description: "Best next step and lane orchestration"
+  default_prompt: "Use $maestro to inspect the current Meta-Architect workflow state, choose the best next step, explain why it is next, and recommend the right lane or assignment."

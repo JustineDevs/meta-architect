@@ -4,7 +4,7 @@
     {
       "event": "prebuild",
       "action": "deny-unless-gates-green",
-      "source": ".omx/decisions.json"
+      "source": ".ma/decisions.json"
     },
     {
       "event": "prerelease",

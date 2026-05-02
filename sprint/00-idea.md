@@ -12,7 +12,7 @@ Capture a project idea, clarify scope and constraints, and move the repository f
 
 ## Expected outputs
 
-- idea decision entry in `.omx/decisions.json`
+- idea decision entry in `.ma/decisions.json`
 - `idea_status = CLEAR` when the brief is good enough to proceed
 
 ## Exit criteria

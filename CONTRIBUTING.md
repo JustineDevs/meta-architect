@@ -11,7 +11,7 @@ All contributions should follow these rules:
 - Do not weaken gate enforcement.
 - Do not add undocumented behavior to core skills.
 - Do not introduce release automation that hides failures.
-- Do not commit runtime `.omx` state such as logs, state snapshots, or local caches.
+- Do not commit runtime `.ma` state such as logs, state snapshots, or local caches.
 - Prefer explicit, inspectable files over hidden magic.
 - Keep public skill contracts stable unless the change is intentionally versioned.
 
@@ -21,7 +21,7 @@ High-level repository surfaces:
 
 - `.codex/agents/` — role agent configs
 - `.codex/hooks.json` — pre/post execution rules
-- `.omx/skills/` — internal skill logic
+- `.ma/skills/` — internal skill logic
 - `skills/` — publishable/installable skill surfaces
 - `prompts/` — stable role prompt contracts
 - `templates/` — generated/shared repo templates
@@ -75,7 +75,7 @@ Typical contribution categories:
 
 ## Working on skills
 
-When changing any skill in `skills/` or `.omx/skills/`:
+When changing any skill in `skills/` or `.ma/skills/`:
 
 1. Update the skill content.
 2. Update docs if the contract changed.
@@ -130,24 +130,24 @@ When editing collections or server mappings:
 - avoid placeholder URLs in committed production configs
 - update `docs/mcp-setup.md` if the setup flow changes
 
-## Runtime `.omx` rule
+## Runtime `.ma` rule
 
 These should **not** be committed:
 
-- `.omx/logs/`
-- `.omx/state/`
-- `.omx/tmp/`
-- `.omx/cache/`
+- `.ma/logs/`
+- `.ma/state/`
+- `.ma/tmp/`
+- `.ma/cache/`
 - generated local-only runtime residue
 
 These may be committed if they are part of the intended product contract:
 
-- `.omx/skills/`
-- `.omx/evidence/`
-- `.omx/decisions.json`
-- `.omx/release.json`
+- `.ma/skills/`
+- `.ma/evidence/`
+- `.ma/decisions.json`
+- `.ma/release.json`
 
-If uncertain, ask before committing new `.omx` paths.
+If uncertain, ask before committing new `.ma` paths.
 
 ## Branching and commits
 
@@ -241,7 +241,7 @@ npm test
 
 And verify:
 
-- no forbidden `.omx` runtime files are staged
+- no forbidden `.ma` runtime files are staged
 - no accidental tarballs or temp outputs are committed
 - docs are consistent with behavior
 - release notes are updated if needed
@@ -249,7 +249,7 @@ And verify:
 ## PR checklist
 
 - [ ] My change is focused and intentional.
-- [ ] I did not commit runtime `.omx` state.
+- [ ] I did not commit runtime `.ma` state.
 - [ ] I updated relevant docs.
 - [ ] I ran the skill packaging/validation flow.
 - [ ] I included notes for any release-sensitive change.

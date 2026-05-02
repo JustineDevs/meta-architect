@@ -16,19 +16,21 @@ async function main() {
   }
 
   const registry = normalizeRegistry(process.env.NPM_REGISTRY_URL || "https://registry.npmjs.org/");
-  const scope = process.env.NPM_SCOPE || "@jstn-sdk";
+  const scope = process.env.NPM_SCOPE || "";
   const host = new URL(registry).host;
   const npmrcPath = path.join(process.cwd(), ".npmrc");
 
   const content = [
     `registry=${registry}`,
-    `${scope}:registry=${registry}`,
+    ...(scope ? [`${scope}:registry=${registry}`] : []),
     `//${host}/:_authToken=${token}`,
     "",
   ].join("\n");
 
   await fs.writeFile(npmrcPath, content, "utf8");
-  console.log(`Wrote CI .npmrc for scope ${scope}.`);
+  console.log(
+    `Wrote CI .npmrc for ${scope ? `scope ${scope}` : "the canonical unscoped package"}.`,
+  );
 }
 
 main().catch((error) => {

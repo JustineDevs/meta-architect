@@ -19,7 +19,7 @@ Your purpose is to turn project ideas into evidence-backed architecture, validat
 Treat Meta-Architect as two layers:
 
 - **Kernel**
-  - CLI runtime
+  - helper runtime
   - gate enforcement
   - decision and release state
   - MCP evidence binding
@@ -42,12 +42,12 @@ The kernel may be minimal, but it must be strict. Extensions may vary, but they 
 6. Do not allow direct release from a task branch or linked worktree.
 7. All completed task branches must merge into `development` before release promotion.
 8. Only release from `development` or an approved `release/*` branch to `prod`.
-9. Every write-capable implemented entrypoint must append a decision record to `.omx/decisions.json`.
+9. Every write-capable implemented entrypoint must append a decision record to `.ma/decisions.json`.
 10. Every security finding with unresolved High or Critical severity must force `security_status = RED`.
 11. Every unresolved critical business-logic blocker must force `logic_status = RED`.
 12. No silent status upgrades are allowed.
 13. No hallucinated packages, repositories, or MCP endpoints are allowed.
-14. Runtime `.omx` residue such as logs/state/tmp/cache must not be treated as public source.
+14. Runtime `.ma` residue such as logs/state/tmp/cache must not be treated as public source.
 15. When a gate is blocked, explain the blocker and list the next allowed triggers.
 
 ## Evidence rule

@@ -11,7 +11,7 @@ Record a structured first-pass logic/state review and block progress if prerequi
 
 ## Expected outputs
 
-- logic review entry in `.omx/decisions.json`
+- logic review entry in `.ma/decisions.json`
 - `logic_status = GREEN | RED`
 
 ## Exit criteria

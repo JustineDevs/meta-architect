@@ -1,46 +1,29 @@
 ---
 name: meta-architect
-description: "Use when Codex needs to run the full Meta-Architect workflow in this repo: initialize a project, capture an idea, execute the gated architecture, evidence, logic, security, experience, and build path, inspect status, and enforce merge/release policy. Trigger for requests about Meta-Architect orchestration, build gating, GitMCP-backed evidence, branch/worktree planning, or releasing through `development` and `prod`."
+description: "Use when the user wants the full Meta-Architect workflow inside Codex: architecture-first planning, evidence-backed OSS selection, logic review, security review, DX/UX review, and build readiness without leaving the Codex session."
 ---
 
 # Meta-Architect
 
 ## Overview
 
-Run the end-to-end Meta-Architect operator workflow through the local `ma` CLI and the repo's release rules. Use this skill when the task is to drive the full gated project lifecycle rather than a single specialized lane.
+Run the full Meta-Architect workflow inside Codex. Use this skill when the user wants the gated design-and-review sequence rather than a single specialist lane.
 
 ## Workflow
 
-1. Confirm the repo is initialized:
-   ```bash
-   ma init
-   ```
-2. Capture the project brief:
-   ```bash
-   ma idea "Build a real-time collaborative whiteboard for product teams"
-   ```
-3. Execute the core skill pipeline in order:
-   ```bash
-   ma run $arch
-   ma run $sage
-   ma run $flow
-   ma run $vet
-   ma run $vibe
-   ma status
-   ma run $build
-   ```
-4. If implementation is complete and branch policy allows it:
-   ```bash
-   ma merge feature/ui development
-   ma release development prod
-   ```
+1. Start with `$arch` and turn the user's goal into a concrete architecture brief.
+2. Continue with `$sage` to validate core stack choices against official docs or approved repo-backed sources.
+3. Run `$flow` to map states, transitions, invariants, and blockers.
+4. Run `$vet` to review trust boundaries, auth, data handling, and abuse paths.
+5. Run `$vibe` to review developer and user experience quality.
+6. Finish with `$build` to decide whether implementation is ready, what remains blocked, and what the exact next execution step should be.
 
 ## Rules
 
-- Treat the local `ma` CLI as the source of truth for status transitions.
-- Do not bypass build gates by editing `.omx/decisions.json` or `.omx/release.json` manually.
-- Use repo-specific GitMCP endpoints from `mcp/servers.json`.
-- Keep worktrees optional and operator-driven.
+- Stay inside Codex unless the user explicitly asks for repo-local helper commands.
+- Keep the workflow architecture-first. Do not jump into code before the architecture and review lanes are grounded.
+- Prefer official docs, upstream repos, and repo-configured GitMCP sources when validating tooling choices.
+- End each lane with a clear result shape: decision, evidence, blockers, and exact next trigger.
 
 ## References
 

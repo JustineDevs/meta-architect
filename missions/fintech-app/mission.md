@@ -31,11 +31,11 @@ Use Meta-Architect to take a fintech concept through architecture, evidence, log
 
 ## Expected generated artifacts
 
-- `.omx/decisions.json`
-- `.omx/release.json`
-- `.omx/evidence/sources.json`
-- `.omx/evidence/audits.json`
-- `.omx/evidence/cves.json`
+- `.ma/decisions.json`
+- `.ma/release.json`
+- `.ma/evidence/sources.json`
+- `.ma/evidence/audits.json`
+- `.ma/evidence/cves.json`
 
 ## Pass criteria
 

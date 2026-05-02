@@ -10,10 +10,10 @@
     "includes": [
       "**",
       "!**/.codex",
-      "!**/.omx/logs",
-      "!**/.omx/state",
-      "!**/.omx/metrics.json",
-      "!**/.omx/tmux-hook.json"
+      "!**/.ma/logs",
+      "!**/.ma/state",
+      "!**/.ma/metrics.json",
+      "!**/.ma/tmux-hook.json"
     ]
   },
   "formatter": {

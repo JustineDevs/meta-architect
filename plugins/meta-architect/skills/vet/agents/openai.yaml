@@ -1,0 +1,4 @@
+interface:
+  display_name: "$vet"
+  short_description: "Security and trust-boundary review"
+  default_prompt: "Use $vet to review trust boundaries, security risks, abuse cases, and safer alternatives in the current design."

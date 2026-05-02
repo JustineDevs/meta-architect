@@ -1,19 +1,26 @@
 <div align="center">
-  <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="320" height="160">
-  <h1>Meta-Architect</h1>
-  <p>Production-grade skills package and CLI for programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking.</p>
+  <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="1024" height="240">
+  <p>Production-grade Codex skills and plugin package for architecture, evidence-backed OSS selection, gate-driven review, and release-minded build guidance.</p>
   <p>
-    <img src="https://img.shields.io/badge/npm-%40jstn--sdk%2Fmeta--architect--skills-CB3837" alt="npm package">
+    <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fma" alt="npm version">
     <img src="https://img.shields.io/badge/node-%3E%3D20-339933" alt="Node.js 20+">
-    <img src="https://img.shields.io/badge/release-v0.1.0-2563EB" alt="Release v0.1.0">
+    <img src="https://img.shields.io/github/v/release/JustineDevs/meta-architect" alt="GitHub release">
     <img src="https://img.shields.io/badge/license-MIT-16A34A" alt="MIT License">
+  </p>
+  <p>
+    <a href="https://www.buymeacoffee.com/justinedevs">
+      <img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee">
+    </a>
+    <a href="https://github.com/sponsors/JustineDevs">
+      <img src="https://img.shields.io/badge/GitHub%20Sponsors-JustineDevs-1f6feb?style=flat-square&logo=githubsponsors&logoColor=white" alt="GitHub Sponsors">
+    </a>
   </p>
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.1.0` is a production-grade skills line.
+> Meta-Architect `v0.1.5` is a production-grade skills line.
 > It is not a lightweight demo branch.
-> From `v0.1.0` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> From `v0.1.5` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
 
 ## Overview
 
@@ -30,14 +37,19 @@ It adds:
 > Meta-Architect does not replace your coding runtime.
 > It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
 
+## Support
+
+- [GitHub Sponsors](https://github.com/sponsors/JustineDevs)
+- [Buy Me A Coffee](https://www.buymeacoffee.com/justinedevs)
+
 <table>
   <tr>
     <td><strong>npm package</strong></td>
-    <td><code>@jstn-sdk/meta-architect-skills</code></td>
+    <td><code>@jstn-sdk/ma</code></td>
   </tr>
   <tr>
-    <td><strong>CLI commands</strong></td>
-    <td><code>ma</code>, <code>meta-architect</code></td>
+    <td><strong>Helper command</strong></td>
+    <td><code>ma</code> (secondary support surface)</td>
   </tr>
   <tr>
     <td><strong>Runtime</strong></td>
@@ -45,7 +57,7 @@ It adds:
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.1.0</code></td>
+    <td><code>v0.1.5</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -59,7 +71,7 @@ It adds:
 - npm `>=10`
 - Git
 - an MCP-capable coding runtime
-- OpenAI Codex CLI for the recommended package-first path
+- Codex for the recommended package-first path
 - macOS, Linux, or WSL2 recommended
 
 > [!TIP]
@@ -69,18 +81,28 @@ It adds:
 
 Meta-Architect is intended to be consumed as an installed package, not primarily as a git clone.
 
-Default operator path:
+Primary product path:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect-skills
-omx --madmax --high
+# Install
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+
+# Start Codex context if needed
+ma --madmax --high
+
+# Remove Meta-Architect only
+npm uninstall -g @jstn-sdk/ma
+
+# Remove Meta-Architect and Codex
+npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 What this assumes:
 
-- Codex CLI is installed globally
-- Meta-Architect is installed globally as a package
-- `omx` is available in your environment as the recommended orchestration launcher
+- Codex is installed globally
+- Meta-Architect is installed globally as the skills/plugin package
+- Meta-Architect installs its published skill surface into the active Codex home
+- the product experience happens through the skill workflow inside Codex
 
 > [!IMPORTANT]
 > The recommended default flow is package-first.
@@ -88,7 +110,7 @@ What this assumes:
 
 ## Repository Branch Strategy
 
-Meta-Architect’s repository workflow follows a stricter release posture inspired by OMX:
+Meta-Architect’s repository workflow follows a stricter release posture focused on gated promotion:
 
 - `main` = release-facing protected branch
 - `development` = normal integration branch
@@ -108,14 +130,24 @@ Meta-Architect’s repository workflow follows a stricter release posture inspir
 Install the consumer package directly:
 
 ```bash
-npm install -g @openai/codex @jstn-sdk/meta-architect-skills
+# Install
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+
+# Launch
+ma --madmax --high
+
+# Remove Meta-Architect only
+npm uninstall -g @jstn-sdk/ma
+
+# Remove Meta-Architect and Codex
+npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 This gives you:
 
-- `codex`
-- `ma`
-- `meta-architect`
+- the installed Meta-Architect skill surface
+- the canonical Meta-Architect skill entrypoints inside a Codex session
+- the optional `ma` helper command when a guided start is useful
 
 ### Contributor setup: source checkout
 
@@ -132,36 +164,101 @@ npm link
 
 ## Quick Start
 
-### 1. Initialize the project
-
-Launch the recommended high-intensity OMX session:
+### 1. Start Codex context if needed
 
 ```bash
-omx --madmax --high
+ma --madmax --high
 ```
 
-Then initialize the repository you want Meta-Architect to govern:
+### 2. Start with the real usage-workflow prompt
 
-```bash
-ma init
-```
+Use the same operator shape defined in [example/usage-workflow.md](./example/usage-workflow.md).
 
-Expected output:
+Quick-start prompt:
 
 ```text
-meta-architect init
-===================
+$maestro
+
+Or start directly with:
+
+$arch I want to build: [PROJECT IDEA]
+
+Context:
+- Product type: [web app / mobile app / API / marketplace / agent system / internal tool]
+- Users: [who will use it]
+- Core problem: [what problem it solves]
+- Main features:
+  1. [feature one]
+  2. [feature two]
+  3. [feature three]
+- Constraints:
+  - Budget: [low / medium / high]
+  - Team size: [solo / small / medium]
+  - Timeline: [e.g. 2 weeks MVP, 3 months beta]
+  - Preferred stack: [optional]
+  - Avoid: [optional]
+- Quality priorities:
+  - [e.g. speed, low cost, security, DX, maintainability, scalability]
+- Deployment target:
+  - [Vercel / Docker / VPS / AWS / GCP / local-first / hybrid]
+
+Required output:
+1. Problem framing
+2. Recommended architecture
+3. Stack decision with justification
+4. System components and responsibilities
+5. Data model and storage choices
+6. Auth/security considerations
+7. DX/UX considerations
+8. Delivery plan for v0.1.5
+9. Risks and trade-offs
+10. Decision log
+11. Exact next trigger to run after this
+```
+
+### 3. Run the full trigger sequence inside Codex
+
+After `$arch`, continue exactly like the usage workflow:
+
+```text
+$maestro
+$sage
+$flow
+$vet
+$vibe
+$build
+```
+
+See [example/usage-workflow.md](./example/usage-workflow.md) for the full prompt templates for each step.
+
+### 4. Secondary helper path
+
+If you are working from a repository directly and need scaffolded local support files, use:
+
+```bash
+ma setup
+ma
+```
+
+Expected output for `ma setup`:
+
+```text
+meta-architect setup
+====================
 ready: .codex/agents
 ready: .codex/prompts
-ready: .omx/skills
-ready: .omx/evidence
+ready: .ma/skills
+ready: .ma/evidence
+ready: .ma/context
+ready: .ma/specs
+ready: .ma/plans
 ready: mcp
 ready: docs
 ready: docs/qa
 ready: sprint
 ```
 
-### 2. Configure GitMCP sources
+### 5. Configure GitMCP sources
 
 Add real repository-backed endpoints in `mcp/servers.json`.
 
@@ -185,20 +282,12 @@ Recommended starter endpoints:
 > Verified release evidence must come from repository-form GitMCP endpoints such as `https://gitmcp.io/{owner}/{repo}`.
 > A generic documentation endpoint such as `https://gitmcp.io/docs` does not count as VERIFIED evidence for build unlocking.
 
-### 3. Record the idea
+### 6. Secondary helper flow outside Codex
+
+If you need scripted repo-local validation rather than the interactive runtime workflow:
 
 ```bash
 ma idea "Build a real-time collaborative whiteboard for product teams"
-```
-
-Expected effect:
-
-- appends an idea entry to `.omx/decisions.json`
-- sets `idea_status = CLEAR`
-
-### 4. Run the gated workflow
-
-```bash
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'
@@ -208,7 +297,7 @@ ma status
 ma run '$build'
 ```
 
-Expected status before `$build`:
+Expected status before the helper-path `$build`:
 
 ```text
 Meta-Architect Status
@@ -224,7 +313,7 @@ Next allowed triggers:
 $build
 ```
 
-Expected build output:
+Expected helper-path build output:
 
 ```text
 Build gate is green.
@@ -235,6 +324,52 @@ Optional worktree commands:
 git worktree add ../ui feature/ui
 git worktree add ../api feature/api
 ```
+
+### 7. Simple command guide
+
+Meta-Architect has two surfaces.
+
+- terminal helper commands
+- in-session skills
+
+Terminal commands are normal shell commands you run in the terminal:
+
+```bash
+ma setup
+ma init
+ma idea "Build a product"
+ma status
+ma run '$arch'
+```
+
+In-session skills are prompts you use inside the Codex conversation after launch:
+
+```text
+$maestro
+$arch
+$sage
+$flow
+$vet
+$vibe
+$build
+```
+
+Plain-language difference:
+- `ma ...` = helper commands in the terminal
+- `$...` = the product experience inside Codex
+
+What `ma setup` and `ma init` do:
+- both currently do the same thing
+- they create the local support files and folders
+- they prepare `.ma/` runtime files such as context, specs, plans, evidence, and runbook files
+- they do not run the skill workflow by themselves
+
+What to use when:
+- use Codex and run the skills in-session
+- use `$maestro` when you want Meta-Architect to choose the best next step for you
+- use `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` inside the Codex session
+- use `ma setup` or `ma init` only when you want local scaffolding or scripted helper automation from the terminal
+- use `ma sdk-path` when you need the exact installed support-bundle path for packaged prompts, MCP files, sprint files, scripts, plugin metadata, or templates
 
 ## Core Maintainers
 
@@ -260,7 +395,7 @@ git worktree add ../api feature/api
 | `$flow` | Review baseline logic and state transitions | logic review entry | `logic_status = GREEN | RED` |
 | `$vet` | Run baseline security and dependency review | audit and CVE records | `security_status = GREEN | RED` |
 | `$vibe` | Review developer and user experience implications | DX/UX outcome record | `experience_status = GREEN | RED | WAIVED` |
-| `$build` | Unlock bounded build planning | build-ready decision | `build_status = READY` |
+| `$build` | Unlock bounded build planning | build-ready decision + `.ma/plans/build.md` | `build_status = READY` |
 
 ## Gate Model
 
@@ -279,8 +414,9 @@ Meta-Architect is intentionally fail-closed.
 | `READY` | the next gated step is allowed |
 
 > [!CAUTION]
-> `$build` must stay locked until the upstream release state in `.omx/release.json` satisfies the gate contract.
+> `$build` must stay locked until the upstream release state in `.ma/release.json` satisfies the gate contract.
 > Meta-Architect is designed to stop on blockers rather than silently continue.
+> Rich runtime artifacts live in `.ma/context/`, `.ma/specs/`, `.ma/plans/`, and `.ma/runbook.md`.
 
 ## Release and Packaging
 
@@ -288,7 +424,7 @@ Meta-Architect has two related but different distribution surfaces.
 
 | Surface | Purpose | Produced by |
 | --- | --- | --- |
-| npm package | public package containing CLI, docs, scripts, and canonical skills | `npm publish` or `npm pack` |
+| npm package | public package containing the installable Meta-Architect skills/plugin system, docs, scripts, and canonical skills | `npm publish` or `npm pack` |
 | skills bundle | narrower tarball containing `skills/` only | `npm run skills:pack` |
 
 Required packaging commands:
@@ -307,7 +443,35 @@ Pre-publish rules:
 - `npm run skills:validate` must pass
 - `dist/meta-architect-skills.tgz` must exist
 - `npm pack --dry-run` must show only intended public files
-- docs must match real CLI and release behavior
+- docs must match the real skills/plugin and release behavior
+
+Release lane discipline:
+- stable versions publish to npm `latest`
+- prerelease versions such as `0.2.0-beta.1` must publish with an explicit dist-tag such as `beta`
+- alternate lanes such as `next`, `beta`, and `canary` must never overwrite `latest`
+
+Maintainer version-bump flow:
+1. Bump the package with `npm version <version> --no-git-tag-version`
+2. Update `CHANGELOG.md`, `RELEASE.md`, and `docs/qa/release-readiness-<version>.md`
+3. Run `npm run release:verify`
+4. Run `npm run release:check`
+5. Create and push tag `v<version>`
+6. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
+7. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
+   - Stable publish: `npm publish --access public`
+   - Prerelease publish: `npm publish --access public --tag <lane>`
+8. Verify publish state with `npm view @jstn-sdk/ma version dist-tags time --json`
+
+Provenance note:
+- `npm publish --provenance` requires a supported cloud CI/CD provider
+- a local shell publish will fail with `Automatic provenance generation not supported for provider: null`
+- use the repository publish workflow when provenance is required
+
+Release automation:
+- `npm run release:sync` bumps and synchronizes the active release line only when watched release-relevant files changed
+- `npm run release:advance` force-bumps the next patch line and rewrites the same version-bearing files
+- `.github/workflows/release-sync.yml` runs the sync path on `main` pushes that touch watched release-relevant paths
+- `.github/workflows/release-advance.yml` runs after a published GitHub release and advances the repo to the next patch line automatically
 
 > [!CAUTION]
 > Do not claim npm, GitHub release, or any other publish channel until that channel has actually succeeded.
@@ -322,7 +486,7 @@ Pre-publish rules:
   </tr>
   <tr>
     <td><strong>Excluded</strong></td>
-    <td><code>.omx/</code> runtime state, logs, caches, and temp install outputs</td>
+    <td><code>.ma/</code> runtime state, context, specs, plans, logs, caches, and temp install outputs</td>
   </tr>
 </table>
 
@@ -373,17 +537,18 @@ Pre-publish rules:
 | --- | --- |
 | [Getting Started](./docs/getting-started.md) | end-to-end local onboarding |
 | [Skills Reference](./docs/skills.md) | trigger-by-trigger contract guide |
+| [Installed Support Bundle](./docs/installed-sdk.md) | standard packaged asset path for skills and helper flows |
 | [Skills Publishing](./docs/skills-publishing.md) | source-to-package pipeline |
 | [MCP Setup](./docs/mcp-setup.md) | evidence endpoint policy |
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
 | [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.1.0.md) | QA evidence for the `v0.1.0` line |
+| [Release Readiness](./docs/qa/release-readiness-0.1.5.md) | QA evidence for the `v0.1.5` line |
 
 ## Release Hygiene
 
 > [!WARNING]
-> Runtime `.omx` logs, state, tmp, and cache files must not be shipped.
+> Runtime `.ma` logs, state, tmp, and cache files must not be shipped.
 > Public docs must match actual package behavior.
 > Publish statements must match reality.
 > Skill contracts must stay aligned across canonical and plugin-facing copies.

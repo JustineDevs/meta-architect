@@ -1,0 +1,4 @@
+interface:
+  display_name: "$vibe"
+  short_description: "DX and UX review before implementation"
+  default_prompt: "Use $vibe to review developer and user experience risks before the build lane proceeds."

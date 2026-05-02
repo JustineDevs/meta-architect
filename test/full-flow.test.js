@@ -41,7 +41,7 @@ async function copyDir(src, dest) {
     if (
       entry.name === ".git" ||
       entry.name === "node_modules" ||
-      entry.name === ".omx" ||
+      entry.name === ".ma" ||
       entry.name === ".claude" ||
       entry.name === ".agents"
     ) {
@@ -61,13 +61,13 @@ async function copyDir(src, dest) {
 test("full documented skill flow reaches build-ready state", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-flow-"));
   await copyDir(repoRoot, tempRoot);
-  await fs.mkdir(path.join(tempRoot, ".omx"), { recursive: true });
+  await fs.mkdir(path.join(tempRoot, ".ma"), { recursive: true });
   await fs.writeFile(
-    path.join(tempRoot, ".omx", "decisions.json"),
+    path.join(tempRoot, ".ma", "decisions.json"),
     `${JSON.stringify(cleanDecisions, null, 2)}\n`,
   );
   await fs.writeFile(
-    path.join(tempRoot, ".omx", "release.json"),
+    path.join(tempRoot, ".ma", "release.json"),
     `${JSON.stringify(cleanRelease, null, 2)}\n`,
   );
 
@@ -76,7 +76,7 @@ test("full documented skill flow reaches build-ready state", async () => {
   process.env.MA_ROOT = tempRoot;
   process.env.MA_DISABLE_LIVE_MCP = "1";
 
-  const { runInit, runIdea, runArch, runSage, runFlow, runVet, runVibe } = await import(
+  const { runInit, runIdea, runMaestro, runArch, runSage, runFlow, runVet, runVibe } = await import(
     `${pathToFileURL(path.join(repoRoot, "src", "skills.js")).href}?t=${Date.now()}`
   );
   const { loadReleaseState } = await import(
@@ -88,6 +88,7 @@ test("full documented skill flow reaches build-ready state", async () => {
 
   await runInit();
   await runIdea("Build a demo");
+  await runMaestro();
   await runArch();
   await runSage();
   await runFlow();
@@ -97,6 +98,23 @@ test("full documented skill flow reaches build-ready state", async () => {
   const releaseState = await loadReleaseState();
   const evaluation = evaluateBuildGate(releaseState);
   assert.equal(evaluation.allowed, true);
+  const projectContext = await fs.readFile(
+    path.join(tempRoot, ".ma", "context", "project.md"),
+    "utf8",
+  );
+  const architectureSpec = await fs.readFile(
+    path.join(tempRoot, ".ma", "specs", "architecture.md"),
+    "utf8",
+  );
+  const implementationPlan = await fs.readFile(
+    path.join(tempRoot, ".ma", "plans", "implementation.md"),
+    "utf8",
+  );
+  const maestroPlan = await fs.readFile(path.join(tempRoot, ".ma", "plans", "maestro.md"), "utf8");
+  assert.match(projectContext, /Build a demo/);
+  assert.match(maestroPlan, /\$arch/);
+  assert.match(architectureSpec, /Blueprint derived from idea: Build a demo/);
+  assert.match(implementationPlan, /Validate evidence through approved GitMCP sources/);
 
   if (previousRoot === undefined) {
     delete process.env.MA_ROOT;

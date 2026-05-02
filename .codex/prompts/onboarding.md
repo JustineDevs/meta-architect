@@ -1,10 +1,18 @@
 # Onboarding
 
-Meta-Architect is a skills-first orchestration layer with a strict kernel.
+Meta-Architect is a skills-first system for Codex with a strict kernel.
 
 ## What is implemented
 
-The CLI currently supports:
+The primary product surface is the in-session skill flow:
+- `$arch`
+- `$sage`
+- `$flow`
+- `$vet`
+- `$vibe`
+- `$build`
+
+Secondary helper commands remain available through:
 - `ma init`
 - `ma idea`
 - `ma skills`
@@ -24,10 +32,10 @@ The CLI currently supports:
 2. Read `docs/getting-started.md`
 3. Read `docs/release-spec.md`
 4. Read `docs/skills.md`
-5. Use `ma status` before assuming the workflow is ready
+5. Start Codex context if needed, then use `$arch` before assuming the workflow is ready
 
 ## What not to do
 
-- Do not edit `.omx/release.json` or `.omx/decisions.json` manually to bypass the gate model.
-- Do not treat `.omx/logs/` or `.omx/state/` as source.
+- Do not edit `.ma/release.json` or `.ma/decisions.json` manually to bypass the gate model.
+- Do not treat `.ma` support files as public source.
 - Do not claim release channels succeeded without proof.

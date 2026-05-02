@@ -1,138 +1,117 @@
-# Meta-Architect Feature Coverage Matrix
+# Meta-Architect Coverage Matrix
 
-**Target: Production-ready core orchestration + publishable skills for v0.1.0**  
-**Last Updated:** 2026-04-30
+Target release: `v0.1.0`  
+Last verified: 2026-05-02  
+Registry state: `npm publish` returned success for `@jstn-sdk/ma@0.1.0` on `2026-05-02`; `npm view` may lag during propagation
 
-## Coverage Summary
+## Coverage summary
 
-| Category | Target Surface | Implemented | Coverage |
-|----------|----------------|-------------|----------|
-| Core CLI commands | 7 | 7 | 100% |
-| Core workflow skills | 6 | 6 | 100% |
-| Gate/status contract | 1 | 1 | 100% |
-| Live GitMCP probe in `$sage` | 1 | 1 | 100% |
-| Build gate enforcement | 1 | 1 | 100% |
-| Merge policy enforcement | 1 | 1 | 100% |
-| Release policy enforcement | 1 | 1 | 100% |
-| Repo-local skill folders | 7 | 7 | 100% |
-| Skill packaging pipeline | 4 steps | 4 | 100% |
-| Release docs | 6 docs | 6 | 100% |
-| Worktree automation | 1 | partial | ~70% |
-| Marketplace publishing | 1 | not applicable | 0% |
-| **TOTAL** | | | **~94%** |
+| Category | Current state | Evidence |
+|---|---|---|
+| Canonical install/launch contract | DONE | `README.md`, `RELEASE.md`, package-install smoke |
+| `ma` launcher into Codex | DONE | `test/cli-smoke.test.js`, `test/package-install-smoke.test.js` |
+| Core skill surface | DONE | `skills/`, `skills/index.json`, `skills:validate` |
+| Repo-local helper path | DONE | `test/full-flow.test.js`, `test/cli-smoke.test.js` |
+| Build gate enforcement | DONE | `src/build-gate.js`, `test/build-gate.test.js`, `test/cli-smoke.test.js` |
+| Merge/release policy enforcement | DONE | `src/policy.js`, `test/policy.test.js` |
+| Live GitMCP probe support | DONE | `src/mcp-live-client.js`, `src/skills.js`, `test/mcp-config.test.js` |
+| Plugin mirror discipline | DONE | `scripts/plugin-sync.js`, `plugin:verify`, package dry-run |
+| Plugin metadata / marketplace discovery | DONE | `.agents/plugins/marketplace.json`, `plugins/meta-architect/.codex-plugin/plugin.json` |
+| Package dry-run | DONE | `npm run pack:inspect` |
+| Release check pipeline | DONE | `npm run release:check` |
 
-## Core CLI Commands (7/7 = 100%)
+## Runtime and workflow coverage
 
-| Command | Status | Purpose |
-|---------|--------|---------|
-| `ma init` | DONE | Scaffold repo shape and seed baseline files |
-| `ma idea` | DONE | Capture project brief and unlock architecture |
-| `ma skills` | DONE | List the core skill triggers |
-| `ma status` | DONE | Read and display current gate state |
-| `ma run $arch|$sage|$flow|$vet|$vibe|$build` | DONE | Execute the core orchestration workflow |
-| `ma merge` | DONE | Enforce `feature/* -> development` |
-| `ma release` | DONE | Enforce `development|release/* -> prod` |
+| Surface | Status | Notes |
+|---|---|---|
+| `ma setup` scaffolding | DONE | seeds `.ma`, `.codex`, docs, sprint, and MCP baseline files |
+| `ma idea` | DONE | records a project brief and clears the idea gate |
+| `ma skills` | DONE | lists the 6 runtime triggers |
+| `ma status` | DONE | reports release-state and next allowed triggers |
+| `ma run '$arch'` | DONE | architecture gate |
+| `ma run '$sage'` | DONE | evidence gate with live MCP support |
+| `ma run '$flow'` | DONE | logic gate |
+| `ma run '$vet'` | DONE | security gate |
+| `ma run '$vibe'` | DONE | DX/UX gate |
+| `ma run '$build'` | DONE | build-readiness gate |
+| `ma merge` | DONE | branch policy enforcement |
+| `ma release` | DONE | release policy enforcement |
 
-## Core Workflow Skills (6/6 = 100%)
+## Skill surface coverage
 
-| Skill | Trigger | Status | Mechanism |
-|-------|---------|--------|-----------|
-| Architect | `$arch` | DONE | `src/skills.js` + `.omx/skills/arch.skill.md` |
-| OSS Sage | `$sage` | DONE | live GitMCP SSE/JSON-RPC probe + `.omx/skills/sage.skill.md` |
-| Logic Specialist | `$flow` | DONE | `src/skills.js` + `.omx/skills/flow.skill.md` |
-| Security Auditor | `$vet` | DONE | `src/skills.js` + `.omx/skills/vet.skill.md` |
-| DX/UX Specialist | `$vibe` | DONE | `src/skills.js` + `.omx/skills/vibe.skill.md` |
-| Builder | `$build` | DONE | `src/build-gate.js` + `.omx/skills/build.skill.md` |
+Canonical public skills:
+- `meta-architect`
+- `arch`
+- `sage`
+- `flow`
+- `vet`
+- `vibe`
+- `build`
 
-## Status & Gate Contract
+Coverage state:
+- source skill contracts in `skills/`: DONE
+- generated manifest in `skills/index.json`: DONE
+- plugin-mirrored skill contracts in `plugins/meta-architect/skills/`: DONE
+- installable package skill surface via `postinstall`: DONE
 
-| Field | Values | Enforced |
-|-------|--------|----------|
-| `idea_status` | `DRAFT`, `CLEAR`, `BLOCKED` | YES |
-| `architecture_status` | `DRAFT`, `REVIEWED`, `APPROVED` | YES |
-| `evidence_status` | `MISSING`, `PARTIAL`, `VERIFIED` | YES |
-| `logic_status` | `PENDING`, `GREEN`, `RED` | YES |
-| `security_status` | `PENDING`, `GREEN`, `RED` | YES |
-| `experience_status` | `PENDING`, `GREEN`, `RED`, `WAIVED` | YES |
-| `build_status` | `LOCKED`, `READY`, `RUNNING`, `DONE` | YES |
-| `merge_status` | `LOCKED`, `READY`, `MERGED_TO_DEVELOPMENT` | YES |
-| `release_status` | `LOCKED`, `READY`, `SHIPPED_TO_PROD` | YES |
+## Test coverage actually present
 
-### Build Lock Coverage
+| Test file | What it proves |
+|---|---|
+| `test/build-gate.test.js` | build gate evaluation helpers |
+| `test/cli-smoke.test.js` | scaffold creation, build lock, launcher delegation, exit-code propagation |
+| `test/full-flow.test.js` | full helper workflow reaches build-ready state |
+| `test/mcp-config.test.js` | MCP endpoint validation behavior |
+| `test/package-install-smoke.test.js` | packed npm install, postinstall skill installation, launcher behavior, helper flow |
+| `test/policy.test.js` | merge/release branch policy enforcement |
+| `test/release-state.test.js` | release-state persistence and validation |
 
-`$build` is blocked unless all are true:
-- `idea_status = CLEAR`
-- `architecture_status = APPROVED`
-- `evidence_status = VERIFIED`
-- `logic_status = GREEN`
-- `security_status = GREEN`
-- `experience_status ∈ { GREEN, WAIVED }`
-- `build_status ∈ { LOCKED, READY }`
+Current automated verification count:
+- 7 test files
+- 7/7 passing on the latest verification run
 
-## GitMCP / MCP Coverage
-
-| Capability | Status | Notes |
-|------------|--------|-------|
-| Endpoint validation | DONE | exact `gitmcp.io/{owner}/{repo}` and `gitmcp.io/docs` patterns |
-| Live SSE endpoint negotiation | DONE | implemented in `src/mcp-live-client.js` |
-| MCP `initialize` | DONE | real JSON-RPC init against GitMCP |
-| MCP `tools/list` | DONE | real tool discovery |
-| MCP repo-specific tool call | DONE | `$sage` calls repo-specific documentation tool |
-| Multi-endpoint full live probing | PARTIAL | runtime intentionally proves at least one real endpoint per run |
-
-## Skills Publishing Coverage
-
-| Capability | Status | Mechanism |
-|------------|--------|-----------|
-| Repo-local installable skill folders | DONE | `skills/*` |
-| Skill UI metadata | DONE | `skills/*/agents/openai.yaml` |
-| Skill manifest generation | DONE | `npm run skills:manifest` |
-| Skill validation | DONE | `npm run skills:validate` |
-| Skill tarball packaging | DONE | `npm run skills:pack` |
-| Skill install smoke test | DONE | `npm run skills:install -- --path ...` |
-
-## Release Surface Coverage
+## Packaging and plugin coverage
 
 | Surface | Status | Mechanism |
-|---------|--------|-----------|
-| Source release commit/tag flow | DONE | local git release flow |
-| GitHub release asset upload | DONE | uploaded `dist/meta-architect-skills.tgz` |
-| NPM org publish | BLOCKED by metadata/policy | not published |
-| Marketplace publish | NOT APPLICABLE | no marketplace package exists |
+|---|---|---|
+| npm package identity | DONE | `@jstn-sdk/ma@0.1.0` |
+| public scoped package config | DONE | `publishConfig.access = public` |
+| package files whitelist | DONE | `package.json > files` |
+| skill bundle tarball | DONE | `npm run skills:pack` |
+| package dry-run | DONE | `npm run pack:inspect` |
+| plugin mirror sync | DONE | `npm run plugin:sync` |
+| plugin mirror verification | DONE | `npm run plugin:verify` |
+| plugin manifest | DONE | `plugins/meta-architect/.codex-plugin/plugin.json` |
+| local marketplace metadata | DONE | `.agents/plugins/marketplace.json` |
 
-## Validation Coverage
+## Release and docs coverage
 
-| Check | Status |
-|------|--------|
-| `npm test` | PASS |
-| `npm run check` | PASS |
-| CLI smoke tests | PASS |
-| Full isolated flow test | PASS |
-| Live GitMCP proof | PASS |
-| Merge/release isolated proof | PASS |
-| Skills validate | PASS |
-| Skills pack/install proof | PASS |
+| Surface | Status | Notes |
+|---|---|---|
+| `README.md` canonical install block | DONE | scoped package + `ma --madmax --high` |
+| onboarding / quickstart docs | DONE | same canonical story |
+| release spec | DONE | `v0.1.0` aligned |
+| release readiness doc | DONE | includes release-candidate publish state |
+| release summary doc | DONE | includes release-candidate publish state |
+| CI / PR workflows | DONE | skills manifest + plugin mirror enforced |
 
-## Known Gaps
+## Known limits
 
-1. **Worktree lifecycle is still operator-driven**  
-   Meta-Architect suggests worktree commands but does not automate add/remove/prune.
+These are limits, not stale gaps:
 
-2. **NPM publish contract is not finalized**  
-   The repo still needs an explicitly approved `@jstn-sdk/<name>` package identity and public npm metadata before publish.
+1. Live `$sage` verification still depends on reachable GitMCP endpoints.
+2. Worktree commands are suggested, not fully lifecycle-managed.
+3. The GitHub `v0.1.0` release is real, and `npm publish` returned success for `@jstn-sdk/ma@0.1.0`; registry metadata may still lag during propagation.
 
-3. **Marketplace distribution is not part of this repo**  
-   There is no real extension/gallery package manifest or publisher config.
+## Current truth statement
 
-## Production Interpretation
+Meta-Architect currently covers the `v0.1.0` release bar for:
+- canonical install and launch
+- Codex-hosted runtime entry
+- skills-first orchestration
+- repo-local helper flow
+- skill packaging and plugin mirroring
+- release/policy enforcement
+- release-ready verification
 
-Meta-Architect currently covers the production `v0.1.0` core bar for:
-- reliable core orchestration,
-- stable status/branch contract,
-- publishable repo-local skill artifacts,
-- and documented verification evidence.
-
-It does **not** yet cover:
-- automatic worktree lifecycle,
-- confirmed npm public package publication,
-- or marketplace publication.
+It is not a placeholder demo repository and these files should be read as verified operational documentation, not aspirational planning notes.

@@ -5,6 +5,7 @@ This plugin bundle packages the Meta-Architect skill surfaces for consumers that
 ## What the plugin contains
 
 - plugin metadata:
+  - `.codex-plugin/plugin.json`
   - `.app.json`
   - `.mcp.json`
 - bundled Meta-Architect skill surfaces under `skills/`
@@ -17,7 +18,7 @@ This plugin is **not** the full source repository.
 It does not attempt to ship:
 - repository `.github/` workflows
 - contributor-facing repo templates
-- local runtime `.omx` state
+- local runtime `.ma` state
 - every source file in the repository
 - the entire release engineering toolchain
 
@@ -43,6 +44,24 @@ Use the core repo when you want to develop Meta-Architect itself. Use the plugin
 
 The plugin-facing bundle should be consumed alongside the repository’s documented packaging/install flow.
 
+Canonical package/runtime path:
+
+```bash
+# Install
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+
+# Launch
+ma --madmax --high
+
+# Remove Meta-Architect only
+npm uninstall -g @jstn-sdk/ma
+
+# Remove Meta-Architect and Codex
+npm uninstall -g @jstn-sdk/ma @openai/codex
+```
+
+Use the plugin bundle when you need installable skill metadata or local marketplace discovery. Use the package and Codex skill flow when you want the full Meta-Architect product experience.
+
 Primary related surfaces:
 - [docs/skills-publishing.md](../../docs/skills-publishing.md)
 - [skills/](../../skills/)
@@ -51,7 +70,9 @@ If you are working from the repository directly, validate and package with:
 
 ```bash
 npm run skills:manifest
+npm run plugin:sync
 npm run skills:validate
+npm run plugin:verify
 npm run skills:pack
 npm run skills:install -- --path ./dist/installed-skills
 ```
@@ -76,7 +97,7 @@ Do not assume the plugin alone provides a fully wired live MCP environment.
 When consuming the plugin:
 - use committed `skills/` content as the contract source
 - validate installed skill folders
-- do not treat local runtime `.omx` state as part of the distributable plugin
+- do not treat local runtime `.ma` state as part of the distributable plugin
 - preserve the gate/evidence semantics documented in the repo
 
 ## Version and release relation
@@ -84,7 +105,7 @@ When consuming the plugin:
 The plugin version should track the release scope of the core repo.
 
 For this repository:
-- plugin scope is aligned to Meta-Architect `v0.1.0`
+- plugin scope is aligned to Meta-Architect `v0.1.5`
 - any breaking contract change should be versioned intentionally
 
 The plugin is one distribution surface of the same product, not a separate product line.
@@ -96,4 +117,5 @@ The plugin is one distribution surface of the same product, not a separate produ
 - [docs/skills-publishing.md](../../docs/skills-publishing.md)
 - [docs/mcp-setup.md](../../docs/mcp-setup.md)
 - [.app.json](./.app.json)
+- [.codex-plugin/plugin.json](./.codex-plugin/plugin.json)
 - [.mcp.json](./.mcp.json)

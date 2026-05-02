@@ -8,6 +8,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -23,12 +25,9 @@ jobs:
         run: npm ci
 
       - name: Validate release bundle
-        run: |
-          npm run skills:manifest
-          npm run skills:validate
-          npm run skills:pack
-          npm run check
-          npm test
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: npm run release:check
 
       - name: Validate release assets
         run: node .github/scripts/validate-release-assets.js

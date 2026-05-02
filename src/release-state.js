@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import { writeJson } from "./fs-utils.js";
-import { releaseStatePath } from "./paths.js";
+import { getRuntimeReadPath, getRuntimeWritePath } from "./paths.js";
 
 const allowedStatuses = {
   idea_status: ["DRAFT", "CLEAR", "BLOCKED"],
@@ -43,7 +43,7 @@ export function validateReleaseState(state) {
 }
 
 export async function loadReleaseState() {
-  const raw = await fs.readFile(releaseStatePath, "utf8");
+  const raw = await fs.readFile(getRuntimeReadPath("release.json"), "utf8");
   const parsed = JSON.parse(raw);
   return validateReleaseState(parsed);
 }
@@ -54,6 +54,6 @@ export async function saveReleaseState(state) {
     ...state,
     updatedAt: new Date().toISOString(),
   };
-  await writeJson(releaseStatePath, next);
+  await writeJson(getRuntimeWritePath("release.json"), next);
   return next;
 }

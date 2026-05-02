@@ -1,172 +1,93 @@
-# V0.1.0 Requirements & Rules
+# v0.1.5 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.1.0` is production only when all three are true at the same time:
+Meta-Architect `v0.1.5` is production only when:
+1. the package/install surface works
+2. the in-session skill workflow from `$arch` through `$build` works
+3. the release evidence matches the actual package and git tag
 
-1. Core workflows are reliable end-to-end.
-2. The public interface and contract are stable.
-3. There is documented evidence that the release works.
+## What `v0.1.5` must have
 
-Production here means safe to recommend for real projects and expensive to break without a major version change.
+### 1. Canonical package/runtime path
 
-## What v0.1.0 MUST have
+- install: `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
+- optional helper launch: `ma --madmax --high`
+- uninstall Meta-Architect only: `npm uninstall -g @jstn-sdk/ma`
+- uninstall Meta-Architect and Codex: `npm uninstall -g @jstn-sdk/ma @openai/codex`
+- runtime trigger surface:
+  - `$arch`
+  - `$sage`
+  - `$flow`
+  - `$vet`
+  - `$vibe`
+  - `$build`
 
-### 1. Core workflow working end-to-end
+### 2. Secondary helper path
 
-1. `ma init`
-   - Creates `.codex/`, `.omx/`, `mcp/`, and baseline `docs/` without breaking existing files.
-   - Leaves the repo in a valid Git + MCP state.
+Helper commands remain available for setup and scripted validation:
+- `ma setup`
+- `ma idea`
+- `ma run ...`
+- `ma status`
+- `ma merge`
+- `ma release`
 
-2. MCP / GitMCP wiring
-   - At least one real GitMCP endpoint configured.
-   - `$sage` and `$arch` can successfully query via MCP without schema/protocol errors.
+### 3. State and gate contract
 
-3. Skill pipeline
-   - `ma idea "..."`
-   - `ma run $arch`
-   - `ma run $sage`
-   - `ma run $flow`
-   - `ma run $vet`
-   - `ma run $vibe`
-   - `ma status`
-   - `ma run $build`
+Canonical runtime namespace:
+- `.ma/`
 
-4. One hello-world feature cycle
-   - `$build` proposes at least one `feature/*` branch.
-   - Operator can implement a small change, merge to `development`, and mark the build as done without touching internal files manually.
+Canonical state files:
+- `.ma/decisions.json`
+- `.ma/release.json`
+- `.ma/evidence/*`
+- `.ma/context/*`
+- `.ma/specs/*`
+- `.ma/plans/*`
+- `.ma/runbook.md`
 
-5. Two-environment confidence
-   - The documented initialization and skill flow must be reproducible on at least two machines or environments before release sign-off.
+### 4. Required release evidence
 
-### 2. Gate and status rules
+- `package.json` version `0.1.5`
+- git tag `v0.1.5`
+- `RELEASE.md`
+- `CHANGELOG.md`
+- `docs/qa/release-readiness-0.1.5.md`
+- green `npm run release:check`
 
-Status fields in `.omx/decisions.json`:
-- `idea_status`
-- `architecture_status`
-- `evidence_status`
-- `logic_status`
-- `security_status`
-- `experience_status`
-- `build_status`
-- `merge_status`
-- `release_status`
+### 5. Dist-tag discipline
 
-Allowed values:
-- `idea_status`: `DRAFT`, `CLEAR`, `BLOCKED`
-- `architecture_status`: `DRAFT`, `REVIEWED`, `APPROVED`
-- `evidence_status`: `MISSING`, `PARTIAL`, `VERIFIED`
-- `logic_status`: `PENDING`, `GREEN`, `RED`
-- `security_status`: `PENDING`, `GREEN`, `RED`
-- `experience_status`: `PENDING`, `GREEN`, `RED`, `WAIVED`
-- `build_status`: `LOCKED`, `READY`, `RUNNING`, `DONE`
-- `merge_status`: `LOCKED`, `READY`, `MERGED_TO_DEVELOPMENT`
-- `release_status`: `LOCKED`, `READY`, `SHIPPED_TO_PROD`
+- stable versions such as `0.1.2` publish to npm `latest`
+- prerelease versions such as `0.2.0-beta.1` must publish with explicit tags such as `beta`
+- recommended alternate lanes are `next`, `beta`, and `canary`
+- prerelease publication must use `npm publish --tag <lane>`
+- stable publication keeps scoped public access and provenance enabled
 
-Build lock rule:
-- `$build` must not run unless:
-  - `idea_status = CLEAR`
-  - `architecture_status = APPROVED`
-  - `evidence_status = VERIFIED`
-  - `logic_status = GREEN`
-  - `security_status = GREEN`
-  - `experience_status` is `GREEN` or `WAIVED`
-  - `build_status` is `LOCKED` or `READY`
+### 6. Canonical bump and publish flow
 
-Public contract freeze for `v0.1.0`:
-- Core triggers remain stable:
-  - `ma init`
-  - `ma idea`
-  - `ma skills`
-  - `ma status`
-  - `ma run $arch`
-  - `ma run $sage`
-  - `ma run $flow`
-  - `ma run $vet`
-  - `ma run $vibe`
-  - `ma run $build`
-  - `ma merge`
-  - `ma release`
-- Required status fields and allowed values are frozen for the `1.x` line unless changed by a major version.
-- Basic branch policy remains:
-  - `feature/* -> development -> prod`
-  - optional approved `release/*` before `prod`
+1. Run `npm version <version> --no-git-tag-version`
+2. Update `CHANGELOG.md`
+3. Update `RELEASE.md`
+4. Update `docs/qa/release-readiness-<version>.md`
+5. Run `npm run release:verify`
+6. Run `npm run release:check`
+7. Create and push tag `v<version>`
+8. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
+9. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
+   - Stable publish: `npm publish --access public`
+   - Prerelease publish: `npm publish --access public --tag <lane>`
+10. Verify dist-tags with `npm view @jstn-sdk/ma version dist-tags time --json`
 
-### 3. Branch and merge policy
+### 6.1 Release automation
 
-- `prod`: production branch
-- `development`: integration branch
-- `feature/*`: short-lived task branches
+- `npm run release:sync` updates the active release line when watched release-relevant files changed
+- `npm run release:advance` force-bumps the next patch line after a completed release
+- `.github/workflows/release-sync.yml` automates the sync path on `main`
+- `.github/workflows/release-advance.yml` advances the repo to the next patch line after a published release
 
-Rules:
-- Feature work merges into `development`, never directly into `prod`.
-- Release happens from `development` or approved `release/*` into `prod`.
-- `$build` creates or recommends `feature/*` branches; it does not modify `development` or `prod` directly.
+### 7. Provenance rule
 
-## Repository workflow strategy
-
-This document also distinguishes the Meta-Architect product branch model from the Meta-Architect repository workflow.
-
-Repository workflow:
-
-- `main` = release-facing protected branch for this repository
-- `development` = normal integration branch for this repository
-- `feature/*` = normal contribution branches for this repository
-
-Repository rules:
-
-- contributors branch from `development`
-- normal PRs target `development`
-- only curated promotions move `development` into `main`
-- direct pushes to `main` should be avoided except for genuine emergency or admin recovery cases
-
-Required repository checks on both `development` and `main`:
-
-- `validate`
-- `pr-check`
-- `codex-review`
-
-### 4. Evidence and MCP rules
-
-- `$sage` and `$arch` must provide at least one OSS source for each major library/framework recommendation.
-- All such sources must be logged into `.omx/evidence/sources.json` with `repo`, `endpoint`, and `category`.
-- If no suitable source is found, the recommendation must be marked `UNVERIFIED` and must not flip `evidence_status` to `VERIFIED`.
-- Meta-Architect must never invent fake repos or endpoints.
-
-### 5. Tests and QA
-
-Minimum required tests:
-- Contract tests per skill
-- Gate logic tests
-- MCP smoke test
-- CLI smoke test
-- Skill packaging validation tests
-
-Required QA artifact:
-- `docs/qa/release-readiness-0.1.0.md`
-
-Required release evidence:
-- release tag
-- release body
-- QA/readiness record
-- known limitations and operational constraints
-
-### 6. Required docs
-
-- `README.md`
-- `docs/getting-started.md`
-- `docs/skills.md`
-- `docs/release-spec.md`
-- `docs/mcp-setup.md`
-- `docs/qa/release-readiness-0.1.0.md`
-
-## Production rule
-
-Meta-Architect `v0.1.0` is considered production-ready only if:
-- a new project can be initialized,
-- at least one real GitMCP endpoint is wired and successfully queried,
-- the full `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` workflow runs with exact gate enforcement,
-- at least one feature cycle completes cleanly,
-- the skill publishing surface validates and packages from a clean checkout,
-- the public contract is stable enough to avoid breaking changes in `1.x`,
-- and all required tests, docs, release artifacts, and readiness evidence are present and passing.
+- `npm publish --provenance` is valid only from a supported cloud CI/CD provider
+- local shell publishes are expected to fail with `Automatic provenance generation not supported for provider: null`
+- use the repository publish workflow when provenance is part of the release bar

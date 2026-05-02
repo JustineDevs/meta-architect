@@ -4,11 +4,23 @@ import { appendDecision } from "./decision-log.js";
 import { readJson, writeFileIfMissing, writeJson } from "./fs-utils.js";
 import { validateMcpServers } from "./mcp-config.js";
 import { McpSseClient } from "./mcp-live-client.js";
-import { auditsPath, cvesPath, outcomesPath, packageRoot, repoRoot, sourcesPath } from "./paths.js";
+import { getRepoRoot, getRuntimeReadPath, getRuntimeWritePath, packageRoot } from "./paths.js";
+import {
+  seedRuntimeArtifacts,
+  writeArchitectureArtifacts,
+  writeEvidenceSpec,
+  writeExperienceSpec,
+  writeLogicSpec,
+  writeMaestroPlan,
+  writeProjectContext,
+  writeSecuritySpec,
+} from "./runtime-artifacts.js";
 import { syncStatusUpdates } from "./state-sync.js";
 
-const skillNames = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
-const omxSkillTemplates = {
+const skillNames = ["$maestro", "$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
+const workflowTemplates = {
+  "maestro.skill.md":
+    "# `$maestro`\n\nChooses the best next workflow step and recommends the right lane or assignment.\n",
   "arch.skill.md":
     "# `$arch`\n\nProduces blueprint architecture, stack rationale, subsystem design, and tradeoffs.\n",
   "sage.skill.md":
@@ -26,8 +38,152 @@ export function listSkills() {
   return skillNames;
 }
 
+function chooseMaestroRecommendation(releaseState, idea) {
+  if (releaseState.idea_status !== "CLEAR") {
+    return {
+      nextStep: "Capture or refine the project brief before any design or validation lane starts.",
+      why: "The workflow still needs a concrete brief before architecture or build decisions can be trusted.",
+      primaryLane: "brief capture",
+      supportLane: "none",
+      assignments: ['Use `ma idea "..."` or provide the brief before running in-session skills.'],
+      avoid: ["Do not start architecture or implementation yet."],
+      nextTrigger: "`ma idea`",
+    };
+  }
+
+  if (releaseState.architecture_status !== "APPROVED") {
+    return {
+      nextStep: "Run the architecture lane first.",
+      why: "The brief exists, but the workflow still needs a concrete architecture before later gates can be trusted.",
+      primaryLane: "$arch",
+      supportLane: "$sage",
+      assignments: [
+        `Use $arch to shape the current brief${idea ? ` for: ${idea}` : ""}.`,
+        "After approval, move into $sage for source-backed stack validation.",
+      ],
+      avoid: ["Do not jump to build or release work yet."],
+      nextTrigger: "`$arch`",
+    };
+  }
+
+  if (releaseState.evidence_status !== "VERIFIED") {
+    return {
+      nextStep: "Validate the architecture against approved sources.",
+      why: "The architecture exists, but the evidence gate is not yet fully verified.",
+      primaryLane: "$sage",
+      supportLane: "$flow",
+      assignments: [
+        "Run $sage using the current architecture as the probe basis.",
+        "Prepare to hand off to $flow after evidence is verified.",
+      ],
+      avoid: ["Do not treat stack choices as settled yet."],
+      nextTrigger: "`$sage`",
+    };
+  }
+
+  if (releaseState.logic_status !== "GREEN") {
+    return {
+      nextStep: "Validate system behavior and state transitions.",
+      why: "Logic is the next unresolved gate before implementation readiness can be claimed.",
+      primaryLane: "$flow",
+      supportLane: "$vet",
+      assignments: [
+        "Run $flow to map actors, states, transitions, and blockers.",
+        "Queue $vet after the logic lane confirms behavior is sound.",
+      ],
+      avoid: ["Do not merge or release yet."],
+      nextTrigger: "`$flow`",
+    };
+  }
+
+  if (releaseState.security_status !== "GREEN") {
+    return {
+      nextStep: "Run the security and trust-boundary review.",
+      why: "Security is the next unresolved gate before the workflow can unlock implementation readiness.",
+      primaryLane: "$vet",
+      supportLane: "$vibe",
+      assignments: [
+        "Run $vet to capture trust boundaries, abuse cases, and mitigations.",
+        "Move to $vibe once security is green.",
+      ],
+      avoid: ["Do not unlock implementation readiness before security review."],
+      nextTrigger: "`$vet`",
+    };
+  }
+
+  if (!["GREEN", "WAIVED"].includes(releaseState.experience_status)) {
+    return {
+      nextStep: "Review workflow clarity and friction before build unlock.",
+      why: "The experience lane is the final quality gate before the build decision.",
+      primaryLane: "$vibe",
+      supportLane: "$build",
+      assignments: [
+        "Run $vibe to capture onboarding and operability friction.",
+        "Move to $build only after experience is green or intentionally waived.",
+      ],
+      avoid: ["Do not start release promotion yet."],
+      nextTrigger: "`$vibe`",
+    };
+  }
+
+  if (releaseState.build_status === "LOCKED") {
+    return {
+      nextStep: "Unlock bounded implementation planning.",
+      why: "All upstream quality gates are green, so the workflow can now evaluate build readiness.",
+      primaryLane: "$build",
+      supportLane: "implementation",
+      assignments: [
+        "Run $build to get the current build-readiness verdict.",
+        "Use the resulting narrow build slice as the next execution assignment.",
+      ],
+      avoid: ["Do not release directly from a task branch."],
+      nextTrigger: "`$build`",
+    };
+  }
+
+  if (releaseState.merge_status !== "MERGED_TO_DEVELOPMENT") {
+    return {
+      nextStep: "Finish the implementation slice and merge it into development.",
+      why: "The build gate is ready or done, but the branch promotion path has not completed yet.",
+      primaryLane: "implementation",
+      supportLane: "merge",
+      assignments: [
+        "Use the current build plan to finish the smallest viable implementation slice.",
+        "When ready, merge feature work into development with `ma merge`.",
+      ],
+      avoid: ["Do not promote directly to prod."],
+      nextTrigger: "`ma merge <feature/*> development`",
+    };
+  }
+
+  if (releaseState.release_status !== "SHIPPED_TO_PROD") {
+    return {
+      nextStep: "Promote the approved release line to prod.",
+      why: "Implementation and merge gates are complete, so the remaining step is the controlled release promotion.",
+      primaryLane: "release",
+      supportLane: "verification",
+      assignments: [
+        "Verify the origin branch is development or an approved release branch.",
+        "Run `ma release <origin> prod` when the line is ready.",
+      ],
+      avoid: ["Do not reopen earlier gates unless a new blocker appears."],
+      nextTrigger: "`ma release <development|release/*> prod`",
+    };
+  }
+
+  return {
+    nextStep: "The workflow is already at the terminal release state.",
+    why: "All gates, merge, and release states are complete.",
+    primaryLane: "done",
+    supportLane: "verification",
+    assignments: ["Confirm final release evidence and start a new brief for the next cycle."],
+    avoid: ["Do not rerun build or release steps without a new task."],
+    nextTrigger: "`ma idea` or `$arch` for the next task",
+  };
+}
+
 async function readIdeaText() {
-  const decisions = await readJson(path.join(repoRoot, ".omx", "decisions.json"));
+  const decisions = await readJson(getRuntimeReadPath("decisions.json"));
   const ideaDecision = [...decisions.decisions].reverse().find((entry) => entry.kind === "idea");
   return ideaDecision?.idea ?? null;
 }
@@ -37,6 +193,8 @@ export async function runIdea(idea) {
   if (!trimmed) {
     throw new Error("Idea text is required");
   }
+
+  await writeProjectContext(trimmed);
 
   await appendDecision({
     kind: "idea",
@@ -62,6 +220,8 @@ export async function runArch() {
     suggestedStack: ["Node.js", "MCP", "GitMCP", "Git worktree"],
     outcome: "Produce a gated architecture and implementation plan",
   };
+
+  await writeArchitectureArtifacts({ idea, blueprint });
 
   await appendDecision({
     kind: "skill",
@@ -149,11 +309,12 @@ export async function runSage() {
     }
   }
 
-  const existing = await readJson(sourcesPath);
+  const existing = await readJson(getRuntimeWritePath("evidence", "sources.json"));
   existing.items = sourceEntries;
-  await writeJson(sourcesPath, existing);
+  await writeJson(getRuntimeWritePath("evidence", "sources.json"), existing);
 
   const verified = sourceEntries.length > 0 && (disableLiveProbe || liveSuccessCount > 0);
+  await writeEvidenceSpec({ idea, sourceEntries, verified, blockers });
   await appendDecision({
     kind: "skill",
     skill: "$sage",
@@ -175,6 +336,8 @@ export async function runFlow() {
     blockers: [],
   };
 
+  await writeLogicSpec(logicMap);
+
   await appendDecision({
     kind: "skill",
     skill: "$flow",
@@ -189,21 +352,26 @@ export async function runFlow() {
 }
 
 export async function runVet() {
-  const auditLog = await readJson(auditsPath);
-  const cveLog = await readJson(cvesPath);
+  const auditLog = await readJson(getRuntimeWritePath("evidence", "audits.json"));
+  const cveLog = await readJson(getRuntimeWritePath("evidence", "cves.json"));
   const finding = {
     severity: "INFO",
     summary: "Baseline review completed for the approved kernel",
     unresolved: false,
   };
   auditLog.items.push(finding);
-  await writeJson(auditsPath, auditLog);
+  await writeJson(getRuntimeWritePath("evidence", "audits.json"), auditLog);
   cveLog.items.push({
     id: "baseline-review",
     severity: "INFO",
     unresolved: false,
   });
-  await writeJson(cvesPath, cveLog);
+  await writeJson(getRuntimeWritePath("evidence", "cves.json"), cveLog);
+  await writeSecuritySpec({
+    finding,
+    auditCount: auditLog.items.length,
+    cveCount: cveLog.items.length,
+  });
 
   await appendDecision({
     kind: "skill",
@@ -219,13 +387,14 @@ export async function runVet() {
 }
 
 export async function runVibe() {
-  const outcomes = await readJson(outcomesPath);
+  const outcomes = await readJson(getRuntimeWritePath("evidence", "outcomes.json"));
   const note = {
     area: "developer-experience",
-    summary: "Core CLI and gated workflow remain the primary operator surface",
+    summary: "The in-session skill flow remains the primary Meta-Architect surface",
   };
   outcomes.items.push(note);
-  await writeJson(outcomesPath, outcomes);
+  await writeJson(getRuntimeWritePath("evidence", "outcomes.json"), outcomes);
+  await writeExperienceSpec({ note, outcomeCount: outcomes.items.length });
 
   await appendDecision({
     kind: "skill",
@@ -240,13 +409,33 @@ export async function runVibe() {
   await syncStatusUpdates({ experience_status: "GREEN" });
 }
 
+export async function runMaestro() {
+  const releaseState = await readJson(getRuntimeReadPath("release.json"));
+  const idea = await readIdeaText();
+  const recommendation = chooseMaestroRecommendation(releaseState, idea);
+
+  await writeMaestroPlan({ releaseState, recommendation });
+  await appendDecision({
+    kind: "skill",
+    skill: "$maestro",
+    decision: "Recommended the next workflow step and assignment lane",
+    status: "ADVISORY",
+    evidence: [recommendation],
+    blockers: [],
+    next_allowed_triggers: [recommendation.nextTrigger.replaceAll("`", "")],
+  });
+}
+
 export async function runInit() {
   const created = [];
   const targets = [
     ".codex/agents",
     ".codex/prompts",
-    ".omx/skills",
-    ".omx/evidence",
+    ".ma/skills",
+    ".ma/evidence",
+    ".ma/context",
+    ".ma/specs",
+    ".ma/plans",
     "mcp",
     "docs",
     "docs/qa",
@@ -254,7 +443,7 @@ export async function runInit() {
   ];
 
   for (const relative of targets) {
-    const target = path.join(repoRoot, relative);
+    const target = path.join(getRepoRoot(), relative);
     await fs.mkdir(target, { recursive: true });
     created.push(relative);
   }
@@ -262,59 +451,65 @@ export async function runInit() {
   const templateCopies = [
     [
       path.join(packageRoot, ".codex", "agents", "Architect.toml"),
-      path.join(repoRoot, ".codex", "agents", "Architect.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Architect.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Sage.toml"),
-      path.join(repoRoot, ".codex", "agents", "Sage.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Sage.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Auditor.toml"),
-      path.join(repoRoot, ".codex", "agents", "Auditor.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Auditor.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Flow.toml"),
-      path.join(repoRoot, ".codex", "agents", "Flow.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Flow.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Vibe.toml"),
-      path.join(repoRoot, ".codex", "agents", "Vibe.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Vibe.toml"),
     ],
     [
       path.join(packageRoot, ".codex", "agents", "Builder.toml"),
-      path.join(repoRoot, ".codex", "agents", "Builder.toml"),
+      path.join(getRepoRoot(), ".codex", "agents", "Builder.toml"),
     ],
-    [path.join(packageRoot, ".codex", "hooks.json"), path.join(repoRoot, ".codex", "hooks.json")],
+    [
+      path.join(packageRoot, ".codex", "hooks.json"),
+      path.join(getRepoRoot(), ".codex", "hooks.json"),
+    ],
     [
       path.join(packageRoot, ".codex", "prompts", "enforcement.md"),
-      path.join(repoRoot, ".codex", "prompts", "enforcement.md"),
+      path.join(getRepoRoot(), ".codex", "prompts", "enforcement.md"),
     ],
     [
       path.join(packageRoot, ".codex", "prompts", "release-rules.md"),
-      path.join(repoRoot, ".codex", "prompts", "release-rules.md"),
+      path.join(getRepoRoot(), ".codex", "prompts", "release-rules.md"),
     ],
     [
       path.join(packageRoot, ".codex", "prompts", "skill-contract.md"),
-      path.join(repoRoot, ".codex", "prompts", "skill-contract.md"),
+      path.join(getRepoRoot(), ".codex", "prompts", "skill-contract.md"),
     ],
     [
       path.join(packageRoot, ".codex", "prompts", "onboarding.md"),
-      path.join(repoRoot, ".codex", "prompts", "onboarding.md"),
+      path.join(getRepoRoot(), ".codex", "prompts", "onboarding.md"),
     ],
-    [path.join(packageRoot, "docs", "README.md"), path.join(repoRoot, "docs", "README.md")],
+    [path.join(packageRoot, "docs", "README.md"), path.join(getRepoRoot(), "docs", "README.md")],
     [
       path.join(packageRoot, "docs", "getting-started.md"),
-      path.join(repoRoot, "docs", "getting-started.md"),
+      path.join(getRepoRoot(), "docs", "getting-started.md"),
     ],
-    [path.join(packageRoot, "docs", "skills.md"), path.join(repoRoot, "docs", "skills.md")],
-    [path.join(packageRoot, "docs", "mcp-setup.md"), path.join(repoRoot, "docs", "mcp-setup.md")],
+    [path.join(packageRoot, "docs", "skills.md"), path.join(getRepoRoot(), "docs", "skills.md")],
+    [
+      path.join(packageRoot, "docs", "mcp-setup.md"),
+      path.join(getRepoRoot(), "docs", "mcp-setup.md"),
+    ],
     [
       path.join(packageRoot, "docs", "release-spec.md"),
-      path.join(repoRoot, "docs", "release-spec.md"),
+      path.join(getRepoRoot(), "docs", "release-spec.md"),
     ],
     [
-      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.0.md"),
-      path.join(repoRoot, "docs", "qa", "release-readiness-0.1.0.md"),
+      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.5.md"),
+      path.join(getRepoRoot(), "docs", "qa", "release-readiness-0.1.5.md"),
     ],
   ];
 
@@ -332,12 +527,15 @@ export async function runInit() {
   for (const file of sprintFiles) {
     templateCopies.push([
       path.join(packageRoot, "sprint", file),
-      path.join(repoRoot, "sprint", file),
+      path.join(getRepoRoot(), "sprint", file),
     ]);
   }
 
   for (const file of ["servers.json", "collections.json", "fallback.json"]) {
-    templateCopies.push([path.join(packageRoot, "mcp", file), path.join(repoRoot, "mcp", file)]);
+    templateCopies.push([
+      path.join(packageRoot, "mcp", file),
+      path.join(getRepoRoot(), "mcp", file),
+    ]);
   }
 
   for (const [src, dest] of templateCopies) {
@@ -348,8 +546,10 @@ export async function runInit() {
     }
   }
 
+  await seedRuntimeArtifacts();
+
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "decisions.json"),
+    getRuntimeWritePath("decisions.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -370,7 +570,7 @@ export async function runInit() {
   );
 
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "release.json"),
+    getRuntimeWritePath("release.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -391,20 +591,20 @@ export async function runInit() {
     )}\n`,
   );
 
-  for (const [fileName, content] of Object.entries(omxSkillTemplates)) {
-    await writeFileIfMissing(path.join(repoRoot, ".omx", "skills", fileName), content);
+  for (const [fileName, content] of Object.entries(workflowTemplates)) {
+    await writeFileIfMissing(getRuntimeWritePath("skills", fileName), content);
   }
 
   await writeFileIfMissing(
-    path.join(repoRoot, "mcp", "servers.json"),
+    path.join(getRepoRoot(), "mcp", "servers.json"),
     `${JSON.stringify({ schemaVersion: "0.1.0", servers: [] }, null, 2)}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, "mcp", "collections.json"),
+    path.join(getRepoRoot(), "mcp", "collections.json"),
     `${JSON.stringify({ schemaVersion: "0.1.0", collections: {} }, null, 2)}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, "mcp", "fallback.json"),
+    path.join(getRepoRoot(), "mcp", "fallback.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -418,7 +618,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "evidence", "sources.json"),
+    getRuntimeWritePath("evidence", "sources.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -429,7 +629,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "evidence", "audits.json"),
+    getRuntimeWritePath("evidence", "audits.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -440,7 +640,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "evidence", "outcomes.json"),
+    getRuntimeWritePath("evidence", "outcomes.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -451,7 +651,7 @@ export async function runInit() {
     )}\n`,
   );
   await writeFileIfMissing(
-    path.join(repoRoot, ".omx", "evidence", "cves.json"),
+    getRuntimeWritePath("evidence", "cves.json"),
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
@@ -463,8 +663,8 @@ export async function runInit() {
   );
 
   await writeFileIfMissing(
-    path.join(repoRoot, "docs", "onboarding.md"),
-    "# Onboarding\n\nMeta-Architect initializes the core scaffold, MCP config, and release-state files.\n",
+    path.join(getRepoRoot(), "docs", "onboarding.md"),
+    "# Onboarding\n\nMeta-Architect initializes the core scaffold, MCP config, and canonical .ma runtime files.\n",
   );
 
   return created;

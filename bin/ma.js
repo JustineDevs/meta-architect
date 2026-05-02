@@ -6,6 +6,7 @@ import {
   formatNextAllowedTriggers,
 } from "../src/build-gate.js";
 import { appendDecision } from "../src/decision-log.js";
+import { runCodex, shouldDelegateToCodex } from "../src/launcher.js";
 import {
   canMarkBuildDone,
   rejectsDirectProdPromotion,
@@ -13,12 +14,19 @@ import {
   validateReleaseOrigin,
 } from "../src/policy.js";
 import { loadReleaseState } from "../src/release-state.js";
+import { writeBuildPlanArtifact } from "../src/runtime-artifacts.js";
+import {
+  ensureSkillsInstalled,
+  ensureSupportBundleInstalled,
+  getSupportBundleRoot,
+} from "../src/skill-installer.js";
 import {
   listSkills,
   runArch,
   runFlow,
   runIdea,
   runInit,
+  runMaestro,
   runSage,
   runVet,
   runVibe,
@@ -26,12 +34,15 @@ import {
 import { syncStatusUpdates } from "../src/state-sync.js";
 
 function printUsage() {
-  console.error("Usage:");
+  console.error("Secondary helper commands:");
+  console.error("  ma");
+  console.error("  ma setup");
   console.error("  ma init");
   console.error('  ma idea "..."');
   console.error("  ma skills");
+  console.error("  ma sdk-path");
   console.error("  ma status");
-  console.error("  ma run $arch|$sage|$flow|$vet|$vibe|$build");
+  console.error("  ma run $maestro|$arch|$sage|$flow|$vet|$vibe|$build");
   console.error("  ma merge <source-branch> <target-branch>");
   console.error("  ma release <origin-branch> <target-branch>");
 }
@@ -65,13 +76,18 @@ async function runBuild(releaseState) {
 
   if (!evaluation.allowed) {
     const blockers = formatBuildBlockers(evaluation);
+    await writeBuildPlanArtifact({
+      allowed: false,
+      blockers,
+      nextTriggers: formatNextAllowedTriggers(evaluation),
+    });
     await appendDecision({
       decision: "Blocked build execution",
       status: "BLOCKED",
       evidence: [
         {
           kind: "release-state",
-          path: ".omx/release.json",
+          path: ".ma/release.json",
         },
       ],
       blockers,
@@ -86,6 +102,13 @@ async function runBuild(releaseState) {
     return;
   }
 
+  const suggestedBranches = ["feature/ui", "feature/api"];
+  await writeBuildPlanArtifact({
+    allowed: true,
+    blockers: [],
+    nextTriggers: ["$build"],
+    suggestedBranches,
+  });
   await appendDecision({
     kind: "skill",
     skill: "$build",
@@ -94,7 +117,7 @@ async function runBuild(releaseState) {
     evidence: [
       {
         kind: "release-state",
-        path: ".omx/release.json",
+        path: ".ma/release.json",
       },
       {
         branches: ["feature/ui", "feature/api"],
@@ -108,8 +131,8 @@ async function runBuild(releaseState) {
 
   console.log("Build gate is green.");
   console.log("Suggested branches:");
-  console.log("- feature/ui");
-  console.log("- feature/api");
+  console.log(`- ${suggestedBranches[0]}`);
+  console.log(`- ${suggestedBranches[1]}`);
   console.log("Optional worktree commands:");
   console.log("git worktree add ../ui feature/ui");
   console.log("git worktree add ../api feature/api");
@@ -178,7 +201,24 @@ async function runRelease(originBranch, targetBranch) {
 
 async function main() {
   const [, , command, ...rest] = process.argv;
+  const args = process.argv.slice(2);
   const arg = rest[0];
+
+  if (shouldDelegateToCodex(args)) {
+    await Promise.all([ensureSkillsInstalled(), ensureSupportBundleInstalled()]);
+    process.exitCode = runCodex(args);
+    return;
+  }
+
+  if (command === "setup") {
+    const created = await runInit();
+    console.log("meta-architect setup");
+    console.log("====================");
+    for (const item of created) {
+      console.log(`ready: ${item}`);
+    }
+    return;
+  }
 
   if (command === "init") {
     const created = await runInit();
@@ -204,6 +244,11 @@ async function main() {
     return;
   }
 
+  if (command === "sdk-path") {
+    process.stdout.write(`${getSupportBundleRoot()}\n`);
+    return;
+  }
+
   if (command === "status") {
     const releaseState = await loadReleaseState();
     printStatus(releaseState);
@@ -219,6 +264,12 @@ async function main() {
   if (command === "release") {
     const [originBranch, targetBranch] = rest;
     await runRelease(originBranch, targetBranch);
+    return;
+  }
+
+  if (command === "run" && arg === "$maestro") {
+    await runMaestro();
+    console.log("$maestro complete");
     return;
   }
 

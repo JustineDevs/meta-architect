@@ -7,6 +7,7 @@ Meta-Architect documentation is organized by operator task.
 - [Getting Started](./getting-started.md)
 - [Release Spec](./release-spec.md)
 - [Skills Reference](./skills.md)
+- [Installed Support Bundle](./installed-sdk.md)
 
 ## Packaging and installation
 
@@ -16,7 +17,7 @@ Meta-Architect documentation is organized by operator task.
 
 ## QA and readiness
 
-- [Release Readiness 0.1.0](./qa/release-readiness-0.1.0.md)
+- [Release Readiness 0.1.5](./qa/release-readiness-0.1.5.md)
 
 ## Repo structure references
 

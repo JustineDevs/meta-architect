@@ -7,7 +7,7 @@
 
 ## Outputs
 
-- `.omx/decisions.json` updated
+- `.ma/decisions.json` updated
 - evidence and audit files generated
 - build plan produced only after gates are green
 

@@ -67,7 +67,7 @@ Docs touched:
 
 ## Runtime state hygiene
 
-- [ ] I did not commit runtime `.omx` files such as logs, state, tmp, or cache.
+- [ ] I did not commit runtime `.ma` files such as logs, state, tmp, or cache.
 - [ ] I verified no accidental release artifacts or temp files are included.
 
 ## Checklist

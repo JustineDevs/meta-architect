@@ -1,46 +1,20 @@
 # Meta-Architect Demo Guide
 
-## Prerequisites
+Last verified: 2026-05-02  
+Registry state: `npm publish` returned success for `@jstn-sdk/ma@0.1.0` on `2026-05-02`; `npm view` may lag during propagation
+GitHub release: `v0.1.0` published on `2026-05-02T10:59:33Z`
 
-- Node.js >= 20
-- Git >= 2.30 with `git worktree` support
-- An MCP-capable LLM CLI installed and authenticated
-- Network access to GitMCP for live `$sage` verification
+## Canonical demo path
 
-## Setup (< 2 minutes)
-
-```bash
-# Clone and install
-git clone https://github.com/JustineDevs/meta-architect.git
-cd meta-architect
-npm install
-
-# Initialize Meta-Architect in this repo
-ma init
-```
-
-**Expected output:**
-```text
-meta-architect init
-===================
-ready: .codex/agents
-ready: .codex/prompts
-ready: .omx/skills
-ready: .omx/evidence
-ready: mcp
-ready: docs
-ready: docs/qa
-ready: sprint
-```
-
-## Verify Installation
+This is the real primary Meta-Architect flow:
 
 ```bash
-ma skills
-ma status
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+ma --madmax --high
 ```
 
-**Expected output for `ma skills`:**
+Then inside the Codex session:
+
 ```text
 $arch
 $sage
@@ -50,7 +24,67 @@ $vibe
 $build
 ```
 
-**Expected output for `ma status` on a clean baseline:**
+Meta-Architect is a skills-first Codex layer. The `ma` launcher is the canonical way to enter the Codex session with the Meta-Architect runtime posture attached.
+
+## Demo 1: Installed package launch
+
+Goal: prove the public package launches Codex through `ma`.
+
+```bash
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+ma --madmax --high
+```
+
+Expected:
+- `ma` delegates into the local `codex` binary
+- the Meta-Architect skill surface is installed into the active Codex home
+- the session is ready for `$arch -> $sage -> $flow -> $vet -> $vibe -> $build`
+
+## Demo 2: Repository-local scaffold and helper path
+
+Goal: prove the secondary repo-local workflow surfaces still work.
+
+```bash
+git clone https://github.com/JustineDevs/meta-architect.git
+cd meta-architect
+npm install
+npm link
+ma setup
+ma skills
+ma status
+```
+
+Expected `ma setup` output:
+
+```text
+meta-architect setup
+====================
+ready: .codex/agents
+ready: .codex/prompts
+ready: .ma/skills
+ready: .ma/evidence
+ready: .ma/context
+ready: .ma/specs
+ready: .ma/plans
+ready: mcp
+ready: docs
+ready: docs/qa
+ready: sprint
+```
+
+Expected `ma skills` output:
+
+```text
+$arch
+$sage
+$flow
+$vet
+$vibe
+$build
+```
+
+Expected clean `ma status` output:
+
 ```text
 Meta-Architect Status
 =====================
@@ -70,114 +104,131 @@ $vet
 $vibe
 ```
 
-## Demo 1: Full Skill Pipeline
+## Demo 3: Full helper workflow
+
+Goal: prove the scripted helper path can drive the complete gate sequence.
 
 ```bash
 ma idea "Build a real-time collaborative whiteboard for remote product teams"
-ma run $arch
-ma run $sage
-ma run $flow
-ma run $vet
-ma run $vibe
+ma run '$arch'
+ma run '$sage'
+ma run '$flow'
+ma run '$vet'
+ma run '$vibe'
 ma status
-ma run $build
+ma run '$build'
 ```
 
-**Expected:**
-- `ma idea` records the project brief and sets `idea_status = CLEAR`
-- `$arch` approves the architecture
-- `$sage` verifies evidence from configured GitMCP sources
-- `$flow`, `$vet`, and `$vibe` move their gates to green
-- `ma status` shows `$build` as the next allowed trigger
-- `$build` proposes `feature/*` branches and optional `git worktree add` commands
+Expected:
+- `ma idea` sets `idea_status = CLEAR`
+- `$arch` sets `architecture_status = APPROVED`
+- `$sage` sets `evidence_status = VERIFIED` with a real live probe, or `PARTIAL`/`MISSING` when evidence is incomplete
+- `$flow` sets `logic_status = GREEN`
+- `$vet` sets `security_status = GREEN`
+- `$vibe` sets `experience_status = GREEN`
+- `ma status` exposes `$build` as the next allowed trigger once all prerequisites are satisfied
+- `$build` prints suggested `feature/*` branches and optional `git worktree add` commands
 
-## Demo 2: Live GitMCP Evidence Probe
+## Demo 4: Build gate enforcement
 
-Configure at least one real GitMCP endpoint in `mcp/servers.json`, then run:
+Goal: prove `$build` fails closed before prerequisites are satisfied.
+
+On a clean scaffold:
 
 ```bash
-ma run $sage
+ma run '$build'
 ```
 
-**Expected:**
-- The command opens a live MCP SSE session to a configured GitMCP endpoint
-- It performs `tools/list`
-- It performs a repo-specific documentation tool call
-- `.omx/evidence/sources.json` records `liveProbe` metadata
-- `evidence_status` becomes `VERIFIED` if at least one real endpoint succeeds
+Expected:
+- build is blocked
+- the output reports the missing status prerequisites
+- a blocked decision entry is appended to `.ma/decisions.json`
 
-## Demo 3: Build Gate Enforcement
-
-On a clean repo, run:
+After all gates are green:
 
 ```bash
-ma run $build
+ma run '$build'
 ```
 
-**Expected:**
-- Build is blocked
-- A decision entry is appended to `.omx/decisions.json`
-- The output identifies which gate is blocking
-
-After all gates are green, rerun:
-
-```bash
-ma run $build
-```
-
-**Expected:**
+Expected:
 - `build_status = READY`
-- Suggested branches include:
-  - `feature/ui`
-  - `feature/api`
-- Optional worktree commands are printed
+- suggested branches include `feature/ui` and `feature/api`
 
-## Demo 4: Merge and Release Policy
+## Demo 5: Live GitMCP evidence probe
 
-Once build is ready:
+Goal: prove `$sage` performs a real MCP-backed probe.
+
+Configure at least one real endpoint in `mcp/servers.json`, then run:
+
+```bash
+ma run '$sage'
+```
+
+Expected:
+- live MCP SSE endpoint negotiation
+- `initialize`
+- `tools/list`
+- a repo-specific documentation tool call
+- `.ma/evidence/sources.json` records `liveProbe` metadata
+- `evidence_status = VERIFIED` when at least one real endpoint succeeds
+
+## Demo 6: Plugin mirror and skills packaging
+
+Goal: prove the published skill surface and plugin mirror stay aligned.
+
+```bash
+npm run skills:manifest
+npm run plugin:sync
+npm run skills:validate
+npm run plugin:verify
+npm run skills:pack
+npm run skills:install -- --path ./dist/installed-skills
+```
+
+Expected:
+- `skills/index.json` is current
+- `plugins/meta-architect/skills/` mirrors `skills/`
+- all 7 skills validate
+- `dist/meta-architect-skills.tgz` is created
+- `dist/installed-skills/` receives:
+  - `meta-architect`
+  - `arch`
+  - `sage`
+  - `flow`
+  - `vet`
+  - `vibe`
+  - `build`
+
+## Demo 7: Merge and release policy
+
+Goal: prove branch/release policy enforcement.
 
 ```bash
 ma merge feature/ui development
 ma release development prod
 ```
 
-**Expected:**
-- `ma merge` allows only `feature/* -> development`
-- `ma release` allows only `development` or approved `release/* -> prod`
-- Final statuses advance to:
-  - `build_status = DONE`
-  - `merge_status = MERGED_TO_DEVELOPMENT`
-  - `release_status = SHIPPED_TO_PROD`
+Expected:
+- `ma merge` only allows `feature/* -> development`
+- `ma release` only allows `development` or approved `release/* -> prod`
+- final statuses advance through `.ma/release.json`
 
-## Demo 5: Skills Packaging
+## Verified repo inventory
 
-```bash
-npm run skills:manifest
-npm run skills:validate
-npm run skills:pack
-npm run skills:install -- --path ./dist/installed-skills
-```
-
-**Expected:**
-- `skills/index.json` is generated
-- All 7 repo-local skill folders validate
-- `dist/meta-architect-skills.tgz` is created and non-empty
-- `dist/installed-skills/` receives all 7 installable skills
-
-## File Inventory
-
-| Component | Count | Location |
-|-----------|-------|----------|
-| Codex agent definitions | 6 | `.codex/agents/*.toml` |
-| OMX skill contract files | 7 | `.omx/skills/*.skill.md` |
-| Repo-local published skills | 7 | `skills/*/SKILL.md` |
-| CLI source files | 8 | `src/*.js`, `bin/ma.js` |
-| MCP config files | 3 | `mcp/*.json` |
-| Test files | 6 | `test/*.test.js` |
+| Surface | Current reality |
+|---|---|
+| Codex launcher | `bin/ma.js` delegates to `codex` |
+| Runtime namespace | `.ma/` |
+| Public skill directories | 7 |
+| Plugin-mirrored skill directories | 7 |
+| `.codex` role prompts | 4 prompt files + 6 agent TOMLs |
+| MCP config files | 3 |
+| Test files | 7 |
+| Published npm package target | `@jstn-sdk/ma@0.1.0` |
 
 ## Troubleshooting
 
-- **`$sage` is not verifying evidence:** Confirm at least one real GitMCP endpoint is reachable and listed in `mcp/servers.json`.
-- **`$build` stays locked:** Run `ma status` and inspect the blocking statuses.
-- **Merge or release is rejected:** Check branch names against the documented policy in `docs/release-spec.md`.
-- **Skill packaging fails:** Re-run `npm run skills:validate` and inspect the generated `skills/index.json`.
+- If `ma --madmax --high` does not launch Codex, confirm `@openai/codex` is installed globally.
+- If `$sage` does not verify evidence, check `mcp/servers.json` and endpoint reachability.
+- If `$build` stays locked, run `ma status` and inspect the blocking statuses.
+- If plugin verification fails, run `npm run plugin:sync` and re-check the mirror.

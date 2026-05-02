@@ -1,12 +1,104 @@
 # Skills
 
-Core skills:
+Meta-Architect’s canonical Codex runtime surface is:
+- `$maestro`
 - `$arch`
 - `$sage`
 - `$flow`
 - `$vet`
 - `$vibe`
 - `$build`
+
+## Real usage path
+
+Install the package once, start Codex context if needed, and use the skills directly in-session.
+
+```bash
+# Install
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+
+# Start Codex context if needed
+ma --madmax --high
+
+# Remove Meta-Architect only
+npm uninstall -g @jstn-sdk/ma
+
+# Remove Meta-Architect and Codex
+npm uninstall -g @jstn-sdk/ma @openai/codex
+```
+
+Then inside the Codex session:
+1. Start with `$maestro` when you want Meta-Architect to choose the best next step
+2. Or start with `$arch` when you already know the architecture lane is next
+3. Continue through `$sage -> $flow -> $vet -> $vibe -> $build`
+
+## Simple difference
+
+Meta-Architect has two surfaces:
+
+- terminal commands
+- in-session skills
+
+Terminal commands are run in the shell:
+
+```bash
+ma setup
+ma init
+ma idea "Build a product"
+ma status
+ma run '$arch'
+```
+
+In-session skills are used inside the Codex conversation:
+
+```text
+$maestro
+$arch
+$sage
+$flow
+$vet
+$vibe
+$build
+```
+
+Short rule:
+- `ma ...` means "run a helper command in the terminal"
+- `$...` means "run a Meta-Architect skill inside the Codex session"
+
+Important:
+- `ma setup` and `ma init` currently do the same thing
+- they only create local support files
+- they do not replace the in-session skill flow
+
+## Installed support bundle
+
+Meta-Architect also installs a standard packaged support bundle for relevant files.
+
+Default path:
+
+```text
+~/.codex/meta-architect-sdk/
+```
+
+Use:
+
+```bash
+ma sdk-path
+```
+
+when you want the exact active path.
+
+Relevant packaged assets there include:
+- `mcp/`
+- `sprint/`
+- `prompts/`
+- `scripts/`
+- `plugins/meta-architect/`
+- `templates/`
+
+This exists so Meta-Architect can use relevant packaged files without guessing paths.
+
+## Shared output contract
 
 Every skill result must include:
 - `decision`
@@ -15,11 +107,17 @@ Every skill result must include:
 - `blockers`
 - `next_allowed_triggers`
 
-Status ownership:
-- `ma idea` -> `idea_status`
+## Status ownership
+
+- `$maestro` -> next-step recommendation
+- project brief -> architecture input
 - `$arch` -> `architecture_status`
 - `$sage` -> `evidence_status`
 - `$flow` -> `logic_status`
 - `$vet` -> `security_status`
 - `$vibe` -> `experience_status`
 - `$build` -> `build_status`
+
+## Operator note
+
+The in-session skill surface is primary. The `ma` helper commands only exist to start Codex context and to provide repo-local state automation when scripted verification is needed.
