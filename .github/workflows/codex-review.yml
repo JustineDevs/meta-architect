@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Verify ChatGPT Codex Connector participation
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           CODEX_REVIEW_APP_SLUG: chatgpt-codex-connector
           CODEX_REVIEW_BOT_LOGINS: chatgpt-codex-connector[bot],app/chatgpt-codex-connector
