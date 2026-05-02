@@ -34,6 +34,7 @@ function parseArgs(argv) {
     fromRef: "",
     toRef: "",
     githubOutput: "",
+    force: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -56,6 +57,10 @@ function parseArgs(argv) {
     if (token === "--github-output") {
       args.githubOutput = argv[index + 1] ?? "";
       index += 1;
+      continue;
+    }
+    if (token === "--force") {
+      args.force = true;
     }
   }
 
@@ -112,11 +117,15 @@ function git(args) {
   return execFileSync("git", args, { encoding: "utf8" }).trim();
 }
 
-function getChangedFiles({ fromRef, toRef }) {
+function getChangedFiles({ fromRef, toRef, force }) {
   if (process.env.RELEASE_SYNC_CHANGED_FILES) {
     return process.env.RELEASE_SYNC_CHANGED_FILES.split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
+  }
+
+  if (force) {
+    return [];
   }
 
   if (fromRef && toRef && !/^0+$/.test(fromRef)) {
@@ -291,9 +300,9 @@ function main() {
   const pkg = readJson("package.json");
   const currentVersion = pkg.version;
   const changedFiles = getChangedFiles(args);
-  const relevantChanges = changedFiles.filter(isWatchedPath);
+  const relevantChanges = args.force ? ["<forced>"] : changedFiles.filter(isWatchedPath);
 
-  if (relevantChanges.length === 0) {
+  if (relevantChanges.length === 0 && !args.force) {
     if (args.githubOutput) {
       writeGithubOutput(args.githubOutput, { updated: "false", version: currentVersion });
     }
@@ -301,6 +310,7 @@ function main() {
       JSON.stringify(
         {
           updated: false,
+          forced: false,
           version: currentVersion,
           changedFiles,
         },
@@ -329,6 +339,7 @@ function main() {
     JSON.stringify(
       {
         updated: true,
+        forced: args.force,
         bump: bumpKind,
         previousVersion: currentVersion,
         version: nextVersion,

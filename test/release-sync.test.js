@@ -68,3 +68,23 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
   assert.match(releaseText, new RegExp(`v${nextVersion}`));
   await assert.rejects(() => fs.access(currentQaPath));
 });
+
+test("release-sync --force bumps even without detected file changes", async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-release-force-"));
+  await copyDir(repoRoot, tempRoot);
+  const pkgBefore = JSON.parse(await fs.readFile(path.join(tempRoot, "package.json"), "utf8"));
+  const nextVersion = bumpPatch(pkgBefore.version);
+
+  const result = spawnSync(
+    process.execPath,
+    [path.join(repoRoot, "scripts", "release-sync.js"), "--force", "--bump", "patch"],
+    {
+      cwd: tempRoot,
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const pkgAfter = JSON.parse(await fs.readFile(path.join(tempRoot, "package.json"), "utf8"));
+  assert.equal(pkgAfter.version, nextVersion);
+});

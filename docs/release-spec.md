@@ -79,6 +79,13 @@ Canonical state files:
    - Prerelease publish: `npm publish --access public --tag <lane>`
 10. Verify dist-tags with `npm view @jstn-sdk/ma version dist-tags time --json`
 
+### 6.1 Release automation
+
+- `npm run release:sync` updates the active release line when watched release-relevant files changed
+- `npm run release:advance` force-bumps the next patch line after a completed release
+- `.github/workflows/release-sync.yml` automates the sync path on `main`
+- `.github/workflows/release-advance.yml` advances the repo to the next patch line after a published release
+
 ### 7. Provenance rule
 
 - `npm publish --provenance` is valid only from a supported cloud CI/CD provider

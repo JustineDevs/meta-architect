@@ -447,6 +447,12 @@ Provenance note:
 - a local shell publish will fail with `Automatic provenance generation not supported for provider: null`
 - use the repository publish workflow when provenance is required
 
+Release automation:
+- `npm run release:sync` bumps and synchronizes the active release line only when watched release-relevant files changed
+- `npm run release:advance` force-bumps the next patch line and rewrites the same version-bearing files
+- `.github/workflows/release-sync.yml` runs the sync path on `main` pushes that touch watched release-relevant paths
+- `.github/workflows/release-advance.yml` runs after a published GitHub release and advances the repo to the next patch line automatically
+
 > [!CAUTION]
 > Do not claim npm, GitHub release, or any other publish channel until that channel has actually succeeded.
 > Release documentation must match reality, not intent.

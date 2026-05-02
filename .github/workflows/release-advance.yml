@@ -1,0 +1,38 @@
+name: Release Advance
+
+on:
+  release:
+    types:
+      - published
+      - prereleased
+
+jobs:
+  advance-release-line:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Advance release line
+        id: advance
+        run: node ./scripts/release-sync.js --force --bump patch --github-output "$GITHUB_OUTPUT"
+
+      - name: Commit and push next patch line
+        if: steps.advance.outputs.updated == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json CHANGELOG.md README.md RELEASE.md docs/README.md docs/getting-started.md docs/release-spec.md docs/qa plugins/meta-architect/README.md plugins/meta-architect/.app.json plugins/meta-architect/.mcp.json plugins/meta-architect/.codex-plugin/plugin.json src/skills.js src/mcp-live-client.js test/package-install-smoke.test.js test/policy.test.js
+          git commit -m "chore(release): advance release line to v${{ steps.advance.outputs.version }}"
+          git push origin HEAD:main
