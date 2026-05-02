@@ -25,6 +25,7 @@ async function copyDir(src, dest) {
       await copyDir(srcPath, destPath);
     } else {
       await fs.copyFile(srcPath, destPath);
+      await fs.chmod(destPath, 0o644);
     }
   }
 }
