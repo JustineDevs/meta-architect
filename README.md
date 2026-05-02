@@ -7,6 +7,14 @@
     <img src="https://img.shields.io/github/v/release/JustineDevs/meta-architect" alt="GitHub release">
     <img src="https://img.shields.io/badge/license-MIT-16A34A" alt="MIT License">
   </p>
+  <p>
+    <a href="https://www.buymeacoffee.com/justinedevs">
+      <img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee">
+    </a>
+    <a href="https://github.com/sponsors/JustineDevs">
+      <img src="https://img.shields.io/badge/GitHub%20Sponsors-JustineDevs-1f6feb?style=flat-square&logo=githubsponsors&logoColor=white" alt="GitHub Sponsors">
+    </a>
+  </p>
 </div>
 
 > [!IMPORTANT]
@@ -28,6 +36,11 @@ It adds:
 > [!NOTE]
 > Meta-Architect does not replace your coding runtime.
 > It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
+
+## Support
+
+- [GitHub Sponsors](https://github.com/sponsors/JustineDevs)
+- [Buy Me A Coffee](https://www.buymeacoffee.com/justinedevs)
 
 <table>
   <tr>
