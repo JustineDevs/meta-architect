@@ -1,6 +1,7 @@
 # Skills
 
 Meta-Architect’s canonical Codex runtime surface is:
+- `$maestro`
 - `$arch`
 - `$sage`
 - `$flow`
@@ -27,8 +28,9 @@ npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 Then inside the Codex session:
-1. Start with the structured `$arch` prompt
-2. Continue through `$sage -> $flow -> $vet -> $vibe -> $build`
+1. Start with `$maestro` when you want Meta-Architect to choose the best next step
+2. Or start with `$arch` when you already know the architecture lane is next
+3. Continue through `$sage -> $flow -> $vet -> $vibe -> $build`
 
 ## Simple difference
 
@@ -50,6 +52,7 @@ ma run '$arch'
 In-session skills are used inside the Codex conversation:
 
 ```text
+$maestro
 $arch
 $sage
 $flow
@@ -106,6 +109,7 @@ Every skill result must include:
 
 ## Status ownership
 
+- `$maestro` -> next-step recommendation
 - project brief -> architecture input
 - `$arch` -> `architecture_status`
 - `$sage` -> `evidence_status`

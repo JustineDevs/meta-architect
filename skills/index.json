@@ -17,6 +17,11 @@
       "description": "Use when the user wants logic validation: states, transitions, invariants, edge cases, dead ends, and blockers before implementation."
     },
     {
+      "name": "maestro",
+      "path": "skills/maestro",
+      "description": "Use when the user wants Meta-Architect to choose the best next workflow step, explain why, and recommend the right lane or assignment."
+    },
+    {
       "name": "meta-architect",
       "path": "skills/meta-architect",
       "description": "Use when the user wants the full Meta-Architect workflow inside Codex: architecture-first planning, evidence-backed OSS selection, logic review, security review, DX/UX review, and build readiness without leaving the Codex session."

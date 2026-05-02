@@ -10,9 +10,9 @@
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.1.4` is a production-grade skills line.
+> Meta-Architect `v0.1.5` is a production-grade skills line.
 > It is not a lightweight demo branch.
-> From `v0.1.4` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> From `v0.1.5` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
 
 ## Overview
 
@@ -44,7 +44,7 @@ It adds:
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.1.4</code></td>
+    <td><code>v0.1.5</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -164,6 +164,10 @@ Use the same operator shape defined in [example/usage-workflow.md](./example/usa
 Quick-start prompt:
 
 ```text
+$maestro
+
+Or start directly with:
+
 $arch I want to build: [PROJECT IDEA]
 
 Context:
@@ -193,7 +197,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.4
+8. Delivery plan for v0.1.5
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -204,6 +208,7 @@ Required output:
 After `$arch`, continue exactly like the usage workflow:
 
 ```text
+$maestro
 $sage
 $flow
 $vet
@@ -327,6 +332,7 @@ ma run '$arch'
 In-session skills are prompts you use inside the Codex conversation after launch:
 
 ```text
+$maestro
 $arch
 $sage
 $flow
@@ -347,6 +353,7 @@ What `ma setup` and `ma init` do:
 
 What to use when:
 - use Codex and run the skills in-session
+- use `$maestro` when you want Meta-Architect to choose the best next step for you
 - use `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` inside the Codex session
 - use `ma setup` or `ma init` only when you want local scaffolding or scripted helper automation from the terminal
 - use `ma sdk-path` when you need the exact installed support-bundle path for packaged prompts, MCP files, sprint files, scripts, plugin metadata, or templates
@@ -523,7 +530,7 @@ Release automation:
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
 | [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.1.4.md) | QA evidence for the `v0.1.4` line |
+| [Release Readiness](./docs/qa/release-readiness-0.1.5.md) | QA evidence for the `v0.1.5` line |
 
 ## Release Hygiene
 

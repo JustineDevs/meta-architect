@@ -26,6 +26,7 @@ import {
   runFlow,
   runIdea,
   runInit,
+  runMaestro,
   runSage,
   runVet,
   runVibe,
@@ -41,7 +42,7 @@ function printUsage() {
   console.error("  ma skills");
   console.error("  ma sdk-path");
   console.error("  ma status");
-  console.error("  ma run $arch|$sage|$flow|$vet|$vibe|$build");
+  console.error("  ma run $maestro|$arch|$sage|$flow|$vet|$vibe|$build");
   console.error("  ma merge <source-branch> <target-branch>");
   console.error("  ma release <origin-branch> <target-branch>");
 }
@@ -263,6 +264,12 @@ async function main() {
   if (command === "release") {
     const [originBranch, targetBranch] = rest;
     await runRelease(originBranch, targetBranch);
+    return;
+  }
+
+  if (command === "run" && arg === "$maestro") {
+    await runMaestro();
+    console.log("$maestro complete");
     return;
   }
 

@@ -74,7 +74,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.4
+8. Delivery plan for v0.1.5
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -163,6 +163,7 @@ ma run '$arch'
 In-session skills are prompts used after you are already inside Codex:
 
 ```text
+$maestro
 $arch
 $sage
 $flow
@@ -221,6 +222,22 @@ If this fails:
 - inspect `.ma/decisions.json` for malformed local data
 
 ## 7. Run the helper skill sequence
+
+### 5.0 Workflow manager
+
+```bash
+ma run '$maestro'
+```
+
+Expected effects:
+- reads the current gate state
+- recommends the best next step
+- writes `.ma/plans/maestro.md`
+- records an advisory decision entry
+
+Generated or updated:
+- `.ma/decisions.json`
+- `.ma/plans/maestro.md`
 
 ### 5.1 Architecture
 

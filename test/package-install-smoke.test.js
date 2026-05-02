@@ -30,7 +30,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.4.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.5.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });
@@ -76,6 +76,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   assert.equal(installResult.status, 0, installResult.stderr || installResult.stdout);
 
   await fs.access(path.join(codexHome, "skills", "meta-architect", "SKILL.md"));
+  await fs.access(path.join(codexHome, "skills", "maestro", "SKILL.md"));
   await fs.access(path.join(codexHome, "skills", "arch", "SKILL.md"));
   await fs.access(path.join(codexHome, "skills", "sage", "SKILL.md"));
   await fs.access(path.join(codexHome, "skills", "flow", "SKILL.md"));
@@ -167,6 +168,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
 
   const helperFlow = [
     ["idea", "Build a packaged install smoke test"],
+    ["run", "$maestro"],
     ["run", "$arch"],
     ["run", "$sage"],
     ["run", "$flow"],
@@ -190,6 +192,8 @@ test("packed package installs and supports the documented runtime/helper flow", 
   }
 
   const buildPlan = await fs.readFile(path.join(workRoot, ".ma", "plans", "build.md"), "utf8");
+  const maestroPlan = await fs.readFile(path.join(workRoot, ".ma", "plans", "maestro.md"), "utf8");
+  assert.match(maestroPlan, /\$arch/);
   assert.match(buildPlan, /READY/);
 
   await fs.rm(tarballPath, { force: true });

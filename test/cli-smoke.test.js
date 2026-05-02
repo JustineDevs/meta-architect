@@ -128,6 +128,33 @@ test("ma run $build fails closed against the default scaffold", async () => {
   assert.equal(decisions.decisions.at(-1).status, "BLOCKED");
 });
 
+test("ma run $maestro writes a next-step plan from the current scaffold", async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-maestro-"));
+  await copyDir(repoRoot, tempRoot);
+  await fs.mkdir(path.join(tempRoot, ".ma"), { recursive: true });
+  await fs.writeFile(
+    path.join(tempRoot, ".ma", "decisions.json"),
+    `${JSON.stringify(cleanDecisions, null, 2)}\n`,
+  );
+  await fs.writeFile(
+    path.join(tempRoot, ".ma", "release.json"),
+    `${JSON.stringify(cleanRelease, null, 2)}\n`,
+  );
+  const result = spawnSync(
+    process.execPath,
+    [path.join(repoRoot, "bin/ma.js"), "run", "$maestro"],
+    {
+      cwd: tempRoot,
+      env: { ...process.env, MA_ROOT: tempRoot },
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(result.status, 0);
+  const maestroPlan = await fs.readFile(path.join(tempRoot, ".ma", "plans", "maestro.md"), "utf8");
+  assert.match(maestroPlan, /ma idea/);
+});
+
 test("ma setup seeds canonical .ma runtime state", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-setup-"));
   await copyDir(repoRoot, tempRoot);

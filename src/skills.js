@@ -11,13 +11,16 @@ import {
   writeEvidenceSpec,
   writeExperienceSpec,
   writeLogicSpec,
+  writeMaestroPlan,
   writeProjectContext,
   writeSecuritySpec,
 } from "./runtime-artifacts.js";
 import { syncStatusUpdates } from "./state-sync.js";
 
-const skillNames = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
+const skillNames = ["$maestro", "$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
 const workflowTemplates = {
+  "maestro.skill.md":
+    "# `$maestro`\n\nChooses the best next workflow step and recommends the right lane or assignment.\n",
   "arch.skill.md":
     "# `$arch`\n\nProduces blueprint architecture, stack rationale, subsystem design, and tradeoffs.\n",
   "sage.skill.md":
@@ -33,6 +36,150 @@ const workflowTemplates = {
 
 export function listSkills() {
   return skillNames;
+}
+
+function chooseMaestroRecommendation(releaseState, idea) {
+  if (releaseState.idea_status !== "CLEAR") {
+    return {
+      nextStep: "Capture or refine the project brief before any design or validation lane starts.",
+      why: "The workflow still needs a concrete brief before architecture or build decisions can be trusted.",
+      primaryLane: "brief capture",
+      supportLane: "none",
+      assignments: ['Use `ma idea "..."` or provide the brief before running in-session skills.'],
+      avoid: ["Do not start architecture or implementation yet."],
+      nextTrigger: "`ma idea`",
+    };
+  }
+
+  if (releaseState.architecture_status !== "APPROVED") {
+    return {
+      nextStep: "Run the architecture lane first.",
+      why: "The brief exists, but the workflow still needs a concrete architecture before later gates can be trusted.",
+      primaryLane: "$arch",
+      supportLane: "$sage",
+      assignments: [
+        `Use $arch to shape the current brief${idea ? ` for: ${idea}` : ""}.`,
+        "After approval, move into $sage for source-backed stack validation.",
+      ],
+      avoid: ["Do not jump to build or release work yet."],
+      nextTrigger: "`$arch`",
+    };
+  }
+
+  if (releaseState.evidence_status !== "VERIFIED") {
+    return {
+      nextStep: "Validate the architecture against approved sources.",
+      why: "The architecture exists, but the evidence gate is not yet fully verified.",
+      primaryLane: "$sage",
+      supportLane: "$flow",
+      assignments: [
+        "Run $sage using the current architecture as the probe basis.",
+        "Prepare to hand off to $flow after evidence is verified.",
+      ],
+      avoid: ["Do not treat stack choices as settled yet."],
+      nextTrigger: "`$sage`",
+    };
+  }
+
+  if (releaseState.logic_status !== "GREEN") {
+    return {
+      nextStep: "Validate system behavior and state transitions.",
+      why: "Logic is the next unresolved gate before implementation readiness can be claimed.",
+      primaryLane: "$flow",
+      supportLane: "$vet",
+      assignments: [
+        "Run $flow to map actors, states, transitions, and blockers.",
+        "Queue $vet after the logic lane confirms behavior is sound.",
+      ],
+      avoid: ["Do not merge or release yet."],
+      nextTrigger: "`$flow`",
+    };
+  }
+
+  if (releaseState.security_status !== "GREEN") {
+    return {
+      nextStep: "Run the security and trust-boundary review.",
+      why: "Security is the next unresolved gate before the workflow can unlock implementation readiness.",
+      primaryLane: "$vet",
+      supportLane: "$vibe",
+      assignments: [
+        "Run $vet to capture trust boundaries, abuse cases, and mitigations.",
+        "Move to $vibe once security is green.",
+      ],
+      avoid: ["Do not unlock implementation readiness before security review."],
+      nextTrigger: "`$vet`",
+    };
+  }
+
+  if (!["GREEN", "WAIVED"].includes(releaseState.experience_status)) {
+    return {
+      nextStep: "Review workflow clarity and friction before build unlock.",
+      why: "The experience lane is the final quality gate before the build decision.",
+      primaryLane: "$vibe",
+      supportLane: "$build",
+      assignments: [
+        "Run $vibe to capture onboarding and operability friction.",
+        "Move to $build only after experience is green or intentionally waived.",
+      ],
+      avoid: ["Do not start release promotion yet."],
+      nextTrigger: "`$vibe`",
+    };
+  }
+
+  if (releaseState.build_status === "LOCKED") {
+    return {
+      nextStep: "Unlock bounded implementation planning.",
+      why: "All upstream quality gates are green, so the workflow can now evaluate build readiness.",
+      primaryLane: "$build",
+      supportLane: "implementation",
+      assignments: [
+        "Run $build to get the current build-readiness verdict.",
+        "Use the resulting narrow build slice as the next execution assignment.",
+      ],
+      avoid: ["Do not release directly from a task branch."],
+      nextTrigger: "`$build`",
+    };
+  }
+
+  if (releaseState.merge_status !== "MERGED_TO_DEVELOPMENT") {
+    return {
+      nextStep: "Finish the implementation slice and merge it into development.",
+      why: "The build gate is ready or done, but the branch promotion path has not completed yet.",
+      primaryLane: "implementation",
+      supportLane: "merge",
+      assignments: [
+        "Use the current build plan to finish the smallest viable implementation slice.",
+        "When ready, merge feature work into development with `ma merge`.",
+      ],
+      avoid: ["Do not promote directly to prod."],
+      nextTrigger: "`ma merge <feature/*> development`",
+    };
+  }
+
+  if (releaseState.release_status !== "SHIPPED_TO_PROD") {
+    return {
+      nextStep: "Promote the approved release line to prod.",
+      why: "Implementation and merge gates are complete, so the remaining step is the controlled release promotion.",
+      primaryLane: "release",
+      supportLane: "verification",
+      assignments: [
+        "Verify the origin branch is development or an approved release branch.",
+        "Run `ma release <origin> prod` when the line is ready.",
+      ],
+      avoid: ["Do not reopen earlier gates unless a new blocker appears."],
+      nextTrigger: "`ma release <development|release/*> prod`",
+    };
+  }
+
+  return {
+    nextStep: "The workflow is already at the terminal release state.",
+    why: "All gates, merge, and release states are complete.",
+    primaryLane: "done",
+    supportLane: "verification",
+    assignments: ["Confirm final release evidence and start a new brief for the next cycle."],
+    avoid: ["Do not rerun build or release steps without a new task."],
+    nextTrigger: "`ma idea` or `$arch` for the next task",
+  };
 }
 
 async function readIdeaText() {
@@ -262,6 +409,23 @@ export async function runVibe() {
   await syncStatusUpdates({ experience_status: "GREEN" });
 }
 
+export async function runMaestro() {
+  const releaseState = await readJson(getRuntimeReadPath("release.json"));
+  const idea = await readIdeaText();
+  const recommendation = chooseMaestroRecommendation(releaseState, idea);
+
+  await writeMaestroPlan({ releaseState, recommendation });
+  await appendDecision({
+    kind: "skill",
+    skill: "$maestro",
+    decision: "Recommended the next workflow step and assignment lane",
+    status: "ADVISORY",
+    evidence: [recommendation],
+    blockers: [],
+    next_allowed_triggers: [recommendation.nextTrigger.replaceAll("`", "")],
+  });
+}
+
 export async function runInit() {
   const created = [];
   const targets = [
@@ -344,8 +508,8 @@ export async function runInit() {
       path.join(getRepoRoot(), "docs", "release-spec.md"),
     ],
     [
-      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.4.md"),
-      path.join(getRepoRoot(), "docs", "qa", "release-readiness-0.1.4.md"),
+      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.5.md"),
+      path.join(getRepoRoot(), "docs", "qa", "release-readiness-0.1.5.md"),
     ],
   ];
 

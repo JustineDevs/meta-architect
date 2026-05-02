@@ -196,6 +196,50 @@ function renderImplementationPlan({ idea, blueprint }) {
   ].join("\n");
 }
 
+function renderMaestroPlan({ releaseState, recommendation }) {
+  return [
+    "# Maestro Plan",
+    "",
+    `Updated: ${new Date().toISOString()}`,
+    "",
+    "## Current Gate State",
+    "",
+    `- idea: ${releaseState.idea_status}`,
+    `- architecture: ${releaseState.architecture_status}`,
+    `- evidence: ${releaseState.evidence_status}`,
+    `- logic: ${releaseState.logic_status}`,
+    `- security: ${releaseState.security_status}`,
+    `- experience: ${releaseState.experience_status}`,
+    `- build: ${releaseState.build_status}`,
+    "",
+    "## Best Next Step",
+    "",
+    recommendation.nextStep,
+    "",
+    "## Why This Is Next",
+    "",
+    recommendation.why,
+    "",
+    "## Recommended Lane",
+    "",
+    `- primary: ${recommendation.primaryLane}`,
+    `- support: ${recommendation.supportLane}`,
+    "",
+    "## Suggested Assignment",
+    "",
+    ...recommendation.assignments.map((item) => `- ${item}`),
+    "",
+    "## Avoid For Now",
+    "",
+    ...recommendation.avoid.map((item) => `- ${item}`),
+    "",
+    "## Exact Next Trigger",
+    "",
+    recommendation.nextTrigger,
+    "",
+  ].join("\n");
+}
+
 function renderBuildPlan({ allowed, blockers, nextTriggers, suggestedBranches = [] }) {
   const lines = [
     "# Build Plan",
@@ -360,4 +404,8 @@ export async function writeBuildPlanArtifact({
     "plans/build.md",
     renderBuildPlan({ allowed, blockers, nextTriggers, suggestedBranches }),
   );
+}
+
+export async function writeMaestroPlan({ releaseState, recommendation }) {
+  await writeArtifact("plans/maestro.md", renderMaestroPlan({ releaseState, recommendation }));
 }

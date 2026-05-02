@@ -76,7 +76,7 @@ test("full documented skill flow reaches build-ready state", async () => {
   process.env.MA_ROOT = tempRoot;
   process.env.MA_DISABLE_LIVE_MCP = "1";
 
-  const { runInit, runIdea, runArch, runSage, runFlow, runVet, runVibe } = await import(
+  const { runInit, runIdea, runMaestro, runArch, runSage, runFlow, runVet, runVibe } = await import(
     `${pathToFileURL(path.join(repoRoot, "src", "skills.js")).href}?t=${Date.now()}`
   );
   const { loadReleaseState } = await import(
@@ -88,6 +88,7 @@ test("full documented skill flow reaches build-ready state", async () => {
 
   await runInit();
   await runIdea("Build a demo");
+  await runMaestro();
   await runArch();
   await runSage();
   await runFlow();
@@ -109,7 +110,9 @@ test("full documented skill flow reaches build-ready state", async () => {
     path.join(tempRoot, ".ma", "plans", "implementation.md"),
     "utf8",
   );
+  const maestroPlan = await fs.readFile(path.join(tempRoot, ".ma", "plans", "maestro.md"), "utf8");
   assert.match(projectContext, /Build a demo/);
+  assert.match(maestroPlan, /\$arch/);
   assert.match(architectureSpec, /Blueprint derived from idea: Build a demo/);
   assert.match(implementationPlan, /Validate evidence through approved GitMCP sources/);
 
