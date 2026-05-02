@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.4
+
+- Release line prepared automatically for v0.1.4.
+
 ## v0.1.3
 
 - Adds the standardized installed support bundle under `CODEX_HOME/meta-architect-sdk` so relevant packaged files are available without path guessing.
