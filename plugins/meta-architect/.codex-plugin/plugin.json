@@ -16,7 +16,7 @@
   "interface": {
     "displayName": "Meta-Architect",
     "shortDescription": "Architecture-first skill bundle for Codex workflows.",
-    "longDescription": "Plugin = Meta-Architect skill discovery plus plugin-scoped MCP and app metadata. Runtime = the ma launcher plus .ma state, release gates, and scripted helper commands when a repository needs local workflow state.",
+    "longDescription": "Meta-Architect packages reusable Codex skills plus plugin-scoped MCP and app metadata. The in-session skill workflow is primary. The ma helper command and .ma state only support setup, release gates, and optional local helper automation.",
     "developerName": "JustineDevs",
     "category": "Developer Tools"
   }

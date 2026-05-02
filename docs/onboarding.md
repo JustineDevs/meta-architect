@@ -1,6 +1,6 @@
 # Onboarding
 
-This is the shortest operator entrypoint for someone who just opened Meta-Architect and needs the real first-run path.
+This is the shortest entrypoint for the real first-run Meta-Architect path.
 
 ## Read first
 
@@ -10,13 +10,13 @@ This is the shortest operator entrypoint for someone who just opened Meta-Archit
 4. `docs/release-spec.md`
 5. `docs/skills-publishing.md`
 
-## Canonical install and launch
+## Canonical install and start
 
 ```bash
 # Install
 npm i -g @openai/codex@latest @jstn-sdk/ma@latest
 
-# Launch
+# Start Codex context if needed
 ma --madmax --high
 
 # Remove Meta-Architect only

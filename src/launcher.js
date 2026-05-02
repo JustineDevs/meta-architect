@@ -45,10 +45,10 @@ export function runCodex(args) {
 
   if (result.error) {
     if (result.error.code === "ENOENT") {
-      throw new Error("Codex CLI not found. Install it with: npm install -g @openai/codex");
+      throw new Error("Codex not found. Install it with: npm install -g @openai/codex");
     }
 
-    throw new Error(`Failed to start Codex CLI: ${result.error.message}`);
+    throw new Error(`Failed to start Codex: ${result.error.message}`);
   }
 
   return typeof result.status === "number" ? result.status : 1;

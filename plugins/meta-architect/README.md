@@ -60,7 +60,7 @@ npm uninstall -g @jstn-sdk/ma
 npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
-Use the plugin bundle when you need installable skill metadata or local marketplace discovery. Use the package and launcher when you want the full Meta-Architect runtime posture.
+Use the plugin bundle when you need installable skill metadata or local marketplace discovery. Use the package and Codex skill flow when you want the full Meta-Architect product experience.
 
 Primary related surfaces:
 - [docs/skills-publishing.md](../../docs/skills-publishing.md)

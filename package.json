@@ -1,7 +1,7 @@
 {
   "name": "@jstn-sdk/ma",
   "version": "0.1.0",
-  "description": "Codex-native runtime layer for architecture, evidence, review, and gated build workflows.",
+  "description": "Codex-native skills system for architecture, evidence, review, and gated build guidance.",
   "license": "MIT",
   "author": "JustineDevs",
   "homepage": "https://github.com/JustineDevs/meta-architect#readme",
@@ -21,8 +21,8 @@
     "ai",
     "agent",
     "orchestration",
-    "cli",
-    "developer-tools"
+    "plugin",
+    "workflow-system"
   ],
   "type": "module",
   "main": "index.js",

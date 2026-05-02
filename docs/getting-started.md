@@ -1,11 +1,11 @@
 # Getting Started
 
-This guide takes a new user from clone to a green-gated Meta-Architect workflow on a real project.
+This guide takes Meta-Architect from install to a green-gated skill workflow on a real project.
 
 ## Goal
 
 By the end of this guide you should be able to:
-- install Meta-Architect locally
+- install Meta-Architect
 - configure MCP/GitMCP sources
 - run the full architecture-to-build sequence
 - understand how each gate moves
@@ -38,7 +38,7 @@ npm uninstall -g @jstn-sdk/ma
 npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
-That is the default operator posture. `ma` is the Meta-Architect launcher for a Codex session, and the rest of this guide should match the in-session workflow shape in [example/usage-workflow.md](../example/usage-workflow.md).
+That is the default product path. The product experience is the in-session skill workflow in [example/usage-workflow.md](../example/usage-workflow.md). The `ma` command is only a helper for starting or supporting that flow.
 
 ## 2. Real usage workflow
 
@@ -102,8 +102,7 @@ npm link
 ```
 
 Why `npm link` matters:
-- the docs use the `ma` command directly
-- `npm link` makes the local CLI available without requiring a global publish step
+- it makes the local helper command available without requiring a global publish step
 
 ## 4. Secondary repository setup flow
 
@@ -122,7 +121,7 @@ Expected effects:
 - `.codex/prompts/` exists
 - local `.ma/skills/`, `.ma/evidence/`, `.ma/context/`, `.ma/specs/`, `.ma/plans/`, and `.ma/runbook.md` are seeded
 - `mcp/`, `docs/`, and `sprint/` surfaces exist
-- `ma` launches the local Codex CLI when run with no arguments
+- `ma` opens Codex with the Meta-Architect helper posture when run with no arguments
 
 Expected output:
 
@@ -142,7 +141,7 @@ ready: docs/qa
 ready: sprint
 ```
 
-This setup path is secondary to the canonical `ma --madmax --high` runtime launch. Use it when you need local repo scaffolding.
+This setup path is secondary to the canonical in-session skill workflow. Use it when you need local repo scaffolding.
 
 ## 4.1 Understand the two surfaces
 

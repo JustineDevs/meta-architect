@@ -10,13 +10,13 @@ Meta-Architect’s canonical Codex runtime surface is:
 
 ## Real usage path
 
-Install the package once, launch through `ma`, and use the skills directly in-session.
+Install the package once, start Codex context if needed, and use the skills directly in-session.
 
 ```bash
 # Install
 npm i -g @openai/codex@latest @jstn-sdk/ma@latest
 
-# Launch
+# Start Codex context if needed
 ma --madmax --high
 
 # Remove Meta-Architect only
@@ -88,4 +88,4 @@ Every skill result must include:
 
 ## Operator note
 
-The runtime trigger surface is primary. The `ma` helper commands exist to launch Codex with Meta-Architect attached and to provide repo-local state automation when scripted verification is needed.
+The in-session skill surface is primary. The `ma` helper commands only exist to start Codex context and to provide repo-local state automation when scripted verification is needed.

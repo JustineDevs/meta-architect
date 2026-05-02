@@ -4,7 +4,7 @@
 
 Meta-Architect `v0.1.0` is production only when:
 1. the package/install surface works
-2. the runtime workflow from `$arch` through `$build` works
+2. the in-session skill workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
 ## What `v0.1.0` must have
@@ -12,7 +12,7 @@ Meta-Architect `v0.1.0` is production only when:
 ### 1. Canonical package/runtime path
 
 - install: `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
-- launch: `ma --madmax --high`
+- optional helper launch: `ma --madmax --high`
 - uninstall Meta-Architect only: `npm uninstall -g @jstn-sdk/ma`
 - uninstall Meta-Architect and Codex: `npm uninstall -g @jstn-sdk/ma @openai/codex`
 - runtime trigger surface:

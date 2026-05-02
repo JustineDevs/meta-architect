@@ -15,6 +15,23 @@ Target release state:
 - git tag: `v0.1.0`
 - GitHub release: published at `2026-05-02T10:59:33Z`
 
+## Production checklist
+
+- skills-first product identity: PASS
+- package/plugin identity aligned to `@jstn-sdk/ma`: PASS
+- version/tag alignment `0.1.0` / `v0.1.0`: PASS
+- install/uninstall docs aligned: PASS
+- onboarding is concise and sequential: PASS
+- helper command documented as secondary: PASS
+- skills/prompts/manifests aligned: PASS
+- packaging includes required assets: PASS
+- tests pass: PASS
+- package dry-run passes: PASS
+- installed-package behavior passes: PASS
+- workflow/release/provenance docs aligned: PASS
+- no stale package names remain in tracked repo surfaces: PASS
+- no conflicting CLI-first product story remains in tracked product docs: PASS
+
 ## Automated checks run
 
 ```bash

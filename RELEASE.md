@@ -2,9 +2,9 @@
 
 ## Summary
 
-This release ships Meta-Architect as a Codex-native runtime layer with:
+This release ships Meta-Architect as a Codex-native skills system with:
 - canonical install `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
-- canonical launch `ma --madmax --high`
+- optional helper launch `ma --madmax --high`
 - a usage-workflow-driven runtime path starting with the structured `$arch` prompt
 - helper commands for setup, scripted validation, and branch/release gating
 - package, skill bundle, and release surfaces aligned to `v0.1.0`

@@ -243,7 +243,7 @@ export async function runVibe() {
   const outcomes = await readJson(getRuntimeWritePath("evidence", "outcomes.json"));
   const note = {
     area: "developer-experience",
-    summary: "Core CLI and gated workflow remain the primary operator surface",
+    summary: "The in-session skill flow remains the primary Meta-Architect surface",
   };
   outcomes.items.push(note);
   await writeJson(getRuntimeWritePath("evidence", "outcomes.json"), outcomes);

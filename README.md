@@ -1,6 +1,6 @@
 <div align="center">
   <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect logo" width="1024" height="240">
-  <p>Production-grade skills package and CLI for programmatic architecture, evidence-backed OSS selection, gate-driven review, and release-minded build unlocking.</p>
+  <p>Production-grade Codex skills and plugin package for architecture, evidence-backed OSS selection, gate-driven review, and release-minded build guidance.</p>
   <p>
     <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fma" alt="npm version">
     <img src="https://img.shields.io/badge/node-%3E%3D20-339933" alt="Node.js 20+">
@@ -35,8 +35,8 @@ It adds:
     <td><code>@jstn-sdk/ma</code></td>
   </tr>
   <tr>
-    <td><strong>CLI commands</strong></td>
-    <td><code>ma</code>, <code>meta-architect</code></td>
+    <td><strong>Helper command</strong></td>
+    <td><code>ma</code> (secondary support surface)</td>
   </tr>
   <tr>
     <td><strong>Runtime</strong></td>
@@ -58,7 +58,7 @@ It adds:
 - npm `>=10`
 - Git
 - an MCP-capable coding runtime
-- OpenAI Codex CLI for the recommended package-first path
+- Codex for the recommended package-first path
 - macOS, Linux, or WSL2 recommended
 
 > [!TIP]
@@ -68,13 +68,13 @@ It adds:
 
 Meta-Architect is intended to be consumed as an installed package, not primarily as a git clone.
 
-Default operator path:
+Primary product path:
 
 ```bash
 # Install
 npm i -g @openai/codex@latest @jstn-sdk/ma@latest
 
-# Launch
+# Start Codex context if needed
 ma --madmax --high
 
 # Remove Meta-Architect only
@@ -86,11 +86,10 @@ npm uninstall -g @jstn-sdk/ma @openai/codex
 
 What this assumes:
 
-- Codex CLI is installed globally
-- Meta-Architect is installed globally as a package
+- Codex is installed globally
+- Meta-Architect is installed globally as the skills/plugin package
 - Meta-Architect installs its published skill surface into the active Codex home
-- `ma` launches Codex with the Meta-Architect workflow posture already attached
-- you will operate through the skill-driven workflow inside the Codex session
+- the product experience happens through the skill workflow inside Codex
 
 > [!IMPORTANT]
 > The recommended default flow is package-first.
@@ -133,10 +132,9 @@ npm uninstall -g @jstn-sdk/ma @openai/codex
 
 This gives you:
 
-- `ma`
-- `meta-architect`
 - the installed Meta-Architect skill surface
-- the canonical Meta-Architect runtime entrypoints inside a Codex session
+- the canonical Meta-Architect skill entrypoints inside a Codex session
+- the optional `ma` helper command when a guided start is useful
 
 ### Contributor setup: source checkout
 
@@ -153,7 +151,7 @@ npm link
 
 ## Quick Start
 
-### 1. Launch the runtime
+### 1. Start Codex context if needed
 
 ```bash
 ma --madmax --high
@@ -215,7 +213,7 @@ $build
 
 See [example/usage-workflow.md](./example/usage-workflow.md) for the full prompt templates for each step.
 
-### 4. Secondary maintenance path
+### 4. Secondary helper path
 
 If you are working from a repository directly and need scaffolded local support files, use:
 
@@ -311,10 +309,10 @@ git worktree add ../api feature/api
 
 ### 7. Simple command guide
 
-There are two different ways to use Meta-Architect.
+Meta-Architect has two surfaces.
 
-1. Terminal commands
-2. In-session skills
+- terminal helper commands
+- in-session skills
 
 Terminal commands are normal shell commands you run in the terminal:
 
@@ -338,8 +336,8 @@ $build
 ```
 
 Plain-language difference:
-- `ma ...` = terminal helper commands
-- `$...` = in-session skill prompts
+- `ma ...` = helper commands in the terminal
+- `$...` = the product experience inside Codex
 
 What `ma setup` and `ma init` do:
 - both currently do the same thing
@@ -348,7 +346,7 @@ What `ma setup` and `ma init` do:
 - they do not run the skill workflow by themselves
 
 What to use when:
-- use `ma --madmax --high` or `ma` to enter Codex
+- use Codex and run the skills in-session
 - use `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` inside the Codex session
 - use `ma setup` or `ma init` only when you want local scaffolding or scripted helper automation from the terminal
 
@@ -405,7 +403,7 @@ Meta-Architect has two related but different distribution surfaces.
 
 | Surface | Purpose | Produced by |
 | --- | --- | --- |
-| npm package | public package containing CLI, docs, scripts, and canonical skills | `npm publish` or `npm pack` |
+| npm package | public package containing the installable Meta-Architect skills/plugin system, docs, scripts, and canonical skills | `npm publish` or `npm pack` |
 | skills bundle | narrower tarball containing `skills/` only | `npm run skills:pack` |
 
 Required packaging commands:
@@ -424,7 +422,7 @@ Pre-publish rules:
 - `npm run skills:validate` must pass
 - `dist/meta-architect-skills.tgz` must exist
 - `npm pack --dry-run` must show only intended public files
-- docs must match real CLI and release behavior
+- docs must match the real skills/plugin and release behavior
 
 Release lane discipline:
 - stable versions publish to npm `latest`

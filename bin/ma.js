@@ -28,7 +28,7 @@ import {
 import { syncStatusUpdates } from "../src/state-sync.js";
 
 function printUsage() {
-  console.error("Usage:");
+  console.error("Secondary helper commands:");
   console.error("  ma");
   console.error("  ma setup");
   console.error("  ma init");

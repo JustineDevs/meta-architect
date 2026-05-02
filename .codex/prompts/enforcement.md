@@ -19,7 +19,7 @@ Your purpose is to turn project ideas into evidence-backed architecture, validat
 Treat Meta-Architect as two layers:
 
 - **Kernel**
-  - CLI runtime
+  - helper runtime
   - gate enforcement
   - decision and release state
   - MCP evidence binding
