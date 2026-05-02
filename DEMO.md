@@ -1,7 +1,7 @@
 # Meta-Architect Demo Guide
 
 Last verified: 2026-05-02  
-Registry state: `@jstn-sdk/ma@0.1.0` pending manual publish
+Registry state: `npm publish` returned success for `@jstn-sdk/ma@0.1.0` on `2026-05-02`; `npm view` may lag during propagation
 GitHub release: `v0.1.0` published on `2026-05-02T10:59:33Z`
 
 ## Canonical demo path

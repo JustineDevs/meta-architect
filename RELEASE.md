@@ -11,8 +11,8 @@ This release ships Meta-Architect as a Codex-native runtime layer with:
 
 Target package state:
 - npm package: `@jstn-sdk/ma@0.1.0`
-- npm registry state: pending manual publish
-- publishability note: this renamed package line is intended to publish as `0.1.0`
+- npm registry state: `npm publish` returned success on `2026-05-02`
+- publishability note: verify `npm view @jstn-sdk/ma version dist-tags time --json` again after registry propagation completes
 - release tag: `v0.1.0`
 - GitHub release: published at `2026-05-02T10:59:33Z`
 
@@ -32,4 +32,4 @@ This release is only considered real if:
 - release docs, changelog, package metadata, and workflows all remain aligned to `v0.1.0`
 
 Current blocker:
-- npm publication has not been run yet for `@jstn-sdk/ma@0.1.0`
+- npm registry lookup is still lagging after the successful publish response, so public metadata should be rechecked after propagation

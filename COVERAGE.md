@@ -2,7 +2,7 @@
 
 Target release: `v0.1.0`  
 Last verified: 2026-05-02  
-Registry state: `@jstn-sdk/ma@0.1.0` pending manual publish
+Registry state: `npm publish` returned success for `@jstn-sdk/ma@0.1.0` on `2026-05-02`; `npm view` may lag during propagation
 
 ## Coverage summary
 
@@ -101,7 +101,7 @@ These are limits, not stale gaps:
 
 1. Live `$sage` verification still depends on reachable GitMCP endpoints.
 2. Worktree commands are suggested, not fully lifecycle-managed.
-3. The GitHub `v0.1.0` release is real, and the renamed npm package target is `@jstn-sdk/ma@0.1.0`; publication is still pending manual publish.
+3. The GitHub `v0.1.0` release is real, and `npm publish` returned success for `@jstn-sdk/ma@0.1.0`; registry metadata may still lag during propagation.
 
 ## Current truth statement
 

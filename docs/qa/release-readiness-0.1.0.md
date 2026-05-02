@@ -10,8 +10,8 @@
 
 Target release state:
 - npm package: `@jstn-sdk/ma@0.1.0`
-- npm registry state: pending manual publish
-- publishability note: this renamed package line is intended to publish as `0.1.0`
+- npm registry state: `npm publish` returned success on `2026-05-02`
+- publishability note: verify `npm view @jstn-sdk/ma version dist-tags time --json` again after registry propagation completes
 - git tag: `v0.1.0`
 - GitHub release: published at `2026-05-02T10:59:33Z`
 
