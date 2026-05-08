@@ -1,25 +1,25 @@
-# Release Readiness 0.1.9
+# Release Readiness 0.1.10
 
 ## Production bar
 
-`v0.1.9` is treated as production only when:
+`v0.1.10` is treated as production only when:
 - the package installs cleanly from the canonical public install command
 - the Codex-hosted runtime path works end to end
 - the helper flow remains valid for scripted verification
-- release docs, package metadata, and workflows all agree on `0.1.9`
+- release docs, package metadata, and workflows all agree on `0.1.10`
 
 Target release state:
-- npm package: `@jstn-sdk/ma@0.1.9`
+- npm package: `@jstn-sdk/ma@0.1.10`
 - npm registry state: pending publish
-- publishability note: `0.1.8` is already published, so `0.1.9` is the next publishable package line
-- git tag: `v0.1.9`
-- GitHub release: pending publish for `v0.1.9`
+- publishability note: `0.1.9` is already published, so `0.1.10` is the next publishable package line
+- git tag: `v0.1.10`
+- GitHub release: pending publish for `v0.1.10`
 
 ## Production checklist
 
 - skills-first product identity: PASS
 - package/plugin identity aligned to `@jstn-sdk/ma`: PASS
-- version/tag alignment `0.1.9` / `v0.1.9`: PASS
+- version/tag alignment `0.1.10` / `v0.1.10`: PASS
 - install/uninstall docs aligned: PASS
 - onboarding is concise and sequential: PASS
 - helper command documented as secondary: PASS
