@@ -30,7 +30,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.10.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.11.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });
@@ -205,7 +205,7 @@ test("packed package supports the golden-path onboarding flow", async () => {
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.10.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.11.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });
