@@ -63,9 +63,17 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
   assert.equal(pkgAfter.version, nextVersion);
   await fs.access(nextQaPath);
   await fs.access(path.join(tempRoot, "plugins", "meta-architect", ".app.json"));
+  const pluginManifest = await fs.readFile(
+    path.join(tempRoot, "plugins", "meta-architect", ".codex-plugin", "plugin.json"),
+    "utf8",
+  );
   const releaseText = await fs.readFile(path.join(tempRoot, "RELEASE.md"), "utf8");
   assert.match(releaseText, new RegExp(`@jstn-sdk/ma@${nextVersion}`));
   assert.match(releaseText, new RegExp(`v${nextVersion}`));
+  assert.match(
+    pluginManifest,
+    /"keywords": \["codex", "skills", "architecture", "workflow", "review"\]/,
+  );
   await assert.rejects(() => fs.access(currentQaPath));
 });
 

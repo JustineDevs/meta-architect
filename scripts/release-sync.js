@@ -75,6 +75,15 @@ function writeJson(file, value) {
   fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+function writePluginManifestJson(file, value) {
+  let content = `${JSON.stringify(value, null, 2)}\n`;
+  if (Array.isArray(value.keywords)) {
+    const inlineKeywords = `[${value.keywords.map((entry) => JSON.stringify(entry)).join(", ")}]`;
+    content = content.replace(/"keywords": \[[\s\S]*?\],/, `"keywords": ${inlineKeywords},`);
+  }
+  fs.writeFileSync(file, content);
+}
+
 function readText(file) {
   return fs.readFileSync(file, "utf8");
 }
@@ -191,12 +200,16 @@ function syncPluginVersions(nextVersion) {
   for (const file of [
     path.join("plugins", "meta-architect", ".app.json"),
     path.join("plugins", "meta-architect", ".mcp.json"),
-    path.join("plugins", "meta-architect", ".codex-plugin", "plugin.json"),
   ]) {
     const value = readJson(file);
     value.version = nextVersion;
     writeJson(file, value);
   }
+
+  const pluginManifestFile = path.join("plugins", "meta-architect", ".codex-plugin", "plugin.json");
+  const pluginManifest = readJson(pluginManifestFile);
+  pluginManifest.version = nextVersion;
+  writePluginManifestJson(pluginManifestFile, pluginManifest);
 }
 
 function syncCurrentReleaseFiles(oldVersion, nextVersion) {

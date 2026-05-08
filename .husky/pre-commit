@@ -1,6 +1,4 @@
 #!/usr/bin/env sh
 set -e
 
-npx @biomejs/biome format --write --staged
-git update-index --again
-npx @biomejs/biome lint --staged
+node ./scripts/biome-staged.js
