@@ -185,6 +185,7 @@ Easy rule:
 - it checks whether `codex` is callable
 - it repairs installed skills and support-bundle assets when possible
 - it runs local scaffold setup
+- it can seed starter MCP files with `--init-mcp` when the local MCP config is empty or invalid
 - it reports `READY`, `READY_WITH_WARNINGS`, or `BLOCKED`
 
 `ma doctor` is the check-only path:

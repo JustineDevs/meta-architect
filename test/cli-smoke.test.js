@@ -225,6 +225,56 @@ test("ma bootstrap repairs packaged assets and local scaffold for a new checkout
   await fs.access(path.join(tempRoot, ".ma", "context", "project.md"));
 });
 
+test("ma bootstrap --init-mcp seeds starter MCP files when local MCP config is empty", async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-bootstrap-mcp-"));
+  const codexHome = path.join(tempRoot, "codex-home");
+  await copyDir(repoRoot, tempRoot);
+  const codexBin = await writeFakeCodexCli(tempRoot);
+
+  await fs.writeFile(
+    path.join(tempRoot, "mcp", "servers.json"),
+    `${JSON.stringify({ schemaVersion: "0.1.0", servers: [] }, null, 2)}\n`,
+  );
+  await fs.writeFile(
+    path.join(tempRoot, "mcp", "collections.json"),
+    `${JSON.stringify({ schemaVersion: "0.1.0", collections: {} }, null, 2)}\n`,
+  );
+  await fs.writeFile(
+    path.join(tempRoot, "mcp", "fallback.json"),
+    `${JSON.stringify(
+      {
+        schemaVersion: "0.1.0",
+        fallback: {
+          endpoint: "https://gitmcp.io/docs",
+          policy: "Use only when no approved exact endpoint exists.",
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
+  const result = spawnSync(
+    process.execPath,
+    [path.join(repoRoot, "bin/ma.js"), "bootstrap", "--init-mcp"],
+    {
+      cwd: tempRoot,
+      env: {
+        ...process.env,
+        CODEX_HOME: codexHome,
+        MA_CODEX_BIN: codexBin,
+        MA_ROOT: tempRoot,
+      },
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stdout, /starter MCP sources were seeded/i);
+  const servers = JSON.parse(await fs.readFile(path.join(tempRoot, "mcp", "servers.json"), "utf8"));
+  assert.equal(servers.servers.length > 0, true);
+});
+
 test("ma doctor reports a ready environment after bootstrap", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-doctor-"));
   const codexHome = path.join(tempRoot, "codex-home");

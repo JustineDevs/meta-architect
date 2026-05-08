@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { loadMcpServers } from "./mcp-config.js";
-import { getRepoRoot, getRuntimeWritePath } from "./paths.js";
+import { getRepoRoot, getRuntimeWritePath, packageRoot } from "./paths.js";
 import {
   areSkillsInstalled,
   ensureSkillsInstalled,
@@ -155,14 +155,33 @@ async function inspectLocalScaffold() {
   return true;
 }
 
-async function inspectMcpState() {
+async function seedStarterMcpConfig() {
+  const files = ["servers.json", "collections.json", "fallback.json"];
+  for (const file of files) {
+    await fs.copyFile(path.join(packageRoot, "mcp", file), path.join(getRepoRoot(), "mcp", file));
+  }
+}
+
+async function inspectMcpState({ fix, initMcp }) {
   try {
     const servers = await loadMcpServers();
     if (servers.servers.length === 0) {
+      if (fix && initMcp) {
+        await seedStarterMcpConfig();
+        const seededServers = await loadMcpServers();
+        return makeStatus(
+          "FIXED",
+          "starter MCP sources were seeded into mcp/servers.json",
+          `${seededServers.servers.length} configured source(s)`,
+        );
+      }
+
       return makeStatus(
         "WARN",
         "mcp/servers.json exists but contains no approved repo-backed sources",
-        "Add exact upstream GitMCP repo endpoints before claiming VERIFIED evidence.",
+        initMcp
+          ? "Run `ma bootstrap --init-mcp` to seed starter sources, or add exact upstream GitMCP repo endpoints manually."
+          : "Add exact upstream GitMCP repo endpoints before claiming VERIFIED evidence.",
       );
     }
 
@@ -172,11 +191,21 @@ async function inspectMcpState() {
       `${servers.servers.length} configured source(s)`,
     );
   } catch (error) {
+    if (fix && initMcp) {
+      await seedStarterMcpConfig();
+      const seededServers = await loadMcpServers();
+      return makeStatus(
+        "FIXED",
+        "starter MCP sources replaced an invalid MCP configuration",
+        `${seededServers.servers.length} configured source(s)`,
+      );
+    }
+
     return makeStatus("WARN", "mcp/servers.json is not ready for evidence binding", error.message);
   }
 }
 
-async function runEnvironmentFlow({ fix }) {
+async function runEnvironmentFlow({ fix, initMcp }) {
   const statuses = [];
 
   const codexResolution = await inspectCodexResolution({ fix });
@@ -256,7 +285,7 @@ async function runEnvironmentFlow({ fix }) {
     );
   }
 
-  statuses.push(await inspectMcpState());
+  statuses.push(await inspectMcpState({ fix, initMcp }));
   return statuses;
 }
 
@@ -297,15 +326,15 @@ function printStatuses(title, statuses) {
 }
 
 export async function runDoctor() {
-  const statuses = await runEnvironmentFlow({ fix: false });
+  const statuses = await runEnvironmentFlow({ fix: false, initMcp: false });
   return {
     statuses,
     result: printStatuses("Meta-Architect Doctor", statuses),
   };
 }
 
-export async function runBootstrap() {
-  const statuses = await runEnvironmentFlow({ fix: true });
+export async function runBootstrap({ initMcp = false } = {}) {
+  const statuses = await runEnvironmentFlow({ fix: true, initMcp });
   return {
     statuses,
     result: printStatuses("Meta-Architect Bootstrap", statuses),

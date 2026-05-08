@@ -257,6 +257,7 @@ If you are working from a repository directly and need scaffolded local support 
 
 ```bash
 ma bootstrap
+ma bootstrap --init-mcp
 ma doctor
 ma setup
 ma
@@ -264,6 +265,7 @@ ma
 
 Recommended lazy-user path:
 - run `ma bootstrap` first to repair packaged assets, scaffold local runtime files, and verify the environment
+- add `--init-mcp` if you want starter GitMCP source files written into the local `mcp/` folder when it is empty or invalid
 - use `ma doctor` later when you want a check-only readiness report without changing files
 
 Expected output for `ma setup`:
@@ -418,6 +420,7 @@ What `ma bootstrap` does:
 - checks whether `codex` is callable
 - repairs installed skills and support-bundle assets when possible
 - runs local scaffold setup
+- can seed starter MCP files with `--init-mcp` when the local MCP config is empty or invalid
 - reports `READY`, `READY_WITH_WARNINGS`, or `BLOCKED`
 
 What `ma doctor` does:

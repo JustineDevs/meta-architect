@@ -37,7 +37,7 @@ import { syncStatusUpdates } from "../src/state-sync.js";
 function printUsage() {
   console.error("Secondary helper commands:");
   console.error("  ma");
-  console.error("  ma bootstrap");
+  console.error("  ma bootstrap [--init-mcp]");
   console.error("  ma doctor");
   console.error("  ma setup");
   console.error("  ma init");
@@ -224,7 +224,7 @@ async function main() {
   }
 
   if (command === "bootstrap") {
-    const outcome = await runBootstrap();
+    const outcome = await runBootstrap({ initMcp: rest.includes("--init-mcp") });
     process.exitCode = outcome.result === "BLOCKED" ? 1 : 0;
     return;
   }
