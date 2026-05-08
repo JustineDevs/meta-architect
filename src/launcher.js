@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 
 const nativeCommands = new Set([
+  "bootstrap",
+  "doctor",
   "setup",
   "init",
   "idea",

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { runBootstrap, runDoctor } from "../src/bootstrap.js";
 import {
   evaluateBuildGate,
   formatBuildBlockers,
@@ -36,6 +37,8 @@ import { syncStatusUpdates } from "../src/state-sync.js";
 function printUsage() {
   console.error("Secondary helper commands:");
   console.error("  ma");
+  console.error("  ma bootstrap");
+  console.error("  ma doctor");
   console.error("  ma setup");
   console.error("  ma init");
   console.error('  ma idea "..."');
@@ -217,6 +220,18 @@ async function main() {
     for (const item of created) {
       console.log(`ready: ${item}`);
     }
+    return;
+  }
+
+  if (command === "bootstrap") {
+    const outcome = await runBootstrap();
+    process.exitCode = outcome.result === "BLOCKED" ? 1 : 0;
+    return;
+  }
+
+  if (command === "doctor") {
+    const outcome = await runDoctor();
+    process.exitCode = outcome.result === "BLOCKED" ? 1 : 0;
     return;
   }
 

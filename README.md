@@ -256,9 +256,15 @@ See [example/usage-workflow.md](./example/usage-workflow.md) for the full prompt
 If you are working from a repository directly and need scaffolded local support files, use:
 
 ```bash
+ma bootstrap
+ma doctor
 ma setup
 ma
 ```
+
+Recommended lazy-user path:
+- run `ma bootstrap` first to repair packaged assets, scaffold local runtime files, and verify the environment
+- use `ma doctor` later when you want a check-only readiness report without changing files
 
 Expected output for `ma setup`:
 
@@ -408,10 +414,22 @@ What `ma setup` and `ma init` do:
 - they prepare `.ma/` runtime files such as context, specs, plans, evidence, and runbook files
 - they do not run the skill workflow by themselves
 
+What `ma bootstrap` does:
+- checks whether `codex` is callable
+- repairs installed skills and support-bundle assets when possible
+- runs local scaffold setup
+- reports `READY`, `READY_WITH_WARNINGS`, or `BLOCKED`
+
+What `ma doctor` does:
+- runs the same environment checks without changing files
+- prints the current readiness state and exact next step
+
 What to use when:
 - use Codex and run the skills in-session
 - use `$maestro` when you want Meta-Architect to choose the best next step for you
 - use `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` inside the Codex session
+- use `ma bootstrap` when you want the lazy-user setup path
+- use `ma doctor` when you want a check-only environment report
 - use `ma setup` or `ma init` only when you want local scaffolding or scripted helper automation from the terminal
 - use `ma sdk-path` when you need the exact installed support-bundle path for packaged prompts, MCP files, sprint files, scripts, plugin metadata, or templates
 

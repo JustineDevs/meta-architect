@@ -80,6 +80,26 @@ process.exit(${exitCode});
   return codexBin;
 }
 
+async function writeFakeCodexCli(tempRoot) {
+  const codexBin = path.join(tempRoot, "fake-codex-cli");
+  await fs.writeFile(
+    codexBin,
+    `#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "\${1:-}" = "--version" ]; then
+  echo "codex-cli test"
+  exit 0
+fi
+
+exit 0
+`,
+    { mode: 0o755 },
+  );
+  await fs.chmod(codexBin, 0o755);
+  return codexBin;
+}
+
 test("ma status succeeds against the default scaffold", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-status-"));
   await copyDir(repoRoot, tempRoot);
@@ -178,6 +198,69 @@ test("ma setup seeds canonical .ma runtime state", async () => {
   await fs.access(path.join(tempRoot, ".ma", "plans", "implementation.md"));
   await fs.access(path.join(tempRoot, ".ma", "plans", "build.md"));
   await fs.access(path.join(tempRoot, ".ma", "runbook.md"));
+});
+
+test("ma bootstrap repairs packaged assets and local scaffold for a new checkout", async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-bootstrap-"));
+  const codexHome = path.join(tempRoot, "codex-home");
+  await copyDir(repoRoot, tempRoot);
+  const codexBin = await writeFakeCodexCli(tempRoot);
+  const result = spawnSync(process.execPath, [path.join(repoRoot, "bin/ma.js"), "bootstrap"], {
+    cwd: tempRoot,
+    env: {
+      ...process.env,
+      CODEX_HOME: codexHome,
+      MA_CODEX_BIN: codexBin,
+      MA_ROOT: tempRoot,
+    },
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stdout, /Meta-Architect Bootstrap/);
+  assert.match(result.stdout, /Result: READY/);
+  await fs.access(path.join(codexHome, "skills", "maestro", "SKILL.md"));
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "mcp", "servers.json"));
+  await fs.access(path.join(tempRoot, ".ma", "release.json"));
+  await fs.access(path.join(tempRoot, ".ma", "context", "project.md"));
+});
+
+test("ma doctor reports a ready environment after bootstrap", async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-doctor-"));
+  const codexHome = path.join(tempRoot, "codex-home");
+  await copyDir(repoRoot, tempRoot);
+  const codexBin = await writeFakeCodexCli(tempRoot);
+
+  const bootstrapResult = spawnSync(
+    process.execPath,
+    [path.join(repoRoot, "bin/ma.js"), "bootstrap"],
+    {
+      cwd: tempRoot,
+      env: {
+        ...process.env,
+        CODEX_HOME: codexHome,
+        MA_CODEX_BIN: codexBin,
+        MA_ROOT: tempRoot,
+      },
+      encoding: "utf8",
+    },
+  );
+  assert.equal(bootstrapResult.status, 0, bootstrapResult.stderr || bootstrapResult.stdout);
+
+  const doctorResult = spawnSync(process.execPath, [path.join(repoRoot, "bin/ma.js"), "doctor"], {
+    cwd: tempRoot,
+    env: {
+      ...process.env,
+      CODEX_HOME: codexHome,
+      MA_CODEX_BIN: codexBin,
+      MA_ROOT: tempRoot,
+    },
+    encoding: "utf8",
+  });
+
+  assert.equal(doctorResult.status, 0, doctorResult.stderr || doctorResult.stdout);
+  assert.match(doctorResult.stdout, /Meta-Architect Doctor/);
+  assert.match(doctorResult.stdout, /Result: READY/);
 });
 
 test("ma launcher delegates non-native commands to codex and strips compatibility flags", async () => {

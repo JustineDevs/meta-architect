@@ -181,6 +181,16 @@ Easy rule:
 - they prepare context, specs, plans, evidence, and runbook files
 - they do not automatically run the skill workflow
 
+`ma bootstrap` is the lazy-user path:
+- it checks whether `codex` is callable
+- it repairs installed skills and support-bundle assets when possible
+- it runs local scaffold setup
+- it reports `READY`, `READY_WITH_WARNINGS`, or `BLOCKED`
+
+`ma doctor` is the check-only path:
+- it runs the same environment checks without changing files
+- it prints the current readiness state and exact next step
+
 `ma sdk-path` prints the installed packaged support-bundle root for relevant files such as prompts, MCP files, sprint files, scripts, plugin metadata, and templates.
 
 ## 5. Configure MCP / GitMCP
