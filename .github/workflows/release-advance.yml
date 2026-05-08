@@ -32,7 +32,7 @@ jobs:
       - name: Create release-advance PR
         if: steps.advance.outputs.updated == 'true'
         id: cpr
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(release): advance release line to v${{ steps.advance.outputs.version }}"
           branch: "automation/release-advance-v${{ steps.advance.outputs.version }}"
