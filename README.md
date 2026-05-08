@@ -18,9 +18,9 @@
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.1.6` is a production-grade skills line.
+> Meta-Architect `v0.1.7` is a production-grade skills line.
 > It is not a lightweight demo branch.
-> From `v0.1.6` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> From `v0.1.7` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
 
 ## Overview
 
@@ -57,7 +57,7 @@ It adds:
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.1.6</code></td>
+    <td><code>v0.1.7</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -230,7 +230,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.6
+8. Delivery plan for v0.1.7
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -298,9 +298,33 @@ Recommended starter endpoints:
 - `https://gitmcp.io/dzharii/awesome-typescript`
 - `https://gitmcp.io/sbilly/awesome-security`
 
+Core discovery standard:
+
+- `https://ossium.live/home`
+- use Ossium to discover trending OSS, curated repos, YC-backed repos, GSoC orgs, and contribution opportunities faster
+- `https://trendshift.io/`
+- use Trendshift for rising GitHub engagement and topic-driven trend discovery
+- `https://devhunt.org/`
+- use Dev Hunt for recently launched developer tools and current dev-tool discovery
+- `https://libraries.io/`
+- use Libraries.io for package and dependency metadata, with caution because its public data is scraped and not validated/curated for accuracy
+- `https://openhub.net/`
+- use Open Hub for project activity, contributor, popularity, and comparison signals
+- `https://www.opensourceprojects.dev/`
+- use Open-source Projects for curated OSS discovery and detailed project writeups
+- treat all of these as discovery acceleration, then convert promising finds into exact upstream GitMCP mappings and official-doc checks for `$sage`
+
+Canonical `$sage` order:
+
+1. Start with the upstream repo and official docs if you already know them.
+2. Use discovery accelerators only when you need help finding or narrowing candidates.
+3. Map selected candidates to exact upstream GitMCP endpoints.
+4. Verify against upstream repos and official docs before treating anything as approved evidence.
+
 > [!IMPORTANT]
 > Verified release evidence must come from repository-form GitMCP endpoints such as `https://gitmcp.io/{owner}/{repo}`.
 > A generic documentation endpoint such as `https://gitmcp.io/docs` does not count as VERIFIED evidence for build unlocking.
+> Discovery surfaces such as Ossium, Trendshift, Dev Hunt, Libraries.io, Open Hub, and Open-source Projects are not substitutes for upstream repo or official-doc verification.
 
 ### 6. Secondary helper flow outside Codex
 
@@ -563,7 +587,7 @@ Release automation:
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
 | [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.1.6.md) | QA evidence for the `v0.1.6` line |
+| [Release Readiness](./docs/qa/release-readiness-0.1.7.md) | QA evidence for the `v0.1.7` line |
 
 ## Release Hygiene
 

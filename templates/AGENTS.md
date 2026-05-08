@@ -71,10 +71,27 @@ If any required field is missing, red, or unverified, the workflow should stop a
 
 Major technology recommendations must be supported by evidence from configured MCP/GitMCP sources. Do not invent fake repositories, fake endpoints, or unsupported claims.
 
+Approved discovery accelerators include:
+- Ossium (`https://ossium.live/home`) for trending OSS, curated repos, YC-backed repos, GSoC orgs, and contribution leads
+- Trendshift (`https://trendshift.io/`) for rising GitHub engagement and topic momentum
+- Dev Hunt (`https://devhunt.org/`) for newly launched developer tools
+- Libraries.io (`https://libraries.io/`) for package/dependency metadata, with caution because its public data is scraped and not validated/curated for accuracy
+- Open Hub (`https://openhub.net/`) for project activity, contributor, popularity, and comparison signals
+- Open-source Projects (`https://www.opensourceprojects.dev/`) for curated OSS discovery and detailed project writeups
+
+These discovery accelerators do not replace upstream repo evidence or official docs for approval decisions.
+
+Canonical evidence order:
+- prefer known upstream repos and official docs first
+- use discovery accelerators to find or narrow candidates
+- map selected candidates back to exact upstream repositories
+- approve only after upstream repo and official-doc verification
+
 ### Exact endpoint rule
 
 - Prefer repo-specific `https://gitmcp.io/{owner}/{repo}` endpoints
 - Treat `https://gitmcp.io/docs` as fallback policy only, not a normal approved evidence source for build-unlocking decisions
+- Treat discovery accelerators as discovery-only until a candidate is mapped back to an exact upstream repository and validated through approved evidence paths
 
 ## Logging rule
 

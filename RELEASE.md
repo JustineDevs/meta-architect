@@ -1,4 +1,4 @@
-# Meta-Architect v0.1.6
+# Meta-Architect v0.1.7
 
 ## Summary
 
@@ -7,14 +7,14 @@ This release ships Meta-Architect as a Codex-native skills system with:
 - optional helper launch `ma --madmax --high`
 - a usage-workflow-driven runtime path starting with the structured `$arch` prompt
 - helper commands for setup, scripted validation, and branch/release gating
-- package, skill bundle, and release surfaces aligned to `v0.1.6`
+- package, skill bundle, and release surfaces aligned to `v0.1.7`
 
 Target package state:
-- npm package: `@jstn-sdk/ma@0.1.6`
+- npm package: `@jstn-sdk/ma@0.1.7`
 - npm registry state: pending publish
-- publishability note: `0.1.5` is already published, so `0.1.6` is the next publishable package line
-- release tag: `v0.1.6`
-- GitHub release: pending publish for `v0.1.6`
+- publishability note: `0.1.6` is already published, so `0.1.7` is the next publishable package line
+- release tag: `v0.1.7`
+- GitHub release: pending publish for `v0.1.7`
 
 ## Verification
 
@@ -29,7 +29,7 @@ This release is only considered real if:
 - `ma --madmax --high` delegates into Codex as expected
 - `ma setup` creates the documented `.ma` runtime surfaces
 - the usage-workflow sequence remains coherent from `$arch` to `$build`
-- release docs, changelog, package metadata, and workflows all remain aligned to `v0.1.6`
+- release docs, changelog, package metadata, and workflows all remain aligned to `v0.1.7`
 
 Current blocker:
-- npm publication has not been run yet for `@jstn-sdk/ma@0.1.6`
+- npm publication has not been run yet for `@jstn-sdk/ma@0.1.7`

@@ -54,6 +54,16 @@ The kernel may be minimal, but it must be strict. Extensions may vary, but they 
 
 `https://gitmcp.io/docs` is fallback policy only. It is not a normal approved evidence source for unlocking `$build`.
 
+Approved discovery accelerators include `https://ossium.live/home`, `https://trendshift.io/`, `https://devhunt.org/`, `https://libraries.io/`, `https://openhub.net/`, and `https://www.opensourceprojects.dev/`.
+
+These discovery accelerators help find OSS candidates faster, but they are not by themselves VERIFIED evidence sources for unlocking `$build`.
+
+Canonical evidence order:
+1. If the upstream repo or official docs are already known, start there.
+2. Otherwise use approved discovery accelerators to generate or narrow candidates.
+3. Map the chosen candidate to an exact upstream repository.
+4. Verify against upstream repos and official docs before upgrading evidence status.
+
 ## Release truth rule
 
 Do not claim a channel is published unless the corresponding push, release creation, asset upload, or package publish actually succeeded.

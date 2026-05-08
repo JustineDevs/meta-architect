@@ -22,6 +22,8 @@ Run the full Meta-Architect workflow inside Codex. Use this skill when the user 
 
 - Stay inside Codex unless the user explicitly asks for repo-local helper commands.
 - Keep the workflow architecture-first. Do not jump into code before the architecture and review lanes are grounded.
+- Use approved discovery accelerators such as Ossium, Trendshift, Dev Hunt, Libraries.io, Open Hub, and Open-source Projects when you need faster OSS candidate discovery, then validate any promising project through upstream repos and official docs.
+- Keep the `$sage` order explicit: known upstream sources first, discovery accelerators second, exact repo mapping third, approval only after upstream verification.
 - Prefer official docs, upstream repos, and repo-configured GitMCP sources when validating tooling choices.
 - End each lane with a clear result shape: decision, evidence, blockers, and exact next trigger.
 

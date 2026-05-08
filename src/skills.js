@@ -508,8 +508,8 @@ export async function runInit() {
       path.join(getRepoRoot(), "docs", "release-spec.md"),
     ],
     [
-      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.6.md"),
-      path.join(getRepoRoot(), "docs", "qa", "release-readiness-0.1.6.md"),
+      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.7.md"),
+      path.join(getRepoRoot(), "docs", "qa", "release-readiness-0.1.7.md"),
     ],
   ];
 

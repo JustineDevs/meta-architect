@@ -74,7 +74,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.6
+8. Delivery plan for v0.1.7
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -204,6 +204,21 @@ Recommended first set:
 - `sindresorhus/awesome`
 - `dzharii/awesome-typescript`
 - `sbilly/awesome-security`
+
+Core discovery standard:
+- use `https://ossium.live/home` to find trending OSS, curated repos, YC-backed repos, GSoC orgs, and contribution leads faster than browsing GitHub directly
+- use `https://trendshift.io/` to spot repositories with rising engagement and topic momentum
+- use `https://devhunt.org/` to discover newly launched developer tools
+- use `https://libraries.io/` to inspect package/dependency metadata, while remembering its public data is scraped and not validated/curated for accuracy
+- use `https://openhub.net/` to inspect project activity, contributor, popularity, and comparison signals
+- use `https://www.opensourceprojects.dev/` to inspect curated OSS selections and detailed project writeups
+- move any promising discovery result into `mcp/servers.json` as an exact upstream GitMCP repo endpoint before treating it as VERIFIED evidence
+
+Canonical `$sage` order:
+- known upstream repo/docs first
+- discovery accelerators second
+- exact GitMCP repo mapping third
+- upstream repo + official-doc verification last
 
 See [docs/mcp-setup.md](./mcp-setup.md) for endpoint policy and evidence semantics.
 
