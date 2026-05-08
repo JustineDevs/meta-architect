@@ -18,9 +18,9 @@
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.1.7` is a production-grade skills line.
+> Meta-Architect `v0.1.8` is a production-grade skills line.
 > It is not a lightweight demo branch.
-> From `v0.1.7` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> From `v0.1.8` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
 
 ## Overview
 
@@ -57,7 +57,7 @@ It adds:
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.1.7</code></td>
+    <td><code>v0.1.8</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -230,7 +230,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.7
+8. Delivery plan for v0.1.8
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -587,7 +587,7 @@ Release automation:
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
 | [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.1.7.md) | QA evidence for the `v0.1.7` line |
+| [Release Readiness](./docs/qa/release-readiness-0.1.8.md) | QA evidence for the `v0.1.8` line |
 
 ## Release Hygiene
 

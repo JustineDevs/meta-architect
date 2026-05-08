@@ -1,6 +1,6 @@
 {
   "name": "meta-architect",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Skills-first workflow layer for Codex with architecture, evidence, review, and gated build guidance.",
   "author": {
     "name": "JustineDevs",
@@ -9,7 +9,13 @@
   "homepage": "https://github.com/JustineDevs/meta-architect",
   "repository": "https://github.com/JustineDevs/meta-architect.git",
   "license": "MIT",
-  "keywords": ["codex", "skills", "architecture", "workflow", "review"],
+  "keywords": [
+    "codex",
+    "skills",
+    "architecture",
+    "workflow",
+    "review"
+  ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "apps": "./.app.json",

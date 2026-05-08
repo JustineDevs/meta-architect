@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.8
+
+- Release line prepared automatically for v0.1.8.
+
 ## v0.1.7
 
 - Release line prepared automatically for v0.1.7.
