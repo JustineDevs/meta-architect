@@ -2,7 +2,15 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-const ignoredEntries = new Set([".git", "node_modules", ".ma", ".omx", ".claude", ".agents"]);
+const ignoredEntries = new Set([
+  ".git",
+  "node_modules",
+  ".ma",
+  ".omx",
+  ".claude",
+  ".agents",
+  ".husky",
+]);
 
 export async function copyDir(src, dest) {
   await fs.mkdir(dest, { recursive: true });

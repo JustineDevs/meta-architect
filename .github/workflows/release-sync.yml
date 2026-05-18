@@ -45,6 +45,7 @@ jobs:
       - name: Create release-sync PR
         if: steps.sync.outputs.updated == 'true'
         id: cpr
+        continue-on-error: true
         uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(release): sync release line to v${{ steps.sync.outputs.version }}"
@@ -75,7 +76,13 @@ jobs:
             test/policy.test.js
 
       - name: Enable auto-merge for release-sync PR
-        if: steps.sync.outputs.updated == 'true' && steps.cpr.outputs.pull-request-number != ''
+        if: steps.sync.outputs.updated == 'true' && steps.cpr.outcome == 'success' && steps.cpr.outputs.pull-request-number != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-number }}"
+
+      - name: Report release-sync PR policy block
+        if: steps.sync.outputs.updated == 'true' && steps.cpr.outcome != 'success'
+        run: |
+          echo "Release-sync changes were generated, but GitHub Actions is not permitted to create pull requests in this repository."
+          echo "The workflow completed without failing so branch protection is not blocked by repo policy."

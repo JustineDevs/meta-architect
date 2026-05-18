@@ -46,7 +46,8 @@ async function copyDir(src, dest) {
       entry.name === ".ma" ||
       entry.name === ".omx" ||
       entry.name === ".claude" ||
-      entry.name === ".agents"
+      entry.name === ".agents" ||
+      entry.name === ".husky"
     ) {
       continue;
     }
@@ -495,7 +496,7 @@ test("ma bootstrap --init-mcp seeds starter MCP files when local MCP config is e
   );
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assertStdoutContainsIfAvailable(result, /starter MCP sources were seeded/i);
+  assertStdoutContainsIfAvailable(result, /GitMCP evidence sources were seeded/i);
   const servers = JSON.parse(await fs.readFile(path.join(tempRoot, "mcp", "servers.json"), "utf8"));
   assert.equal(servers.servers.length > 0, true);
 });
