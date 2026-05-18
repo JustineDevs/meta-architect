@@ -1,13 +1,13 @@
-# v0.1.12 Requirements & Rules
+# v0.1.13 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.1.12` is production only when:
+Meta-Architect `v0.1.13` is production only when:
 1. the package/install surface works
 2. the in-session skill workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
-## What `v0.1.12` must have
+## What `v0.1.13` must have
 
 ### 1. Canonical package/runtime path
 
@@ -49,15 +49,15 @@ Canonical state files:
 
 ### 4. Required release evidence
 
-- `package.json` version `0.1.12`
-- git tag `v0.1.12`
+- `package.json` version `0.1.13`
+- git tag `v0.1.13`
 - `RELEASE.md`
 - `CHANGELOG.md`
-- `docs/qa/release-readiness-0.1.12.md`
+- `docs/qa/release-readiness-0.1.13.md`
 - green `npm run release:check`
-- GitHub release asset `meta-architect_0.1.12_all.deb`
-- GitHub release asset `meta-architect-0.1.12-1-any.pkg.tar.xz`
-- GitHub release asset `meta-architect-0.1.12-1.noarch.rpm`
+- GitHub release asset `meta-architect_0.1.13_all.deb`
+- GitHub release asset `meta-architect-0.1.13-1-any.pkg.tar.xz`
+- GitHub release asset `meta-architect-0.1.13-1.noarch.rpm`
 - green `npm run linux:packages:build`
 - green `npm run linux:packages:smoke`
 - green `npm run release:assets`
