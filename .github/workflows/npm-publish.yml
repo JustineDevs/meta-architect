@@ -5,6 +5,12 @@ on:
     types:
       - published
       - prereleased
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, for example v0.1.12"
+        required: true
+        type: string
 
 jobs:
   publish:
@@ -16,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -23,12 +31,24 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
+      - name: Load npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_REGISTRY_URL: "https://registry.npmjs.org/"
+          NPM_SCOPE: "@jstn-sdk"
+        run: node ./scripts/setup-npmrc.js
+
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify npm publisher identity
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
       - name: Validate package
         env:
-          GITHUB_REF_NAME: ${{ github.event.release.tag_name }}
+          GITHUB_REF_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
         run: npm run release:check
 
       - name: Resolve release metadata
@@ -37,11 +57,17 @@ jobs:
 
       - name: Publish stable package to latest
         if: steps.release_meta.outputs.dist_tag == 'latest'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance
 
       - name: Publish prerelease package to explicit dist-tag
         if: steps.release_meta.outputs.dist_tag != 'latest'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance --tag "${{ steps.release_meta.outputs.dist_tag }}"
 
       - name: Verify published dist-tags
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm view @jstn-sdk/ma version dist-tags time --json
