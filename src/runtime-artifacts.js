@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { ensureDir, writeFileIfMissing } from "./fs-utils.js";
 import { getRuntimeWritePath } from "./paths.js";
+import { ensureRuntimeSubsystems } from "./runtime/runtime-state.js";
 
 const runtimeDirs = ["context", "specs", "plans"];
 
@@ -23,12 +24,93 @@ function renderProjectContext({ idea = null }) {
     "",
     "## Next Recommended Trigger",
     "",
-    idea ? "`$arch`" : "`ma idea`",
+    idea ? "`$maestro`" : "`ma idea`",
     "",
   ].join("\n");
 }
 
-function renderArchitectureSpec({ idea, blueprint }) {
+function renderRuntimeSummary(summary) {
+  if (!summary) {
+    return [];
+  }
+
+  return [
+    "## Runtime Context",
+    "",
+    `- guidance sources: ${summary.guidanceSourceCount}`,
+    `- guidance include roots: ${summary.guidanceIncludeRoots}`,
+    `- continuity sessions: ${summary.continuitySessionCount}`,
+    `- continuity notes present: ${summary.continuityHasNotes}`,
+    `- compatibility hooks: ${summary.compatibilityHookCount}`,
+    `- runtime hook events: ${summary.runtimeHookCount}`,
+    `- configured runtime hooks: ${summary.configuredRuntimeHookCount}`,
+    `- workers: ${summary.workerCount}`,
+    `- tasks: ${summary.taskCount}`,
+    `- pending mailbox proposals: ${summary.pendingMailboxCount}`,
+    `- workspaces: ${summary.workspaceCount}`,
+    `- recorded decisions: ${summary.decisionCount}`,
+    `- manager runs: ${summary.managerRunCount}`,
+    `- active manager runs: ${summary.activeManagerRunCount}`,
+    `- waiting-review manager runs: ${summary.waitingReviewManagerRunCount}`,
+    `- build status: ${summary.buildStatus}`,
+    `- missing runtime artifacts: ${summary.missingArtifacts.length}`,
+    `- invalid runtime artifacts: ${summary.invalidArtifacts.length}`,
+    "",
+  ];
+}
+
+function formatManagerHelper(helper) {
+  return `${helper.skill}: ${helper.objective} [${helper.status}]`;
+}
+
+function formatManagerGate(gate) {
+  return `${gate.skill}: ${gate.objective} [${gate.status}]`;
+}
+
+function renderManagerSection(managerRun) {
+  if (!managerRun) {
+    return [];
+  }
+
+  const lines = [
+    "## Manager Run",
+    "",
+    `- id: ${managerRun.id}`,
+    `- state: ${managerRun.state}`,
+    `- mode: ${managerRun.mode}`,
+    `- next action: ${managerRun.nextAction}`,
+  ];
+
+  if (managerRun.dispatchPlan.helpers.length > 0) {
+    lines.push("- helper dispatch:");
+    lines.push(
+      ...managerRun.dispatchPlan.helpers.map((item) => `  - ${formatManagerHelper(item)}`),
+    );
+  }
+
+  if (managerRun.dispatchPlan.gated.length > 0) {
+    lines.push("- gated dispatch:");
+    lines.push(...managerRun.dispatchPlan.gated.map((item) => `  - ${formatManagerGate(item)}`));
+  }
+
+  if (managerRun.dispatchPlan.team) {
+    lines.push("- team dispatch:");
+    lines.push(`  - title: ${managerRun.dispatchPlan.team.title}`);
+    lines.push(`  - objective: ${managerRun.dispatchPlan.team.objective}`);
+    if (managerRun.dispatchPlan.team.createdTaskIds.length > 0) {
+      lines.push(`  - created tasks: ${managerRun.dispatchPlan.team.createdTaskIds.join(", ")}`);
+    }
+  }
+
+  if (managerRun.pendingReview.proposalPath) {
+    lines.push(`- pending review: ${managerRun.pendingReview.proposalPath}`);
+  }
+
+  lines.push("");
+  return lines;
+}
+
+function renderArchitectureSpec({ idea, blueprint, runtimeSummary }) {
   return [
     "# Architecture Spec",
     "",
@@ -50,6 +132,7 @@ function renderArchitectureSpec({ idea, blueprint }) {
     "",
     blueprint.outcome,
     "",
+    ...renderRuntimeSummary(runtimeSummary),
     "## Next Recommended Trigger",
     "",
     "`$sage`",
@@ -57,7 +140,7 @@ function renderArchitectureSpec({ idea, blueprint }) {
   ].join("\n");
 }
 
-function renderEvidenceSpec({ idea, sourceEntries, verified, blockers }) {
+function renderEvidenceSpec({ idea, sourceEntries, verified, blockers, runtimeSummary }) {
   const status = verified ? "VERIFIED" : sourceEntries.length > 0 ? "PARTIAL" : "MISSING";
   const lines = [
     "# Evidence Spec",
@@ -100,6 +183,7 @@ function renderEvidenceSpec({ idea, sourceEntries, verified, blockers }) {
     lines.push(...blockers.map((blocker) => `- ${blocker}`), "");
   }
 
+  lines.push(...renderRuntimeSummary(runtimeSummary));
   lines.push("## Next Recommended Trigger", "", verified ? "`$flow`" : "`$sage`", "");
   return lines.join("\n");
 }
@@ -110,22 +194,32 @@ function renderLogicSpec(logicMap) {
     "",
     `Updated: ${new Date().toISOString()}`,
     "",
+    ...(logicMap.actors
+      ? ["## Actors", "", ...logicMap.actors.map((actor) => `- ${actor}`), ""]
+      : []),
     "## States",
     "",
     ...logicMap.states.map((state) => `- ${state}`),
     "",
+    ...(logicMap.runtimeSummary ? renderRuntimeSummary(logicMap.runtimeSummary) : []),
     "## Blockers",
     "",
     ...(logicMap.blockers.length === 0 ? ["None."] : logicMap.blockers.map((item) => `- ${item}`)),
     "",
     "## Next Recommended Trigger",
     "",
-    "`$vet`",
+    logicMap.nextTrigger ?? "`$vet`",
     "",
   ].join("\n");
 }
 
-function renderSecuritySpec({ finding, auditCount, cveCount }) {
+function renderSecuritySpec({
+  finding,
+  auditCount,
+  cveCount,
+  runtimeSummary,
+  nextTrigger = "`$vibe`",
+}) {
   return [
     "# Security Spec",
     "",
@@ -142,14 +236,15 @@ function renderSecuritySpec({ finding, auditCount, cveCount }) {
     `- audits logged: ${auditCount}`,
     `- cve entries logged: ${cveCount}`,
     "",
+    ...renderRuntimeSummary(runtimeSummary),
     "## Next Recommended Trigger",
     "",
-    "`$vibe`",
+    nextTrigger,
     "",
   ].join("\n");
 }
 
-function renderExperienceSpec({ note, outcomeCount }) {
+function renderExperienceSpec({ note, outcomeCount, runtimeSummary, nextTrigger = "`$build`" }) {
   return [
     "# Experience Spec",
     "",
@@ -164,14 +259,15 @@ function renderExperienceSpec({ note, outcomeCount }) {
     "",
     `- outcomes logged: ${outcomeCount}`,
     "",
+    ...renderRuntimeSummary(runtimeSummary),
     "## Next Recommended Trigger",
     "",
-    "`$build`",
+    nextTrigger,
     "",
   ].join("\n");
 }
 
-function renderImplementationPlan({ idea, blueprint }) {
+function renderImplementationPlan({ idea, blueprint, runtimeSummary }) {
   return [
     "# Implementation Plan",
     "",
@@ -193,10 +289,17 @@ function renderImplementationPlan({ idea, blueprint }) {
     "",
     blueprint.summary,
     "",
+    ...renderRuntimeSummary(runtimeSummary),
   ].join("\n");
 }
 
-function renderMaestroPlan({ releaseState, recommendation }) {
+function renderMaestroPlan({
+  releaseState,
+  recommendation,
+  runtimeSummary,
+  workflowSequence,
+  managerRun = null,
+}) {
   return [
     "# Maestro Plan",
     "",
@@ -220,6 +323,12 @@ function renderMaestroPlan({ releaseState, recommendation }) {
     "",
     recommendation.why,
     "",
+    ...renderManagerSection(managerRun),
+    "## Workflow Sequence",
+    "",
+    ...workflowSequence.map((trigger) => `- ${trigger}`),
+    "",
+    ...renderRuntimeSummary(runtimeSummary),
     "## Recommended Lane",
     "",
     `- primary: ${recommendation.primaryLane}`,
@@ -240,7 +349,13 @@ function renderMaestroPlan({ releaseState, recommendation }) {
   ].join("\n");
 }
 
-function renderBuildPlan({ allowed, blockers, nextTriggers, suggestedBranches = [] }) {
+function renderBuildPlan({
+  allowed,
+  blockers,
+  nextTriggers,
+  suggestedBranches = [],
+  runtimeSummary = null,
+}) {
   const lines = [
     "# Build Plan",
     "",
@@ -259,6 +374,8 @@ function renderBuildPlan({ allowed, blockers, nextTriggers, suggestedBranches = 
   } else {
     lines.push(...blockers.map((blocker) => `- ${blocker}`), "");
   }
+
+  lines.push(...renderRuntimeSummary(runtimeSummary));
 
   lines.push("## Next Allowed Triggers", "");
   lines.push(
@@ -290,13 +407,10 @@ function renderRunbook() {
     "",
     "1. `ma setup`",
     '2. `ma idea "..."`',
-    "3. `ma run '$arch'`",
-    "4. `ma run '$sage'`",
-    "5. `ma run '$flow'`",
-    "6. `ma run '$vet'`",
-    "7. `ma run '$vibe'`",
-    "8. `ma status`",
-    "9. `ma run '$build'`",
+    "3. `ma run '$maestro'`",
+    "4. follow the exact next trigger from `.ma/plans/maestro.md`",
+    "5. return to `$maestro` whenever the next lane is unclear",
+    "6. `ma status`",
     "",
     "## Runtime Artifacts",
     "",
@@ -330,6 +444,7 @@ export async function seedRuntimeArtifacts() {
   for (const dir of runtimeDirs) {
     await ensureDir(getRuntimeWritePath(dir));
   }
+  await ensureRuntimeSubsystems();
 
   await writeFileIfMissing(
     getRuntimeWritePath("context", "project.md"),
@@ -370,15 +485,27 @@ export async function writeProjectContext(idea) {
   await writeArtifact("context/project.md", renderProjectContext({ idea }));
 }
 
-export async function writeArchitectureArtifacts({ idea, blueprint }) {
-  await writeArtifact("specs/architecture.md", renderArchitectureSpec({ idea, blueprint }));
-  await writeArtifact("plans/implementation.md", renderImplementationPlan({ idea, blueprint }));
+export async function writeArchitectureArtifacts({ idea, blueprint, runtimeSummary = null }) {
+  await writeArtifact(
+    "specs/architecture.md",
+    renderArchitectureSpec({ idea, blueprint, runtimeSummary }),
+  );
+  await writeArtifact(
+    "plans/implementation.md",
+    renderImplementationPlan({ idea, blueprint, runtimeSummary }),
+  );
 }
 
-export async function writeEvidenceSpec({ idea, sourceEntries, verified, blockers }) {
+export async function writeEvidenceSpec({
+  idea,
+  sourceEntries,
+  verified,
+  blockers,
+  runtimeSummary = null,
+}) {
   await writeArtifact(
     "specs/evidence.md",
-    renderEvidenceSpec({ idea, sourceEntries, verified, blockers }),
+    renderEvidenceSpec({ idea, sourceEntries, verified, blockers, runtimeSummary }),
   );
 }
 
@@ -386,12 +513,29 @@ export async function writeLogicSpec(logicMap) {
   await writeArtifact("specs/logic.md", renderLogicSpec(logicMap));
 }
 
-export async function writeSecuritySpec({ finding, auditCount, cveCount }) {
-  await writeArtifact("specs/security.md", renderSecuritySpec({ finding, auditCount, cveCount }));
+export async function writeSecuritySpec({
+  finding,
+  auditCount,
+  cveCount,
+  runtimeSummary = null,
+  nextTrigger = "`$vibe`",
+}) {
+  await writeArtifact(
+    "specs/security.md",
+    renderSecuritySpec({ finding, auditCount, cveCount, runtimeSummary, nextTrigger }),
+  );
 }
 
-export async function writeExperienceSpec({ note, outcomeCount }) {
-  await writeArtifact("specs/experience.md", renderExperienceSpec({ note, outcomeCount }));
+export async function writeExperienceSpec({
+  note,
+  outcomeCount,
+  runtimeSummary = null,
+  nextTrigger = "`$build`",
+}) {
+  await writeArtifact(
+    "specs/experience.md",
+    renderExperienceSpec({ note, outcomeCount, runtimeSummary, nextTrigger }),
+  );
 }
 
 export async function writeBuildPlanArtifact({
@@ -399,13 +543,29 @@ export async function writeBuildPlanArtifact({
   blockers,
   nextTriggers,
   suggestedBranches = [],
+  runtimeSummary = null,
 }) {
   await writeArtifact(
     "plans/build.md",
-    renderBuildPlan({ allowed, blockers, nextTriggers, suggestedBranches }),
+    renderBuildPlan({ allowed, blockers, nextTriggers, suggestedBranches, runtimeSummary }),
   );
 }
 
-export async function writeMaestroPlan({ releaseState, recommendation }) {
-  await writeArtifact("plans/maestro.md", renderMaestroPlan({ releaseState, recommendation }));
+export async function writeMaestroPlan({
+  releaseState,
+  recommendation,
+  runtimeSummary = null,
+  workflowSequence = [],
+  managerRun = null,
+}) {
+  await writeArtifact(
+    "plans/maestro.md",
+    renderMaestroPlan({
+      releaseState,
+      recommendation,
+      runtimeSummary,
+      workflowSequence,
+      managerRun,
+    }),
+  );
 }

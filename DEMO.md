@@ -191,7 +191,7 @@ Expected:
 - all 7 skills validate
 - `dist/meta-architect-skills.tgz` is created
 - `dist/installed-skills/` receives:
-  - `meta-architect`
+  - `maestro`
   - `arch`
   - `sage`
   - `flow`

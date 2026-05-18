@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { packageRoot } from "./paths.js";
+import { getBundledDocsPath, packageRoot } from "./paths.js";
 
 function resolveCodexHome() {
   return process.env.CODEX_HOME ?? path.join(os.homedir(), ".codex");
@@ -26,6 +26,15 @@ async function copyDir(src, dest) {
     } else {
       await fs.copyFile(srcPath, destPath);
     }
+  }
+}
+
+async function pathExists(targetPath) {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -106,10 +115,24 @@ export async function installSupportBundle({ targetRoot = getSupportBundleRoot()
     },
     {
       name: "docs-readme",
-      src: path.join(packageRoot, "docs", "README.md"),
+      src: getBundledDocsPath("README.md"),
       dest: path.join(targetRoot, "docs", "README.md"),
     },
   ];
+
+  const optionalAssets = [
+    {
+      name: "docs-reference",
+      src: getBundledDocsPath("reference"),
+      dest: path.join(targetRoot, "docs", "reference"),
+    },
+  ];
+
+  for (const asset of optionalAssets) {
+    if (await pathExists(asset.src)) {
+      assets.push(asset);
+    }
+  }
 
   await fs.mkdir(targetRoot, { recursive: true });
   const installed = [];
@@ -153,6 +176,8 @@ export async function isSupportBundleInstalled({ targetRoot = getSupportBundleRo
   const requiredFiles = [
     path.join(targetRoot, "asset-manifest.json"),
     path.join(targetRoot, "mcp", "servers.json"),
+    path.join(targetRoot, "mcp", "native-playbooks.json"),
+    path.join(targetRoot, "mcp", "local", "playbooks.js"),
     path.join(targetRoot, "sprint", "07-release.md"),
     path.join(targetRoot, "prompts", "onboarding.md"),
     path.join(targetRoot, "scripts", "skills-install.js"),
@@ -160,12 +185,35 @@ export async function isSupportBundleInstalled({ targetRoot = getSupportBundleRo
     path.join(targetRoot, "templates", "AGENTS.md"),
   ];
 
+  const requiredReferenceFiles = [
+    path.join(targetRoot, "docs", "reference", "native-engineering-patterns.md"),
+    path.join(targetRoot, "docs", "reference", "native-style-and-deslop.md"),
+    path.join(targetRoot, "docs", "reference", "native-security-playbooks.md"),
+    path.join(targetRoot, "docs", "reference", "native-source-selection.md"),
+  ];
+
+  if (await pathExists(getBundledDocsPath("reference"))) {
+    requiredFiles.push(path.join(targetRoot, "docs", "reference"));
+    requiredFiles.push(...requiredReferenceFiles);
+  }
+
   for (const file of requiredFiles) {
-    try {
-      await fs.access(file);
-    } catch {
+    if (!(await pathExists(file))) {
       return false;
     }
+  }
+
+  const manifestPath = path.join(targetRoot, "asset-manifest.json");
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  const assetNames = new Set((manifest.assets ?? []).map((asset) => asset.name));
+
+  for (const requiredAssetName of ["mcp", "docs-readme"]) {
+    if (!assetNames.has(requiredAssetName)) {
+      return false;
+    }
+  }
+  if ((await pathExists(getBundledDocsPath("reference"))) && !assetNames.has("docs-reference")) {
+    return false;
   }
 
   return true;

@@ -7,17 +7,20 @@ Meta-Architect documentation is organized by operator task.
 - [Getting Started](./getting-started.md)
 - [Release Spec](./release-spec.md)
 - [Skills Reference](./skills.md)
+- umbrella, gated lanes, and helper skill distinctions live in the Skills Reference
 - [Installed Support Bundle](./installed-sdk.md)
 
 ## Packaging and installation
 
 - [Skills Publishing](./skills-publishing.md)
+- published helper-skill and plugin-mirror expectations live in Skills Publishing
+- Linux-native distro package expectations live in the Release Spec and release-readiness docs
 - [MCP Setup](./mcp-setup.md)
 - [Plugin Bundle](../plugins/meta-architect/README.md)
 
 ## QA and readiness
 
-- [Release Readiness 0.1.11](./qa/release-readiness-0.1.11.md)
+- [Release Readiness 0.1.12](./qa/release-readiness-0.1.12.md)
 
 ## Repo structure references
 

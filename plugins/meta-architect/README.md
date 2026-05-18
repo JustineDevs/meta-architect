@@ -9,6 +9,10 @@ This plugin bundle packages the Meta-Architect skill surfaces for consumers that
   - `.app.json`
   - `.mcp.json`
 - bundled Meta-Architect skill surfaces under `skills/`
+- one umbrella autonomous manager: `$maestro`
+- fixed gated lanes: `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`
+- non-gating helper skills: `$align`, `$diagnose`, `$tdd`, `$cleanup`
+- packaged native reference files mirrored under the relevant skill folders
 - a release-scoped version line aligned to the repo
 
 ## What the plugin does not contain
@@ -46,6 +50,26 @@ The plugin-facing bundle should be consumed alongside the repository’s documen
 
 Canonical package/runtime path:
 
+Debian-family install:
+
+```bash
+sudo apt install ./meta-architect_<version>_all.deb
+```
+
+Arch-family install:
+
+```bash
+sudo pacman -U ./meta-architect-<version>-1-any.pkg.tar.xz
+```
+
+Fedora/openSUSE install:
+
+```bash
+sudo dnf install ./meta-architect-<version>-1.noarch.rpm
+```
+
+npm fallback/default supported path:
+
 ```bash
 # Install
 npm i -g @openai/codex@latest @jstn-sdk/ma@latest
@@ -79,6 +103,8 @@ npm run skills:install -- --path ./dist/installed-skills
 
 Consumer expectation:
 - the plugin ships the same public skill contracts as the canonical `skills/` directory
+- `$maestro` remains the only umbrella surface in the plugin bundle and acts as the bounded autonomous manager for the in-session workflow
+- helper skills are installable mirrors, but they remain non-gating and do not create new release gates
 - it does not define a looser or simplified product contract
 
 ## MCP wiring expectations
@@ -105,7 +131,7 @@ When consuming the plugin:
 The plugin version should track the release scope of the core repo.
 
 For this repository:
-- plugin scope is aligned to Meta-Architect `v0.1.11`
+- plugin scope is aligned to Meta-Architect `v0.1.12`
 - any breaking contract change should be versioned intentionally
 
 The plugin is one distribution surface of the same product, not a separate product line.

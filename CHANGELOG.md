@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.12
+
+- Makes `$maestro` the singular shipped Meta-Architect umbrella surface and removes the separate shipped `$meta-architect` skill surface.
+- Adds the publishable non-gating helper skill family: `$align`, `$diagnose`, `$tdd`, and `$cleanup`.
+- Adds native playbooks and packaged reference packs through `mcp/native-playbooks.json`, `mcp/local/playbooks.js`, and `docs/reference/`.
+- Introduces the bounded autonomous manager/runtime-control-plane direction for `$maestro` while preserving the fixed gated sequence and release-state ownership boundaries.
+- Extends Linux package artifact and release-asset validation for Debian, Arch, and RPM release lanes.
+
 ## v0.1.11
 
 - Release line prepared automatically for v0.1.11.

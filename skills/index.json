@@ -2,6 +2,11 @@
   "schemaVersion": "0.1.0",
   "skills": [
     {
+      "name": "align",
+      "path": "skills/align",
+      "description": "Use when the user needs scope alignment, shared language, or docs clarity before or between gated lanes."
+    },
+    {
       "name": "arch",
       "path": "skills/arch",
       "description": "Use when the user wants architecture-first product and system design with explicit stack rationale, boundaries, tradeoffs, data model choices, and phased delivery planning."
@@ -12,6 +17,16 @@
       "description": "Use when the user wants to decide whether implementation is ready, what remains blocked, and what the exact next build step should be."
     },
     {
+      "name": "cleanup",
+      "path": "skills/cleanup",
+      "description": "Use when the user wants contract-preserving simplification, anti-slop cleanup, or a final-pass polish after the main decision is made."
+    },
+    {
+      "name": "diagnose",
+      "path": "skills/diagnose",
+      "description": "Use when the user needs failure triage, blocked-lane diagnosis, or root-cause decomposition before the next gate can move."
+    },
+    {
       "name": "flow",
       "path": "skills/flow",
       "description": "Use when the user wants logic validation: states, transitions, invariants, edge cases, dead ends, and blockers before implementation."
@@ -19,17 +34,17 @@
     {
       "name": "maestro",
       "path": "skills/maestro",
-      "description": "Use when the user wants Meta-Architect to choose the best next workflow step, explain why, and recommend the right lane or assignment."
-    },
-    {
-      "name": "meta-architect",
-      "path": "skills/meta-architect",
-      "description": "Use when the user wants the full Meta-Architect workflow inside Codex: architecture-first planning, evidence-backed OSS selection, logic review, security review, DX/UX review, and build readiness without leaving the Codex session."
+      "description": "Use when the user wants the singular Meta-Architect in-session autonomous manager: choose the best next workflow step, manage the fixed gated workflow, and route bounded helper handoffs inside Codex."
     },
     {
       "name": "sage",
       "path": "skills/sage",
       "description": "Use when the user wants evidence-backed technology choices, OSS evaluation, and source-grounded validation of the stack proposed in `$arch`."
+    },
+    {
+      "name": "tdd",
+      "path": "skills/tdd",
+      "description": "Use when the user wants regression-first or test-first scaffolding before implementation work expands."
     },
     {
       "name": "vet",

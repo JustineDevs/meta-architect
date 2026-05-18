@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "0.1.0",
+  "packs": [
+    {
+      "id": "native-ingest-core",
+      "title": "Native Ingest Core",
+      "summary": "Read-only Meta-Architect playbook pack for support-bundle-aware runtime wiring and native packaging discipline.",
+      "readOnly": true,
+      "applicableSkills": ["maestro", "sage", "vet", "align", "diagnose", "tdd", "cleanup"],
+      "runtimeSurfaces": [
+        "mcp/native-playbooks.json",
+        "mcp/local/playbooks.js",
+        "mcp/local-capabilities.json",
+        "docs/installed-sdk.md",
+        "docs/mcp-setup.md"
+      ],
+      "patterns": [
+        {
+          "id": "single-umbrella-routing",
+          "title": "Keep maestro singular",
+          "guidance": "Route native helper families through maestro while keeping the gated release sequence unchanged.",
+          "appliesTo": ["maestro"]
+        },
+        {
+          "id": "read-only-local-capability",
+          "title": "Expose playbooks read-only",
+          "guidance": "Treat playbooks as a packaged local capability with allowlisted resource reads and no mutating local tools.",
+          "appliesTo": ["maestro", "align", "diagnose", "tdd", "cleanup"]
+        },
+        {
+          "id": "bundle-first-support-assets",
+          "title": "Prefer packaged assets",
+          "guidance": "Use support-bundle-installed docs and packaged MCP assets instead of source-checkout-relative guessing.",
+          "appliesTo": ["maestro", "sage", "vet"]
+        }
+      ],
+      "references": [
+        {
+          "id": "installed-support-bundle",
+          "title": "Installed support bundle contract",
+          "path": "docs/installed-sdk.md",
+          "role": "support-bundle"
+        },
+        {
+          "id": "mcp-setup",
+          "title": "MCP setup and GitMCP verification",
+          "path": "docs/mcp-setup.md",
+          "role": "mcp-setup"
+        },
+        {
+          "id": "native-engineering-patterns",
+          "title": "Native engineering patterns",
+          "path": "docs/reference/native-engineering-patterns.md",
+          "role": "reference"
+        },
+        {
+          "id": "native-style-and-deslop",
+          "title": "Native style and deslop",
+          "path": "docs/reference/native-style-and-deslop.md",
+          "role": "reference"
+        },
+        {
+          "id": "native-security-playbooks",
+          "title": "Native security playbooks",
+          "path": "docs/reference/native-security-playbooks.md",
+          "role": "reference"
+        },
+        {
+          "id": "native-source-selection",
+          "title": "Native source selection",
+          "path": "docs/reference/native-source-selection.md",
+          "role": "reference"
+        },
+        {
+          "id": "maestro-native-ingest-map",
+          "title": "Maestro native ingest map",
+          "path": "skills/maestro/references/native-ingest-map.md",
+          "role": "skill-reference"
+        },
+        {
+          "id": "sage-source-selection-pack",
+          "title": "Sage source selection pack",
+          "path": "skills/sage/references/source-selection.md",
+          "role": "skill-reference"
+        },
+        {
+          "id": "vet-security-playbooks-pack",
+          "title": "Vet security playbooks pack",
+          "path": "skills/vet/references/security-playbooks.md",
+          "role": "skill-reference"
+        },
+        {
+          "id": "align-shared-language-pack",
+          "title": "Align shared language pack",
+          "path": "skills/align/references/shared-language.md",
+          "role": "skill-reference"
+        },
+        {
+          "id": "cleanup-style-and-deslop-pack",
+          "title": "Cleanup style and deslop pack",
+          "path": "skills/cleanup/references/style-and-deslop.md",
+          "role": "skill-reference"
+        }
+      ],
+      "provenance": [
+        {
+          "kind": "product-rule",
+          "note": "Repo-owned native curation only; do not expose upstream-branded catalogs as first-class product surfaces."
+        },
+        {
+          "kind": "release-scope",
+          "note": "Playbooks stay read-only in this release and extend the existing first-party local capability registry."
+        }
+      ]
+    }
+  ]
+}

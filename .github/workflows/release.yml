@@ -24,16 +24,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install RPM tooling
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
       - name: Validate release bundle
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: npm run release:check
 
+      - name: Build Linux native packages
+        run: npm run linux:packages:build
+
+      - name: Smoke test Linux native packages
+        run: npm run linux:packages:smoke
+
       - name: Validate release assets
-        run: node .github/scripts/validate-release-assets.js
+        run: npm run release:assets
 
       - name: Publish GitHub release asset
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/meta-architect-skills.tgz
+          files: |
+            dist/meta-architect-skills.tgz
+            dist/*.deb
+            dist/*.pkg.tar.xz
+            dist/*.rpm
           body_path: RELEASE.md

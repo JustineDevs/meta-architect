@@ -1,0 +1,4 @@
+interface:
+  display_name: "$align"
+  short_description: "Scope alignment and shared language helper"
+  default_prompt: "Use $align to resolve scope drift, normalize terminology, and tighten prompts or docs before handing work back to the owning gated lane."

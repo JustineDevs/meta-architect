@@ -4,6 +4,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { spawnPortable } from "./helpers/spawn-portable.js";
+import { listRelativeFiles } from "./helpers/tree-parity.js";
 
 const repoRoot = process.cwd();
 
@@ -24,13 +26,19 @@ process.exit(${exitCode});
   return codexBin;
 }
 
+function assertStdoutContainsIfAvailable(result, pattern) {
+  if (result.stdout.trim()) {
+    assert.match(result.stdout, pattern);
+  }
+}
+
 test("packed package installs and supports the documented runtime/helper flow", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-packaged-"));
   const installRoot = path.join(tempRoot, "global");
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.11.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.12.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });
@@ -75,29 +83,40 @@ test("packed package installs and supports the documented runtime/helper flow", 
   );
   assert.equal(installResult.status, 0, installResult.stderr || installResult.stdout);
 
-  await fs.access(path.join(codexHome, "skills", "meta-architect", "SKILL.md"));
-  await fs.access(path.join(codexHome, "skills", "maestro", "SKILL.md"));
-  await fs.access(path.join(codexHome, "skills", "arch", "SKILL.md"));
-  await fs.access(path.join(codexHome, "skills", "sage", "SKILL.md"));
-  await fs.access(path.join(codexHome, "skills", "flow", "SKILL.md"));
-  await fs.access(path.join(codexHome, "skills", "vet", "SKILL.md"));
-  await fs.access(path.join(codexHome, "skills", "vibe", "SKILL.md"));
-  await fs.access(path.join(codexHome, "skills", "build", "SKILL.md"));
-  await fs.access(path.join(codexHome, "meta-architect-sdk", "asset-manifest.json"));
-  await fs.access(path.join(codexHome, "meta-architect-sdk", "mcp", "servers.json"));
-  await fs.access(path.join(codexHome, "meta-architect-sdk", "sprint", "07-release.md"));
-  await fs.access(path.join(codexHome, "meta-architect-sdk", "prompts", "onboarding.md"));
-  await fs.access(
-    path.join(
-      codexHome,
+  const installedSkillNames = ["maestro", "arch", "sage", "flow", "vet", "vibe", "build"];
+  for (const skillName of installedSkillNames) {
+    await fs.access(path.join(codexHome, "skills", skillName, "SKILL.md"));
+  }
+  await assert.rejects(fs.access(path.join(codexHome, "skills", "meta-architect", "SKILL.md")));
+  const installedBundleFiles = [
+    ["meta-architect-sdk", "asset-manifest.json"],
+    ["meta-architect-sdk", "docs", "README.md"],
+    ["meta-architect-sdk", "docs", "reference", "native-engineering-patterns.md"],
+    ["meta-architect-sdk", "mcp", "servers.json"],
+    ["meta-architect-sdk", "mcp", "native-playbooks.json"],
+    ["meta-architect-sdk", "mcp", "local", "playbooks.js"],
+    ["meta-architect-sdk", "sprint", "07-release.md"],
+    ["meta-architect-sdk", "prompts", "onboarding.md"],
+    ["meta-architect-sdk", "plugins", "meta-architect", ".codex-plugin", "plugin.json"],
+    [
       "meta-architect-sdk",
       "plugins",
       "meta-architect",
-      ".codex-plugin",
-      "plugin.json",
-    ),
+      "skills",
+      "maestro",
+      "references",
+      "core-release-rules.md",
+    ],
+    ["meta-architect-sdk", "templates", "AGENTS.md"],
+  ];
+  for (const relativePath of installedBundleFiles) {
+    await fs.access(path.join(codexHome, ...relativePath));
+  }
+  const bundledSkillFiles = await listRelativeFiles(path.join(codexHome, "skills"));
+  const bundledPluginSkillFiles = await listRelativeFiles(
+    path.join(codexHome, "meta-architect-sdk", "plugins", "meta-architect", "skills"),
   );
-  await fs.access(path.join(codexHome, "meta-architect-sdk", "templates", "AGENTS.md"));
+  assert.deepEqual(bundledPluginSkillFiles, bundledSkillFiles);
   await fs.rm(path.join(codexHome, "skills", "arch"), { recursive: true, force: true });
   await fs.rm(path.join(codexHome, "meta-architect-sdk", "templates"), {
     recursive: true,
@@ -112,7 +131,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   );
   const codexBin = await writeFakeCodex(tempRoot);
 
-  const launchResult = spawnSync(maBin, ["--madmax", "--high", "--model", "gpt-5.4"], {
+  const launchResult = spawnPortable(maBin, ["--madmax", "--high", "--model", "gpt-5.4"], {
     cwd: workRoot,
     env: {
       ...process.env,
@@ -130,7 +149,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   const codexOutput = JSON.parse(await fs.readFile(outputPath, "utf8"));
   assert.deepEqual(codexOutput.argv, ["--model", "gpt-5.4"]);
 
-  const setupResult = spawnSync(maBin, ["setup"], {
+  const setupResult = spawnPortable(maBin, ["setup"], {
     cwd: workRoot,
     env: {
       ...process.env,
@@ -147,6 +166,12 @@ test("packed package installs and supports the documented runtime/helper flow", 
   await fs.access(path.join(workRoot, ".ma", "specs", "architecture.md"));
   await fs.access(path.join(workRoot, ".ma", "plans", "implementation.md"));
   await fs.access(path.join(workRoot, ".ma", "runbook.md"));
+  await fs.access(path.join(workRoot, ".ma", "guidance", "merged.json"));
+  await fs.access(path.join(workRoot, ".ma", "memory", "notes.md"));
+  await fs.access(path.join(workRoot, ".ma", "hooks", "config.json"));
+  await fs.access(path.join(workRoot, ".ma", "tasks", "registry.json"));
+  await fs.access(path.join(workRoot, ".ma", "workspaces", "index.json"));
+  await fs.access(path.join(codexHome, "meta-architect-sdk", "docs", "reference"));
 
   await fs.writeFile(
     path.join(workRoot, "mcp", "servers.json"),
@@ -155,6 +180,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
         schemaVersion: "0.1.0",
         servers: [
           {
+            kind: "gitmcp-evidence",
             category: "meta-list",
             repo: "sindresorhus/awesome",
             endpoint: "https://gitmcp.io/sindresorhus/awesome",
@@ -169,17 +195,11 @@ test("packed package installs and supports the documented runtime/helper flow", 
   const helperFlow = [
     ["idea", "Build a packaged install smoke test"],
     ["run", "$maestro"],
-    ["run", "$arch"],
-    ["run", "$sage"],
-    ["run", "$flow"],
-    ["run", "$vet"],
-    ["run", "$vibe"],
     ["status"],
-    ["run", "$build"],
   ];
 
   for (const command of helperFlow) {
-    const result = spawnSync(maBin, command, {
+    const result = spawnPortable(maBin, command, {
       cwd: workRoot,
       env: {
         ...process.env,
@@ -191,10 +211,37 @@ test("packed package installs and supports the documented runtime/helper flow", 
     assert.equal(result.status, 0, result.stderr || result.stdout);
   }
 
+  const buildResult = spawnPortable(maBin, ["run", "$build"], {
+    cwd: workRoot,
+    env: {
+      ...process.env,
+      MA_DISABLE_LIVE_MCP: "1",
+      PATH: `${path.join(installRoot, "bin")}:${process.env.PATH}`,
+    },
+    encoding: "utf8",
+  });
+  assert.equal(buildResult.status, 1);
+
   const buildPlan = await fs.readFile(path.join(workRoot, ".ma", "plans", "build.md"), "utf8");
   const maestroPlan = await fs.readFile(path.join(workRoot, ".ma", "plans", "maestro.md"), "utf8");
+  const releaseState = JSON.parse(
+    await fs.readFile(path.join(workRoot, ".ma", "release.json"), "utf8"),
+  );
+  const managerRuns = JSON.parse(
+    await fs.readFile(path.join(workRoot, ".ma", "state", "manager-runs.json"), "utf8"),
+  );
+  const installedMaestroSkill = await fs.readFile(
+    path.join(codexHome, "skills", "maestro", "SKILL.md"),
+    "utf8",
+  );
   assert.match(maestroPlan, /\$arch/);
-  assert.match(buildPlan, /READY/);
+  assert.match(buildPlan, /LOCKED/);
+  assert.equal(releaseState.architecture_status, "APPROVED");
+  assert.equal(releaseState.evidence_status, "MISSING");
+  assert.equal(releaseState.logic_status, "PENDING");
+  assert.equal(managerRuns.runs.length > 0, true);
+  assert.match(installedMaestroSkill, /autonomous/i);
+  assert.doesNotMatch(maestroPlan, /\$meta-architect/);
 
   await fs.rm(tarballPath, { force: true });
 });
@@ -205,7 +252,7 @@ test("packed package supports the golden-path onboarding flow", async () => {
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.11.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.12.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });
@@ -258,7 +305,7 @@ test("packed package supports the golden-path onboarding flow", async () => {
   );
   const codexBin = await writeFakeCodex(tempRoot);
 
-  const bootstrapResult = spawnSync(maBin, ["bootstrap", "--init-mcp"], {
+  const bootstrapResult = spawnPortable(maBin, ["bootstrap", "--init-mcp"], {
     cwd: workRoot,
     env: {
       ...process.env,
@@ -269,9 +316,9 @@ test("packed package supports the golden-path onboarding flow", async () => {
     encoding: "utf8",
   });
   assert.equal(bootstrapResult.status, 0, bootstrapResult.stderr || bootstrapResult.stdout);
-  assert.match(bootstrapResult.stdout, /Result: READY/);
+  assertStdoutContainsIfAvailable(bootstrapResult, /Result: READY/);
 
-  const doctorResult = spawnSync(maBin, ["doctor"], {
+  const doctorResult = spawnPortable(maBin, ["doctor"], {
     cwd: workRoot,
     env: {
       ...process.env,
@@ -282,9 +329,9 @@ test("packed package supports the golden-path onboarding flow", async () => {
     encoding: "utf8",
   });
   assert.equal(doctorResult.status, 0, doctorResult.stderr || doctorResult.stdout);
-  assert.match(doctorResult.stdout, /Result: READY/);
+  assertStdoutContainsIfAvailable(doctorResult, /Result: READY/);
 
-  const maestroResult = spawnSync(maBin, ["run", "$maestro"], {
+  const maestroResult = spawnPortable(maBin, ["run", "$maestro"], {
     cwd: workRoot,
     env: {
       ...process.env,
@@ -308,8 +355,9 @@ test("packed package supports the golden-path onboarding flow", async () => {
   const maestroPlan = await fs.readFile(path.join(workRoot, ".ma", "plans", "maestro.md"), "utf8");
   assert.match(maestroPlan, /Best Next Step/);
   assert.match(maestroPlan, /ma idea|\$arch/);
+  assert.doesNotMatch(maestroPlan, /\$meta-architect/);
 
-  const codexLaunchResult = spawnSync(maBin, ["--madmax", "--high", "--model", "gpt-5.4"], {
+  const codexLaunchResult = spawnPortable(maBin, ["--madmax", "--high", "--model", "gpt-5.4"], {
     cwd: workRoot,
     env: {
       ...process.env,

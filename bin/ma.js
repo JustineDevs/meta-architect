@@ -1,11 +1,6 @@
 #!/usr/bin/env node
 
 import { runBootstrap, runDoctor } from "../src/bootstrap.js";
-import {
-  evaluateBuildGate,
-  formatBuildBlockers,
-  formatNextAllowedTriggers,
-} from "../src/build-gate.js";
 import { appendDecision } from "../src/decision-log.js";
 import { runCodex, shouldDelegateToCodex } from "../src/launcher.js";
 import {
@@ -15,7 +10,8 @@ import {
   validateReleaseOrigin,
 } from "../src/policy.js";
 import { loadReleaseState } from "../src/release-state.js";
-import { writeBuildPlanArtifact } from "../src/runtime-artifacts.js";
+import { evaluateRuntimeBuildReadiness } from "../src/runtime/build-readiness.js";
+import { createRuntimeSummary, loadRuntimeSnapshot } from "../src/runtime/runtime-state.js";
 import {
   ensureSkillsInstalled,
   ensureSupportBundleInstalled,
@@ -24,6 +20,7 @@ import {
 import {
   listSkills,
   runArch,
+  runBuildLane,
   runFlow,
   runIdea,
   runInit,
@@ -50,7 +47,7 @@ function printUsage() {
   console.error("  ma release <origin-branch> <target-branch>");
 }
 
-function printStatus(releaseState) {
+async function printStatus(releaseState) {
   console.log("Meta-Architect Status");
   console.log("=====================");
   console.log(`Idea: ${releaseState.idea_status}`);
@@ -61,9 +58,10 @@ function printStatus(releaseState) {
   console.log(`Experience: ${releaseState.experience_status}`);
   console.log(`Build: ${releaseState.build_status}`);
 
-  const evaluation = evaluateBuildGate(releaseState);
+  const runtimeSummary = createRuntimeSummary(await loadRuntimeSnapshot());
+  const evaluation = evaluateRuntimeBuildReadiness(releaseState, runtimeSummary);
   console.log("Next allowed triggers:");
-  const triggers = formatNextAllowedTriggers(evaluation);
+  const triggers = evaluation.nextTriggers;
   if (triggers.length === 0) {
     console.log("$build");
     return;
@@ -74,71 +72,26 @@ function printStatus(releaseState) {
   }
 }
 
-async function runBuild(releaseState) {
-  const evaluation = evaluateBuildGate(releaseState);
-
-  if (!evaluation.allowed) {
-    const blockers = formatBuildBlockers(evaluation);
-    await writeBuildPlanArtifact({
-      allowed: false,
-      blockers,
-      nextTriggers: formatNextAllowedTriggers(evaluation),
-    });
-    await appendDecision({
-      decision: "Blocked build execution",
-      status: "BLOCKED",
-      evidence: [
-        {
-          kind: "release-state",
-          path: ".ma/release.json",
-        },
-      ],
-      blockers,
-      next_allowed_triggers: formatNextAllowedTriggers(evaluation),
-    });
-
+async function runBuild() {
+  const result = await runBuildLane();
+  if (result.status !== "READY") {
     console.error("Build is locked.");
-    for (const blocker of blockers) {
+    for (const blocker of result.blockers) {
       console.error(`- ${blocker}`);
     }
     process.exitCode = 1;
     return;
   }
 
-  const suggestedBranches = ["feature/ui", "feature/api"];
-  await writeBuildPlanArtifact({
-    allowed: true,
-    blockers: [],
-    nextTriggers: ["$build"],
-    suggestedBranches,
-  });
-  await appendDecision({
-    kind: "skill",
-    skill: "$build",
-    decision: "Build gate ready",
-    status: "READY",
-    evidence: [
-      {
-        kind: "release-state",
-        path: ".ma/release.json",
-      },
-      {
-        branches: ["feature/ui", "feature/api"],
-      },
-    ],
-    blockers: [],
-    next_allowed_triggers: ["$build"],
-  });
-
-  await syncStatusUpdates({ build_status: "READY" });
-
+  const suggestedBranches = result.suggestedBranches ?? [];
   console.log("Build gate is green.");
   console.log("Suggested branches:");
-  console.log(`- ${suggestedBranches[0]}`);
-  console.log(`- ${suggestedBranches[1]}`);
+  for (const branch of suggestedBranches) {
+    console.log(`- ${branch}`);
+  }
   console.log("Optional worktree commands:");
-  console.log("git worktree add ../ui feature/ui");
-  console.log("git worktree add ../api feature/api");
+  console.log("git worktree add ../implementation feature/implementation");
+  console.log("git worktree add ../verification feature/verification");
 }
 
 async function runMerge(sourceBranch, targetBranch) {
@@ -266,7 +219,7 @@ async function main() {
 
   if (command === "status") {
     const releaseState = await loadReleaseState();
-    printStatus(releaseState);
+    await printStatus(releaseState);
     return;
   }
 
@@ -288,9 +241,12 @@ async function main() {
     return;
   }
 
+  if (command === "run" && arg === "$meta-architect") {
+    throw new Error("$meta-architect has been removed as a separate surface; use $maestro");
+  }
+
   if (command === "run" && arg === "$build") {
-    const releaseState = await loadReleaseState();
-    await runBuild(releaseState);
+    await runBuild();
     return;
   }
 

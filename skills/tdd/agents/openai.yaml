@@ -1,0 +1,4 @@
+interface:
+  display_name: "$tdd"
+  short_description: "Regression-first and test-first helper"
+  default_prompt: "Use $tdd to define the smallest test that locks the requested behavior before implementation expands."

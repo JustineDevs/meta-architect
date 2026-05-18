@@ -26,6 +26,16 @@ Purpose:
 
 Do not confuse these two layers. The repo publishes `skills/`, not `.ma/`.
 
+## Published surface types
+
+The publishable `skills/` surface contains:
+- one umbrella autonomous manager: `$maestro`
+- fixed gated lanes: `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`
+- non-gating helper skills: `$align`, `$diagnose`, `$tdd`, `$cleanup`
+
+Only `$maestro` is the umbrella surface. Helper skills are intentionally publishable but non-gating.
+The `ma` terminal helper command is part of the npm package surface, not the publishable skill contract.
+
 ## Canonical packaging flow
 
 ### Generate manifest
@@ -80,13 +90,19 @@ npm run skills:install -- --path ./dist/installed-skills
 Expected effect:
 - all publishable skill folders are copied to the target install path
 - install target should contain:
-  - `meta-architect`
+  - `align`
+  - `maestro`
   - `arch`
   - `sage`
   - `flow`
+  - `diagnose`
+  - `tdd`
+  - `cleanup`
   - `vet`
   - `vibe`
   - `build`
+- install target should not contain:
+  - `meta-architect`
 
 ## Expected outputs
 
@@ -97,6 +113,8 @@ Should contain:
 - skill names
 - repo-local path mapping
 - descriptions
+- only native Meta-Architect skill identities
+- a `maestro` description that matches the bounded autonomous-manager contract
 
 ### `dist/meta-architect-skills.tgz`
 
@@ -174,6 +192,9 @@ Relationship:
 - both should remain aligned in behavior and version intent
 - `.agents/plugins/marketplace.json` advertises the local plugin source for discovery
 - `plugins/meta-architect/.codex-plugin/plugin.json` is the plugin contract entrypoint
+- the umbrella in-session entry point is `$maestro`; there is no separately shipped `$meta-architect` skill
+- `$maestro` is the bounded autonomous manager, not a second terminal runtime
+- helper skills remain publishable mirrors, but they do not add release gates or alternate umbrella entry points
 
 If a skill contract changes:
 1. update `skills/`
@@ -212,6 +233,9 @@ npm run pack:inspect
 Before a release is considered real:
 - `skills/index.json` must be current
 - `dist/meta-architect-skills.tgz` must exist
+- `dist/meta-architect_<version>_all.deb` must exist for the Debian-family release lane
+- `dist/meta-architect-<version>-1-any.pkg.tar.xz` must exist for the Arch-family release lane
+- `dist/meta-architect-<version>-1.noarch.rpm` must exist for the Fedora/openSUSE-style release lane
 - install smoke test must pass
 - package inspection must be sane
 - docs must match the published behavior

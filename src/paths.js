@@ -13,6 +13,14 @@ export function getRuntimeRoot() {
   return path.join(getRepoRoot(), ".ma");
 }
 
+export function getRuntimeSubsystemPath(subsystem, ...parts) {
+  return path.join(getRuntimeRoot(), subsystem, ...parts);
+}
+
+export function getRuntimeStatePath(...parts) {
+  return getRuntimeSubsystemPath("state", ...parts);
+}
+
 export function getRuntimeWritePath(...parts) {
   return path.join(getRuntimeRoot(), ...parts);
 }
@@ -21,6 +29,30 @@ export function getRuntimeReadPath(...parts) {
   return path.join(getRuntimeRoot(), ...parts);
 }
 
+export function getMcpRootPath() {
+  return path.join(getRepoRoot(), "mcp");
+}
+
+export function getBundledMcpPath(...parts) {
+  return path.join(packageRoot, "mcp", ...parts);
+}
+
 export function getMcpServersPath() {
-  return path.join(getRepoRoot(), "mcp", "servers.json");
+  return path.join(getMcpRootPath(), "servers.json");
+}
+
+export function getMcpLocalCapabilitiesPath() {
+  return path.join(getMcpRootPath(), "local-capabilities.json");
+}
+
+export function getBundledNativePlaybooksPath() {
+  return getBundledMcpPath("native-playbooks.json");
+}
+
+export function getBundledDocsPath(...parts) {
+  return path.join(packageRoot, "docs", ...parts);
+}
+
+export function getBundledSkillsPath(...parts) {
+  return path.join(packageRoot, "skills", ...parts);
 }

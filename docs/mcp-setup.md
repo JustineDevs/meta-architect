@@ -3,7 +3,29 @@
 1. Use approved discovery accelerators when you need to find OSS candidates faster than browsing GitHub directly.
 2. Add repo-specific GitMCP endpoints in `mcp/servers.json` for any project you want to treat as approved evidence.
 3. Confirm categories in `mcp/collections.json`.
-4. Use `https://gitmcp.io/docs` only when no approved exact endpoint exists.
+4. Do not add `https://gitmcp.io/docs` to `mcp/servers.json`; verified evidence requires exact repo-form GitMCP endpoints only.
+
+## First-party local capabilities
+
+`mcp/local-capabilities.json` is separate from `mcp/servers.json`. It is the allowlist for Meta-Architect's packaged local capabilities:
+
+- `_state`
+- `memory`
+- `trace`
+- `team_run`
+- `code_intel`
+- `playbooks`
+
+`playbooks` is a read-only packaged capability. It does not point at external MCP servers and it does not repurpose `mcp/collections.json`.
+
+Its contract for this release is:
+
+- manifest: `mcp/native-playbooks.json`
+- module: `mcp/local/playbooks.js`
+- transport: `inproc`
+- behavior: packaged resource reads only, no mutating local tools
+
+If bootstrap or doctor reports a `playbooks` readiness warning, repair the packaged support bundle inputs rather than adding more GitMCP sources.
 
 ## Discovery vs verification
 
@@ -46,3 +68,10 @@ To move from discovery to VERIFIED evidence:
 - identify the upstream GitHub repository or official package/docs source from the discovery surface
 - map that repo to an exact `https://gitmcp.io/{owner}/{repo}` endpoint in `mcp/servers.json`
 - validate the choice against the upstream repo and official docs through `$sage`
+
+## Separation of concerns
+
+- `mcp/servers.json` remains for repo-specific GitMCP evidence sources
+- `mcp/collections.json` remains GitMCP-oriented evidence categorization for this release
+- `mcp/local-capabilities.json` is the first-party in-process capability registry
+- `mcp/native-playbooks.json` is internal native curation metadata, not an upstream mirror or user-edited evidence source list

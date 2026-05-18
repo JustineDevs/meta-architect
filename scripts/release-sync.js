@@ -239,12 +239,6 @@ function syncSupportingCode(oldVersion, nextVersion) {
       label: "skills QA path",
     },
     {
-      file: path.join("src", "mcp-live-client.js"),
-      search: `version: "${oldVersion}"`,
-      replacement: `version: "${nextVersion}"`,
-      label: "mcp live client version",
-    },
-    {
       file: path.join("test", "package-install-smoke.test.js"),
       search: `jstn-sdk-ma-${oldVersion}.tgz`,
       replacement: `jstn-sdk-ma-${nextVersion}.tgz`,
@@ -262,6 +256,19 @@ function syncSupportingCode(oldVersion, nextVersion) {
     const content = readText(entry.file);
     writeText(entry.file, replaceRequired(content, entry.search, entry.replacement, entry.label));
   }
+
+  const mcpLiveClientFile = path.join("src", "mcp-live-client.js");
+  const mcpLiveClient = readText(mcpLiveClientFile);
+  if (!/version: "[0-9]+\.[0-9]+\.[0-9]+(?:-dev)?"/.test(mcpLiveClient)) {
+    throw new Error("Expected to find mcp live client version declaration");
+  }
+  writeText(
+    mcpLiveClientFile,
+    mcpLiveClient.replace(
+      /version: "[0-9]+\.[0-9]+\.[0-9]+(?:-dev)?"/,
+      `version: "${nextVersion}-dev"`,
+    ),
+  );
 }
 
 function rewriteReleaseState(nextVersion, previousVersion) {

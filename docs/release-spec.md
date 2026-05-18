@@ -1,13 +1,13 @@
-# v0.1.11 Requirements & Rules
+# v0.1.12 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.1.11` is production only when:
+Meta-Architect `v0.1.12` is production only when:
 1. the package/install surface works
 2. the in-session skill workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
-## What `v0.1.11` must have
+## What `v0.1.12` must have
 
 ### 1. Canonical package/runtime path
 
@@ -49,12 +49,18 @@ Canonical state files:
 
 ### 4. Required release evidence
 
-- `package.json` version `0.1.11`
-- git tag `v0.1.11`
+- `package.json` version `0.1.12`
+- git tag `v0.1.12`
 - `RELEASE.md`
 - `CHANGELOG.md`
-- `docs/qa/release-readiness-0.1.11.md`
+- `docs/qa/release-readiness-0.1.12.md`
 - green `npm run release:check`
+- GitHub release asset `meta-architect_0.1.12_all.deb`
+- GitHub release asset `meta-architect-0.1.12-1-any.pkg.tar.xz`
+- GitHub release asset `meta-architect-0.1.12-1.noarch.rpm`
+- green `npm run linux:packages:build`
+- green `npm run linux:packages:smoke`
+- green `npm run release:assets`
 
 ### 5. Dist-tag discipline
 
@@ -72,12 +78,17 @@ Canonical state files:
 4. Update `docs/qa/release-readiness-<version>.md`
 5. Run `npm run release:verify`
 6. Run `npm run release:check`
-7. Create and push tag `v<version>`
-8. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
-9. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
+7. Build and smoke-check the Linux native packages on Linux:
+   - `npm run linux:packages:build`
+   - `npm run linux:packages:smoke`
+   - `npm run release:assets`
+8. Create and push tag `v<version>`
+9. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
+10. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
    - Stable publish: `npm publish --access public`
    - Prerelease publish: `npm publish --access public --tag <lane>`
-10. Verify dist-tags with `npm view @jstn-sdk/ma version dist-tags time --json`
+11. Verify dist-tags with `npm view @jstn-sdk/ma version dist-tags time --json`
+12. Verify the GitHub release contains `dist/meta-architect-skills.tgz`, `meta-architect_<version>_all.deb`, `meta-architect-<version>-1-any.pkg.tar.xz`, and `meta-architect-<version>-1.noarch.rpm`
 
 ### 6.1 Release automation
 

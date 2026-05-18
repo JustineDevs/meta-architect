@@ -1,11 +1,30 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import {
+  getDebArtifactName,
+  getPacmanArtifactName,
+  getRpmArtifactName,
+} from "./linux-package-lib.mjs";
+
+const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
 
 const checks = [
   ["package.json", fs.existsSync("package.json")],
   ["skills/index.json", fs.existsSync("skills/index.json")],
   ["dist/meta-architect-skills.tgz", fs.existsSync("dist/meta-architect-skills.tgz")],
+  [
+    `dist/${getDebArtifactName(pkg.version)}`,
+    fs.existsSync(`dist/${getDebArtifactName(pkg.version)}`),
+  ],
+  [
+    `dist/${getPacmanArtifactName(pkg.version)}`,
+    fs.existsSync(`dist/${getPacmanArtifactName(pkg.version)}`),
+  ],
+  [
+    `dist/${getRpmArtifactName(pkg.version)}`,
+    fs.existsSync(`dist/${getRpmArtifactName(pkg.version)}`),
+  ],
   [".codex/hooks.json", fs.existsSync(".codex/hooks.json")],
   [".ma/decisions.json", fs.existsSync(".ma/decisions.json")],
   [".ma/release.json", fs.existsSync(".ma/release.json")],

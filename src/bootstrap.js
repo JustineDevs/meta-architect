@@ -2,8 +2,15 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { loadMcpServers } from "./mcp-config.js";
-import { getRepoRoot, getRuntimeWritePath, packageRoot } from "./paths.js";
+import { loadDecisionLog } from "./decision-log.js";
+import {
+  runLocalCapabilityReadinessChecks,
+  validateLocalCapabilities,
+  validateMcpServers,
+} from "./mcp-config.js";
+import { getMcpRootPath, getRepoRoot, getRuntimeWritePath, packageRoot } from "./paths.js";
+import { loadReleaseState } from "./release-state.js";
+import { loadLeaderAuthority, loadRuntimeSnapshot } from "./runtime/runtime-state.js";
 import {
   areSkillsInstalled,
   ensureSkillsInstalled,
@@ -32,21 +39,23 @@ function runCommand(command, args) {
 function inspectCodex() {
   const command = resolveCodexCommand();
   const result = runCommand(command, ["--version"]);
-  if (result.error || result.status !== 0) {
-    const detail = result.error?.message ?? result.stderr.trim() ?? result.stdout.trim();
+  const version = result.stdout.trim();
+  if (result.status === 0) {
     return {
-      ok: false,
+      ok: true,
       command,
-      detail: detail || "Codex command failed",
-      version: "",
+      detail: result.error?.message ?? "",
+      version,
     };
   }
 
   return {
-    ok: true,
+    ok: false,
     command,
-    detail: "",
-    version: result.stdout.trim(),
+    detail:
+      (result.error?.message ?? result.stderr.trim() ?? result.stdout.trim()) ||
+      "Codex command failed",
+    version: "",
   };
 }
 
@@ -141,7 +150,19 @@ async function inspectLocalScaffold() {
   const requiredFiles = [
     getRuntimeWritePath("decisions.json"),
     getRuntimeWritePath("release.json"),
-    path.join(getRepoRoot(), "mcp", "servers.json"),
+    getRuntimeWritePath("guidance", "merged.json"),
+    getRuntimeWritePath("guidance", "include-graph.json"),
+    getRuntimeWritePath("memory", "notes.md"),
+    getRuntimeWritePath("memory", "index.json"),
+    getRuntimeWritePath("hooks", "config.json"),
+    getRuntimeWritePath("hooks", "audit.log"),
+    getRuntimeWritePath("tasks", "registry.json"),
+    getRuntimeWritePath("tasks", "mailbox"),
+    getRuntimeWritePath("tasks", "locks"),
+    getRuntimeWritePath("workspaces", "index.json"),
+    getRuntimeWritePath("state", "manager-runs.json"),
+    path.join(getMcpRootPath(), "servers.json"),
+    path.join(getMcpRootPath(), "local-capabilities.json"),
   ];
 
   for (const file of requiredFiles) {
@@ -152,33 +173,55 @@ async function inspectLocalScaffold() {
     }
   }
 
+  try {
+    await loadReleaseState();
+    await loadDecisionLog();
+    const authority = await loadLeaderAuthority();
+    if (authority.state === "invalid") {
+      return false;
+    }
+    const snapshot = await loadRuntimeSnapshot();
+    if (snapshot.missingArtifacts.length > 0 || snapshot.invalidArtifacts.length > 0) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+
   return true;
 }
 
 async function seedStarterMcpConfig() {
   const files = ["servers.json", "collections.json", "fallback.json"];
   for (const file of files) {
-    await fs.copyFile(path.join(packageRoot, "mcp", file), path.join(getRepoRoot(), "mcp", file));
+    await fs.copyFile(path.join(packageRoot, "mcp", file), path.join(getMcpRootPath(), file));
   }
 }
 
-async function inspectMcpState({ fix, initMcp }) {
+async function seedLocalCapabilityManifest() {
+  await fs.copyFile(
+    path.join(packageRoot, "mcp", "local-capabilities.json"),
+    path.join(getMcpRootPath(), "local-capabilities.json"),
+  );
+}
+
+async function inspectGitMcpState({ fix, initMcp }) {
   try {
-    const servers = await loadMcpServers();
+    const servers = await validateMcpServers();
     if (servers.servers.length === 0) {
       if (fix && initMcp) {
         await seedStarterMcpConfig();
-        const seededServers = await loadMcpServers();
+        const seededServers = await validateMcpServers();
         return makeStatus(
           "FIXED",
-          "starter MCP sources were seeded into mcp/servers.json",
+          "repo-owned GitMCP evidence sources were seeded into mcp/servers.json",
           `${seededServers.servers.length} configured source(s)`,
         );
       }
 
       return makeStatus(
         "WARN",
-        "mcp/servers.json exists but contains no approved repo-backed sources",
+        "repo-owned mcp/servers.json contains no approved GitMCP evidence sources",
         initMcp
           ? "Run `ma bootstrap --init-mcp` to seed starter sources, or add exact upstream GitMCP repo endpoints manually."
           : "Add exact upstream GitMCP repo endpoints before claiming VERIFIED evidence.",
@@ -187,21 +230,74 @@ async function inspectMcpState({ fix, initMcp }) {
 
     return makeStatus(
       "OK",
-      "mcp/servers.json has approved starter sources",
+      "repo-owned mcp/servers.json is ready for GitMCP evidence binding",
       `${servers.servers.length} configured source(s)`,
     );
   } catch (error) {
     if (fix && initMcp) {
       await seedStarterMcpConfig();
-      const seededServers = await loadMcpServers();
+      const seededServers = await validateMcpServers();
       return makeStatus(
         "FIXED",
-        "starter MCP sources replaced an invalid MCP configuration",
+        "repo-owned mcp/servers.json was reseeded with starter GitMCP evidence sources",
         `${seededServers.servers.length} configured source(s)`,
       );
     }
 
-    return makeStatus("WARN", "mcp/servers.json is not ready for evidence binding", error.message);
+    return makeStatus(
+      "WARN",
+      "repo-owned mcp/servers.json is not ready for GitMCP evidence binding",
+      error.message,
+    );
+  }
+}
+
+async function inspectLocalCapabilityState({ fix }) {
+  function summarizeReadiness(readiness) {
+    const notReady = readiness.filter((item) => !item.ready);
+    const allReady = notReady.length === 0;
+    return {
+      allReady,
+      detail: allReady
+        ? readiness.map((item) => item.capability).join(", ")
+        : notReady.map((item) => `${item.capability}: ${item.detail}`).join("; "),
+    };
+  }
+
+  try {
+    await validateLocalCapabilities();
+    const summary = summarizeReadiness(await runLocalCapabilityReadinessChecks());
+    if (!summary.allReady) {
+      return makeStatus(
+        "WARN",
+        "package-owned mcp/local-capabilities.json is valid but some local capabilities are not ready",
+        summary.detail,
+      );
+    }
+
+    return makeStatus(
+      "OK",
+      "package-owned mcp/local-capabilities.json is ready for first-party capabilities",
+      summary.detail,
+    );
+  } catch (error) {
+    if (fix) {
+      await seedLocalCapabilityManifest();
+      const summary = summarizeReadiness(await runLocalCapabilityReadinessChecks());
+      return makeStatus(
+        summary.allReady ? "FIXED" : "WARN",
+        summary.allReady
+          ? "package-owned mcp/local-capabilities.json was reseeded from the bundled SDK"
+          : "package-owned mcp/local-capabilities.json was reseeded but some local capabilities are not ready",
+        summary.detail,
+      );
+    }
+
+    return makeStatus(
+      "WARN",
+      "package-owned mcp/local-capabilities.json is not ready for first-party capabilities",
+      error.message,
+    );
   }
 }
 
@@ -268,10 +364,13 @@ async function runEnvironmentFlow({ fix, initMcp }) {
 
   if (fix) {
     await runInit();
+    const scaffoldReady = await inspectLocalScaffold();
     statuses.push(
       makeStatus(
-        "FIXED",
-        "local Meta-Architect scaffold is ready",
+        scaffoldReady ? "FIXED" : "WARN",
+        scaffoldReady
+          ? "local Meta-Architect scaffold is ready"
+          : "local Meta-Architect scaffold still has invalid runtime artifacts",
         path.join(getRepoRoot(), ".ma"),
       ),
     );
@@ -285,7 +384,8 @@ async function runEnvironmentFlow({ fix, initMcp }) {
     );
   }
 
-  statuses.push(await inspectMcpState({ fix, initMcp }));
+  statuses.push(await inspectGitMcpState({ fix, initMcp }));
+  statuses.push(await inspectLocalCapabilityState({ fix }));
   return statuses;
 }
 

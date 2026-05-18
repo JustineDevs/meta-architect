@@ -1,5 +1,6 @@
 import { readJson, writeJson } from "./fs-utils.js";
 import { getRuntimeReadPath, getRuntimeWritePath } from "./paths.js";
+import { guardLeaderMutation } from "./runtime/runtime-state.js";
 
 function validateDecisionShape(entry) {
   const required = ["decision", "status", "evidence", "blockers", "next_allowed_triggers"];
@@ -20,7 +21,16 @@ export async function loadDecisionLog() {
   return parsed;
 }
 
-export async function appendDecision(entry) {
+export async function appendDecision(entry, options = {}) {
+  const guard = await guardLeaderMutation({
+    actor: options.actor,
+    kind: "decision-append",
+    payload: entry,
+  });
+  if (!guard.allowed) {
+    return { proposed: true, proposalPath: guard.proposalPath };
+  }
+
   validateDecisionShape(entry);
   const log = await loadDecisionLog();
   log.decisions.push({
@@ -29,12 +39,5 @@ export async function appendDecision(entry) {
   });
 
   await writeJson(getRuntimeWritePath("decisions.json"), log);
-}
-
-export async function updateDecisionStatuses(statusUpdates) {
-  const log = await loadDecisionLog();
-  for (const [field, value] of Object.entries(statusUpdates)) {
-    log[field] = value;
-  }
-  await writeJson(getRuntimeWritePath("decisions.json"), log);
+  return { proposed: false, proposalPath: null };
 }

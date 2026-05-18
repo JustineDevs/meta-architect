@@ -1,0 +1,4 @@
+interface:
+  display_name: "$cleanup"
+  short_description: "Anti-slop cleanup and final-pass polish"
+  default_prompt: "Use $cleanup to simplify noisy code or docs, remove avoidable slop, and polish wording without changing the owning lane."

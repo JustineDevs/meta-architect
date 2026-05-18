@@ -1,13 +1,12 @@
 # Skills
 
-Meta-Architect’s canonical Codex runtime surface is:
-- `$maestro`
-- `$arch`
-- `$sage`
-- `$flow`
-- `$vet`
-- `$vibe`
-- `$build`
+Meta-Architect ships three in-session skill layers:
+
+- umbrella autonomous manager: `$maestro`
+- fixed gated lanes: `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`
+- non-gating helper skills: `$align`, `$diagnose`, `$tdd`, `$cleanup`
+
+The package does not ship a separate `$meta-architect` in-session skill. `$maestro` is the umbrella contract for next-step management, bounded lane handoff, and fixed-sequence supervision.
 
 ## Real usage path
 
@@ -28,11 +27,12 @@ npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 Then inside the Codex session:
-1. Start with `$maestro` when you want Meta-Architect to choose the best next step
+1. Start with `$maestro` when you want Meta-Architect to act as the bounded autonomous manager for the workflow
 2. Or start with `$arch` when you already know the architecture lane is next
 3. Continue through `$sage -> $flow -> $vet -> $vibe -> $build`
+4. Use `$align`, `$diagnose`, `$tdd`, or `$cleanup` only as publishable non-gating helper skills around that gated path
 
-## Simple difference
+## Two surfaces
 
 Meta-Architect has two surfaces:
 
@@ -59,6 +59,10 @@ $flow
 $vet
 $vibe
 $build
+$align
+$diagnose
+$tdd
+$cleanup
 ```
 
 Short rule:
@@ -69,6 +73,11 @@ Important:
 - `ma setup` and `ma init` currently do the same thing
 - they only create local support files
 - they do not replace the in-session skill flow
+
+Manager contract:
+- `$maestro` is the only umbrella in-session surface
+- `$maestro` manages the next allowed step, but gated outputs still belong to `$arch -> $sage -> $flow -> $vet -> $vibe -> $build`
+- helper skills are publishable mirrors that can assist a lane, but they do not move release gates
 
 ## Installed support bundle
 
@@ -95,6 +104,7 @@ Relevant packaged assets there include:
 - `scripts/`
 - `plugins/meta-architect/`
 - `templates/`
+- native skill references such as `skills/maestro/references/`, `skills/sage/references/`, `skills/vet/references/`, `skills/align/references/`, and `skills/cleanup/references/`
 
 This exists so Meta-Architect can use relevant packaged files without guessing paths.
 
@@ -109,7 +119,7 @@ Every skill result must include:
 
 ## Status ownership
 
-- `$maestro` -> next-step recommendation
+- `$maestro` -> umbrella workflow management, next-step recommendation, and bounded helper/gate handoff
 - project brief -> architecture input
 - `$arch` -> `architecture_status`
 - `$sage` -> `evidence_status`
@@ -118,6 +128,8 @@ Every skill result must include:
 - `$vibe` -> `experience_status`
 - `$build` -> `build_status`
 
+Helper skills do not own release-state fields. They are publishable but non-gating, so they support the current lane and then hand work back to `$maestro` or the gated lane that owns the decision.
+
 ## Operator note
 
-The in-session skill surface is primary. The `ma` helper commands only exist to start Codex context and to provide repo-local state automation when scripted verification is needed.
+The in-session skill surface is primary. The `ma` terminal helper commands only exist to start Codex context and to provide repo-local state automation when scripted verification is needed.

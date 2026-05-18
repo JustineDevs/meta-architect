@@ -2,51 +2,61 @@
   "schemaVersion": "0.1.0",
   "servers": [
     {
+      "kind": "gitmcp-evidence",
       "category": "meta-list",
       "repo": "sindresorhus/awesome",
       "endpoint": "https://gitmcp.io/sindresorhus/awesome"
     },
     {
+      "kind": "gitmcp-evidence",
       "category": "typescript",
       "repo": "dzharii/awesome-typescript",
       "endpoint": "https://gitmcp.io/dzharii/awesome-typescript"
     },
     {
+      "kind": "gitmcp-evidence",
       "category": "rust",
       "repo": "rust-unofficial/awesome-rust",
       "endpoint": "https://gitmcp.io/rust-unofficial/awesome-rust"
     },
     {
+      "kind": "gitmcp-evidence",
       "category": "go",
       "repo": "avelino/awesome-go",
       "endpoint": "https://gitmcp.io/avelino/awesome-go"
     },
     {
+      "kind": "gitmcp-evidence",
       "category": "python",
       "repo": "vinta/awesome-python",
       "endpoint": "https://gitmcp.io/vinta/awesome-python"
     },
     {
+      "kind": "gitmcp-evidence",
       "category": "java",
       "repo": "akullpp/awesome-java",
       "endpoint": "https://gitmcp.io/akullpp/awesome-java"
     },
     {
+      "kind": "gitmcp-evidence",
       "category": "dotnet",
       "repo": "quozd/awesome-dotnet",
       "endpoint": "https://gitmcp.io/quozd/awesome-dotnet"
     },
     {
+      "kind": "gitmcp-evidence",
       "category": "security",
       "repo": "sbilly/awesome-security",
       "endpoint": "https://gitmcp.io/sbilly/awesome-security"
     },
     {
+      "kind": "gitmcp-evidence",
       "category": "self-hosted",
       "repo": "awesome-selfhosted/awesome-selfhosted",
       "endpoint": "https://gitmcp.io/awesome-selfhosted/awesome-selfhosted"
     },
     {
+      "kind": "gitmcp-evidence",
       "category": "system-design",
       "repo": "checkcheckzz/system-design-interview",
       "endpoint": "https://gitmcp.io/checkcheckzz/system-design-interview"

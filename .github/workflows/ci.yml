@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install RPM tooling
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
       - name: Verify release metadata alignment
         run: npm run release:verify
 
@@ -61,4 +64,47 @@ jobs:
             skills/index.json
             plugins/meta-architect/.codex-plugin/plugin.json
             .agents/plugins/marketplace.json
+          if-no-files-found: ignore
+
+  linux-packages:
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pack skills bundle
+        run: npm run skills:pack
+
+      - name: Build Linux native packages
+        run: npm run linux:packages:build
+
+      - name: Smoke test Linux native packages
+        run: npm run linux:packages:smoke
+
+      - name: Validate release asset set
+        run: npm run release:assets
+
+      - name: Upload Linux release assets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta-architect-linux-release-assets
+          path: |
+            dist/*.tgz
+            dist/*.deb
+            dist/*.pkg.tar.xz
+            dist/*.rpm
+            dist/linux-package-manifest.json
           if-no-files-found: ignore

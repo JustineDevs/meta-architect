@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "0.1.0",
+  "capabilities": [
+    {
+      "kind": "local-capability",
+      "capability": "_state",
+      "transport": "inproc",
+      "module": "./local/state.js",
+      "readinessCheck": "checkStateCapability",
+      "seededByBootstrap": true,
+      "authorityMode": "proposal-only-write-surface"
+    },
+    {
+      "kind": "local-capability",
+      "capability": "memory",
+      "transport": "inproc",
+      "module": "./local/memory.js",
+      "readinessCheck": "checkMemoryCapability",
+      "seededByBootstrap": true
+    },
+    {
+      "kind": "local-capability",
+      "capability": "trace",
+      "transport": "inproc",
+      "module": "./local/trace.js",
+      "readinessCheck": "checkTraceCapability",
+      "seededByBootstrap": true,
+      "observability": ["runtime-summary", "manager-runs"]
+    },
+    {
+      "kind": "local-capability",
+      "capability": "team_run",
+      "transport": "inproc",
+      "module": "./local/team-run.js",
+      "readinessCheck": "checkTeamRunCapability",
+      "seededByBootstrap": true,
+      "authorityMode": "proposal-only-write-surface"
+    },
+    {
+      "kind": "local-capability",
+      "capability": "code_intel",
+      "transport": "inproc",
+      "module": "./local/code-intel.js",
+      "readinessCheck": "checkCodeIntelCapability",
+      "seededByBootstrap": true
+    },
+    {
+      "kind": "local-capability",
+      "capability": "playbooks",
+      "transport": "inproc",
+      "module": "./local/playbooks.js",
+      "readinessCheck": "checkPlaybooksCapability",
+      "seededByBootstrap": true
+    }
+  ]
+}

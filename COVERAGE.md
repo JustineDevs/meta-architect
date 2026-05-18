@@ -40,7 +40,7 @@ Registry state: `npm publish` returned success for `@jstn-sdk/ma@0.1.0` on `2026
 ## Skill surface coverage
 
 Canonical public skills:
-- `meta-architect`
+- `maestro`
 - `arch`
 - `sage`
 - `flow`

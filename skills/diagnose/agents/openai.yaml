@@ -1,0 +1,4 @@
+interface:
+  display_name: "$diagnose"
+  short_description: "Blocked-lane diagnosis and failure triage"
+  default_prompt: "Use $diagnose to break a vague failure into concrete hypotheses, probes, and the smallest next debugging step without changing gate ownership."

@@ -1,7 +1,7 @@
 {
   "name": "meta-architect",
-  "version": "0.1.11",
-  "description": "Skills-first workflow layer for Codex with architecture, evidence, review, and gated build guidance.",
+  "version": "0.1.12",
+  "description": "Skills-first workflow layer for Codex with a bounded autonomous manager, architecture, evidence, review, and gated build guidance.",
   "author": {
     "name": "JustineDevs",
     "url": "https://github.com/JustineDevs"
@@ -15,8 +15,8 @@
   "apps": "./.app.json",
   "interface": {
     "displayName": "Meta-Architect",
-    "shortDescription": "Architecture-first skill bundle for Codex workflows.",
-    "longDescription": "Meta-Architect packages reusable Codex skills plus plugin-scoped MCP and app metadata. The in-session skill workflow is primary. The ma helper command and .ma state only support setup, release gates, and optional local helper automation.",
+    "shortDescription": "Architecture-first skill bundle with a bounded in-session autonomous manager.",
+    "longDescription": "Meta-Architect packages reusable Codex skills plus plugin-scoped MCP and app metadata. The in-session skill workflow is primary, with `$maestro` as the single bounded autonomous manager over the fixed gated sequence and the publishable non-gating helper skills. The `ma` helper command and `.ma` state only support setup, release gates, and optional local helper automation.",
     "developerName": "JustineDevs",
     "category": "Developer Tools"
   }

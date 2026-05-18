@@ -18,9 +18,9 @@
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.1.11` is a production-grade skills line.
+> Meta-Architect `v0.1.12` is a production-grade skills line.
 > It is not a lightweight demo branch.
-> From `v0.1.11` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> From `v0.1.12` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
 
 ## Overview
 
@@ -31,6 +31,7 @@ It adds:
 - an architecture-first lane before implementation
 - evidence-backed OSS selection through GitMCP-connected sources
 - explicit logic, security, and DX/UX review gates
+- a singular `$maestro` bounded autonomous manager plus non-gating helper skills for alignment, diagnosis, test-first work, and cleanup
 - installable skills and a reproducible package surface
 
 > [!NOTE]
@@ -44,8 +45,12 @@ It adds:
 
 <table>
   <tr>
+    <td><strong>Linux-native packages</strong></td>
+    <td><code>.deb</code> for Debian-family distros, <code>.pkg.tar.xz</code> for Arch-family distros, and <code>.rpm</code> for Fedora/openSUSE-style distros</td>
+  </tr>
+  <tr>
     <td><strong>npm package</strong></td>
-    <td><code>@jstn-sdk/ma</code></td>
+    <td><code>@jstn-sdk/ma</code> (fallback install path)</td>
   </tr>
   <tr>
     <td><strong>Helper command</strong></td>
@@ -57,7 +62,7 @@ It adds:
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.1.11</code></td>
+    <td><code>v0.1.12</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -97,11 +102,39 @@ It adds:
 > [!TIP]
 > The most reliable default environment is a Unix-like shell with Git, Node.js, and an MCP-capable runtime already configured.
 
-## Recommended Default Flow
+## Default Install Surfaces
 
-Meta-Architect is intended to be consumed as an installed package, not primarily as a git clone.
+Meta-Architect is a Codex-native session workflow. On Linux, the primary install surface is now distro-style package installation, not a standalone binary shell.
 
-Primary product path:
+### Debian, Ubuntu, Linux Mint, Pop!_OS
+
+Download the GitHub release `.deb` asset and install it with your normal package command:
+
+```bash
+sudo apt install ./meta-architect_<version>_all.deb
+```
+
+### Arch, Manjaro, EndeavourOS
+
+Download the GitHub release pacman package asset and install it with:
+
+```bash
+sudo pacman -U ./meta-architect-<version>-1-any.pkg.tar.xz
+```
+
+### Fedora, RHEL-family, openSUSE
+
+Download the GitHub release RPM asset and install it with your distro-native command:
+
+```bash
+sudo dnf install ./meta-architect-<version>-1.noarch.rpm
+# or
+sudo zypper install ./meta-architect-<version>-1.noarch.rpm
+```
+
+These packages install the Meta-Architect payload and expose `ma` / `meta-architect`, but the product still runs inside a Codex-native session. They do not create a separate desktop or terminal product.
+
+### npm fallback
 
 ```bash
 # Install
@@ -125,8 +158,8 @@ What this assumes:
 - the product experience happens through the skill workflow inside Codex
 
 > [!IMPORTANT]
-> The recommended default flow is package-first.
-> The git clone path is for contributors and maintainers, not the main user-facing install story.
+> On Linux, distro-native package install is the default surface.
+> npm remains available as a fallback path.
 
 ## Repository Branch Strategy
 
@@ -147,7 +180,25 @@ Meta-Architect’s repository workflow follows a stricter release posture focuse
 
 ### Package setup
 
-Install the consumer package directly:
+Debian-family install:
+
+```bash
+sudo apt install ./meta-architect_<version>_all.deb
+```
+
+Arch-family install:
+
+```bash
+sudo pacman -U ./meta-architect-<version>-1-any.pkg.tar.xz
+```
+
+Fedora/openSUSE install:
+
+```bash
+sudo dnf install ./meta-architect-<version>-1.noarch.rpm
+```
+
+npm fallback:
 
 ```bash
 # Install
@@ -230,7 +281,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.11
+8. Delivery plan for v0.1.12
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -238,15 +289,26 @@ Required output:
 
 ### 3. Run the full trigger sequence inside Codex
 
-After `$arch`, continue exactly like the usage workflow:
+The singular umbrella in-session entry point is `$maestro`. It is the bounded autonomous manager for the in-session workflow. The package does not ship a separate `$meta-architect` skill.
+
+The release-gated sequence stays fixed:
 
 ```text
-$maestro
+$arch
 $sage
 $flow
 $vet
 $vibe
 $build
+```
+
+Optional publishable non-gating helper skills available around that sequence:
+
+```text
+$align
+$diagnose
+$tdd
+$cleanup
 ```
 
 See [example/usage-workflow.md](./example/usage-workflow.md) for the full prompt templates for each step.
@@ -294,17 +356,17 @@ Example:
 
 ```json
 {
-  "category": "meta-list",
-  "repo": "sindresorhus/awesome",
-  "endpoint": "https://gitmcp.io/sindresorhus/awesome"
+  "category": "candidate",
+  "repo": "owner/repo",
+  "endpoint": "https://gitmcp.io/owner/repo"
 }
 ```
 
-Recommended starter endpoints:
+Recommended source-selection posture:
 
-- `https://gitmcp.io/sindresorhus/awesome`
-- `https://gitmcp.io/dzharii/awesome-typescript`
-- `https://gitmcp.io/sbilly/awesome-security`
+- use packaged native references to narrow candidate families first
+- map serious candidates to exact upstream GitMCP endpoints
+- verify final choices against upstream repos and official docs before approval
 
 Core discovery standard:
 
@@ -321,6 +383,12 @@ Core discovery standard:
 - `https://www.opensourceprojects.dev/`
 - use Open-source Projects for curated OSS discovery and detailed project writeups
 - treat all of these as discovery acceleration, then convert promising finds into exact upstream GitMCP mappings and official-doc checks for `$sage`
+
+Useful native references:
+
+- `skills/maestro/references/native-ingest-map.md`
+- `skills/sage/references/source-selection.md`
+- `skills/vet/references/security-playbooks.md`
 
 Canonical `$sage` order:
 
@@ -370,11 +438,11 @@ Expected helper-path build output:
 ```text
 Build gate is green.
 Suggested branches:
-- feature/ui
-- feature/api
+- feature/implementation
+- feature/verification
 Optional worktree commands:
-git worktree add ../ui feature/ui
-git worktree add ../api feature/api
+git worktree add ../implementation feature/implementation
+git worktree add ../verification feature/verification
 ```
 
 ### 7. Simple command guide
@@ -383,6 +451,8 @@ Meta-Architect has two surfaces.
 
 - terminal helper commands
 - in-session skills
+
+The umbrella in-session entry point is `$maestro`. There is no separate shipped `$meta-architect` skill surface.
 
 Terminal commands are normal shell commands you run in the terminal:
 
@@ -404,11 +474,20 @@ $flow
 $vet
 $vibe
 $build
+$align
+$diagnose
+$tdd
+$cleanup
 ```
 
 Plain-language difference:
 - `ma ...` = helper commands in the terminal
 - `$...` = the product experience inside Codex
+
+Autonomous-manager contract:
+- `$maestro` is the only umbrella in-session surface
+- it manages the next allowed step and lane handoff, but it does not replace the gated outputs owned by `$arch -> $sage -> $flow -> $vet -> $vibe -> $build`
+- `$align`, `$diagnose`, `$tdd`, and `$cleanup` are publishable helper skills that do not move release gates
 
 What `ma setup` and `ma init` do:
 - both currently do the same thing
@@ -429,12 +508,23 @@ What `ma doctor` does:
 
 What to use when:
 - use Codex and run the skills in-session
-- use `$maestro` when you want Meta-Architect to choose the best next step for you
+- use `$maestro` when you want Meta-Architect to choose the best next step for you or act as the bounded autonomous manager for the umbrella workflow
 - use `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` inside the Codex session
+- use `$align`, `$diagnose`, `$tdd`, or `$cleanup` when a helper is enough and the release gate should stay where it is
 - use `ma bootstrap` when you want the lazy-user setup path
 - use `ma doctor` when you want a check-only environment report
 - use `ma setup` or `ma init` only when you want local scaffolding or scripted helper automation from the terminal
 - use `ma sdk-path` when you need the exact installed support-bundle path for packaged prompts, MCP files, sprint files, scripts, plugin metadata, or templates
+
+## Skill Surface
+
+Meta-Architect’s in-session surface has three layers:
+
+- umbrella autonomous manager: `$maestro`
+- fixed gated lanes: `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`
+- non-gating helper skills: `$align`, `$diagnose`, `$tdd`, `$cleanup`
+
+Helper skills are publishable surfaces, but they do not own release-state transitions.
 
 ## Core Maintainers
 
@@ -451,7 +541,7 @@ What to use when:
   </tr>
 </table>
 
-## Core Triggers
+## Gated Lanes
 
 | Trigger | Purpose | Main output | Gate effect |
 | --- | --- | --- | --- |
@@ -461,6 +551,15 @@ What to use when:
 | `$vet` | Run baseline security and dependency review | audit and CVE records | `security_status = GREEN | RED` |
 | `$vibe` | Review developer and user experience implications | DX/UX outcome record | `experience_status = GREEN | RED | WAIVED` |
 | `$build` | Unlock bounded build planning | build-ready decision + `.ma/plans/build.md` | `build_status = READY` |
+
+## Helper Skills
+
+| Trigger | Purpose | Gate effect |
+| --- | --- | --- |
+| `$align` | Normalize terminology, tighten scope, and improve prompt or docs clarity | none |
+| `$diagnose` | Decompose blocked-lane symptoms into hypotheses and next probes | none |
+| `$tdd` | Lock behavior with regression-first or test-first scaffolding | none |
+| `$cleanup` | Simplify noisy output and run a final-pass anti-slop cleanup | none |
 
 ## Gate Model
 
@@ -485,10 +584,11 @@ Meta-Architect is intentionally fail-closed.
 
 ## Release and Packaging
 
-Meta-Architect has two related but different distribution surfaces.
+Meta-Architect has three related but different distribution surfaces.
 
 | Surface | Purpose | Produced by |
 | --- | --- | --- |
+| Linux native packages | distro-managed install assets for Debian-family and Arch-family environments | `npm run linux:packages:build` and GitHub release assets |
 | npm package | public package containing the installable Meta-Architect skills/plugin system, docs, scripts, and canonical skills | `npm publish` or `npm pack` |
 | skills bundle | narrower tarball containing `skills/` only | `npm run skills:pack` |
 
@@ -499,6 +599,8 @@ npm run skills:manifest
 npm run skills:validate
 npm run skills:pack
 npm run skills:install -- --path ./dist/installed-skills
+npm run linux:packages:build
+npm run release:assets
 npm run pack:inspect
 ```
 
@@ -507,6 +609,9 @@ Pre-publish rules:
 - `skills/index.json` must be current
 - `npm run skills:validate` must pass
 - `dist/meta-architect-skills.tgz` must exist
+- `dist/meta-architect_<version>_all.deb` must exist for Debian-family installs
+- `dist/meta-architect-<version>-1-any.pkg.tar.xz` must exist for Arch-family installs
+- `dist/meta-architect-<version>-1.noarch.rpm` must exist for Fedora/openSUSE-style installs
 - `npm pack --dry-run` must show only intended public files
 - docs must match the real skills/plugin and release behavior
 
@@ -521,11 +626,13 @@ Maintainer version-bump flow:
 3. Run `npm run release:verify`
 4. Run `npm run release:check`
 5. Create and push tag `v<version>`
-6. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
+6. Build and smoke-check the Linux native packages with `npm run linux:packages:build`, `npm run linux:packages:smoke`, and `npm run release:assets` on Linux
+7. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
 7. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
    - Stable publish: `npm publish --access public`
    - Prerelease publish: `npm publish --access public --tag <lane>`
 8. Verify publish state with `npm view @jstn-sdk/ma version dist-tags time --json`
+9. Confirm the GitHub release includes `dist/meta-architect-skills.tgz`, `meta-architect_<version>_all.deb`, `meta-architect-<version>-1-any.pkg.tar.xz`, and `meta-architect-<version>-1.noarch.rpm`
 
 Provenance note:
 - `npm publish --provenance` requires a supported cloud CI/CD provider
@@ -608,7 +715,7 @@ Release automation:
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
 | [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.1.11.md) | QA evidence for the `v0.1.11` line |
+| [Release Readiness](./docs/qa/release-readiness-0.1.12.md) | QA evidence for the `v0.1.12` line |
 
 ## Release Hygiene
 

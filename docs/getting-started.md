@@ -20,9 +20,27 @@ By the end of this guide you should be able to:
 - an MCP-capable runtime
 - network access if you want live `$sage` verification against a real GitMCP server
 
-## 1. Canonical install and launch
+## 1. Default install and launch
 
-Canonical public install:
+Debian-family install:
+
+```bash
+sudo apt install ./meta-architect_<version>_all.deb
+```
+
+Arch-family install:
+
+```bash
+sudo pacman -U ./meta-architect-<version>-1-any.pkg.tar.xz
+```
+
+Fedora/openSUSE install:
+
+```bash
+sudo dnf install ./meta-architect-<version>-1.noarch.rpm
+```
+
+Default supported npm fallback:
 
 ```bash
 # Install
@@ -38,11 +56,11 @@ npm uninstall -g @jstn-sdk/ma
 npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
-That is the default product path. The product experience is the in-session skill workflow in [example/usage-workflow.md](../example/usage-workflow.md). The `ma` command is only a helper for starting or supporting that flow.
+Linux-native distro packages are the default install surface. The npm path remains a supported fallback. The product experience is still the in-session skill workflow in [example/usage-workflow.md](../example/usage-workflow.md). The `ma` command is only a helper for starting or supporting that flow.
 
 ## 2. Real usage workflow
 
-Start with the structured `$arch` prompt:
+Start with `$maestro` when you want the bounded autonomous manager to inspect the workflow state and choose the next step. Start with the structured `$arch` prompt when you already know architecture is the next gated lane:
 
 ```text
 $arch I want to build: [PROJECT IDEA]
@@ -74,7 +92,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.11
+8. Delivery plan for v0.1.12
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -91,6 +109,17 @@ $build
 ```
 
 Use the full prompt blocks from [example/usage-workflow.md](../example/usage-workflow.md) when you want the exact handoff format between lanes.
+
+Optional helper skills around that path:
+
+```text
+$align
+$diagnose
+$tdd
+$cleanup
+```
+
+These helpers are publishable skills, but they do not change gate ownership, move release states, or replace the fixed release sequence.
 
 ## 3. Contributor clone and link
 
@@ -150,6 +179,8 @@ Meta-Architect works in two simple ways:
 - terminal commands
 - in-session skills
 
+The umbrella in-session entry point is `$maestro`. The package does not ship a separate `$meta-architect` skill surface.
+
 Terminal commands are normal shell commands:
 
 ```bash
@@ -170,11 +201,21 @@ $flow
 $vet
 $vibe
 $build
+$align
+$diagnose
+$tdd
+$cleanup
 ```
 
 Easy rule:
 - `ma ...` = terminal helper command
 - `$...` = in-session skill
+
+Contract split:
+- terminal helper commands support setup, local state, and scripted verification
+- in-session skills are the product workflow surface
+- `$maestro` is the only umbrella surface inside the session
+- `$align`, `$diagnose`, `$tdd`, and `$cleanup` stay publishable but non-gating
 
 `ma setup` and `ma init` currently do the same thing:
 - they create local `.ma/` support files
@@ -205,16 +246,16 @@ Minimum live example:
 
 ```json
 {
-  "category": "meta-list",
-  "repo": "sindresorhus/awesome",
-  "endpoint": "https://gitmcp.io/sindresorhus/awesome"
+  "category": "candidate",
+  "repo": "owner/repo",
+  "endpoint": "https://gitmcp.io/owner/repo"
 }
 ```
 
-Recommended first set:
-- `sindresorhus/awesome`
-- `dzharii/awesome-typescript`
-- `sbilly/awesome-security`
+Recommended source-selection posture:
+- use the packaged native references to narrow candidate families first
+- map serious candidates to exact upstream GitMCP repo endpoints
+- verify final choices against upstream repos and official docs before treating them as approved evidence
 
 Core discovery standard:
 - use `https://ossium.live/home` to find trending OSS, curated repos, YC-backed repos, GSoC orgs, and contribution leads faster than browsing GitHub directly
@@ -224,6 +265,11 @@ Core discovery standard:
 - use `https://openhub.net/` to inspect project activity, contributor, popularity, and comparison signals
 - use `https://www.opensourceprojects.dev/` to inspect curated OSS selections and detailed project writeups
 - move any promising discovery result into `mcp/servers.json` as an exact upstream GitMCP repo endpoint before treating it as VERIFIED evidence
+
+Useful native reference packs:
+- `skills/maestro/references/native-ingest-map.md`
+- `skills/sage/references/source-selection.md`
+- `skills/vet/references/security-playbooks.md`
 
 Canonical `$sage` order:
 - known upstream repo/docs first
@@ -249,7 +295,7 @@ If this fails:
 
 ## 7. Run the helper skill sequence
 
-### 5.0 Workflow manager
+### 5.0 Autonomous manager
 
 ```bash
 ma run '$maestro'
@@ -257,13 +303,22 @@ ma run '$maestro'
 
 Expected effects:
 - reads the current gate state
-- recommends the best next step
+- acts as the bounded umbrella in-session workflow manager
+- recommends the best next step or lane assignment
+- can hand work to a publishable non-gating helper skill when that is enough
+- does not move release gates by itself
 - writes `.ma/plans/maestro.md`
 - records an advisory decision entry
 
 Generated or updated:
 - `.ma/decisions.json`
 - `.ma/plans/maestro.md`
+
+Optional non-gating helper skills that can run before or between gated lanes:
+- `$align` for scope/language cleanup
+- `$diagnose` for blocked-lane triage
+- `$tdd` for regression-first execution setup
+- `$cleanup` for simplification and final-pass polish
 
 ### 5.1 Architecture
 
@@ -395,11 +450,11 @@ Expected output shape:
 ```text
 Build gate is green.
 Suggested branches:
-- feature/ui
-- feature/api
+- feature/implementation
+- feature/verification
 Optional worktree commands:
-git worktree add ../ui feature/ui
-git worktree add ../api feature/api
+git worktree add ../implementation feature/implementation
+git worktree add ../verification feature/verification
 ```
 
 If `$build` fails:
@@ -430,7 +485,7 @@ What should happen:
 - `$flow` records the kernel’s baseline state review for the mission
 - `$vet` records a baseline security review
 - `$vibe` records baseline DX/UX guidance
-- `$build` suggests bounded concerns like `feature/ui` and `feature/api`
+- `$build` suggests bounded concerns like `feature/implementation` and `feature/verification`
 
 Related mission:
 - [missions/collaborative-whiteboard/mission.md](../missions/collaborative-whiteboard/mission.md)

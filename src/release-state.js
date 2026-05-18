@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { writeJson } from "./fs-utils.js";
 import { getRuntimeReadPath, getRuntimeWritePath } from "./paths.js";
 
-const allowedStatuses = {
+export const allowedStatuses = {
   idea_status: ["DRAFT", "CLEAR", "BLOCKED"],
   architecture_status: ["DRAFT", "REVIEWED", "APPROVED"],
   evidence_status: ["MISSING", "PARTIAL", "VERIFIED"],
@@ -27,6 +27,23 @@ function validateWaiver(state) {
   }
 }
 
+export function createDefaultReleaseState() {
+  return {
+    schemaVersion: "0.1.0",
+    idea_status: "DRAFT",
+    architecture_status: "DRAFT",
+    evidence_status: "MISSING",
+    logic_status: "PENDING",
+    security_status: "PENDING",
+    experience_status: "PENDING",
+    build_status: "LOCKED",
+    merge_status: "LOCKED",
+    release_status: "LOCKED",
+    waiver: null,
+    updatedAt: null,
+  };
+}
+
 export function validateReleaseState(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) {
     throw new Error("Release state must be an object");
@@ -46,6 +63,18 @@ export async function loadReleaseState() {
   const raw = await fs.readFile(getRuntimeReadPath("release.json"), "utf8");
   const parsed = JSON.parse(raw);
   return validateReleaseState(parsed);
+}
+
+export async function loadReleaseStateOrDefault() {
+  try {
+    return await loadReleaseState();
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return createDefaultReleaseState();
+    }
+
+    throw error;
+  }
 }
 
 export async function saveReleaseState(state) {
