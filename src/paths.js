@@ -45,6 +45,10 @@ export function getMcpLocalCapabilitiesPath() {
   return path.join(getMcpRootPath(), "local-capabilities.json");
 }
 
+export function getRuntimeMcpPolicyPath() {
+  return getRuntimeWritePath(".mcp.json");
+}
+
 export function getBundledNativePlaybooksPath() {
   return getBundledMcpPath("native-playbooks.json");
 }

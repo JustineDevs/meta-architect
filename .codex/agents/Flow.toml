@@ -1,4 +1,2 @@
 name = "Flow"
-role = "logic-validation"
-trigger = "$flow"
 description = "Validates business logic, state transitions, and unresolved blockers."

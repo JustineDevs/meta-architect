@@ -38,7 +38,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.12.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.13.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });
@@ -163,6 +163,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   await fs.access(path.join(workRoot, ".ma", "decisions.json"));
   await fs.access(path.join(workRoot, ".ma", "skills", "arch.skill.md"));
   await fs.access(path.join(workRoot, ".ma", "context", "project.md"));
+  await fs.access(path.join(workRoot, ".ma", "context", "learning-loop-core.json"));
   await fs.access(path.join(workRoot, ".ma", "specs", "architecture.md"));
   await fs.access(path.join(workRoot, ".ma", "plans", "implementation.md"));
   await fs.access(path.join(workRoot, ".ma", "runbook.md"));
@@ -230,6 +231,16 @@ test("packed package installs and supports the documented runtime/helper flow", 
   const managerRuns = JSON.parse(
     await fs.readFile(path.join(workRoot, ".ma", "state", "manager-runs.json"), "utf8"),
   );
+  const maestroState = JSON.parse(
+    await fs.readFile(path.join(workRoot, ".ma", "state", "maestro-state.json"), "utf8"),
+  );
+  const maestroEvents = (
+    await fs.readFile(path.join(workRoot, ".ma", "logs", "maestro-events.ndjson"), "utf8")
+  )
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
   const installedMaestroSkill = await fs.readFile(
     path.join(codexHome, "skills", "maestro", "SKILL.md"),
     "utf8",
@@ -240,6 +251,8 @@ test("packed package installs and supports the documented runtime/helper flow", 
   assert.equal(releaseState.evidence_status, "MISSING");
   assert.equal(releaseState.logic_status, "PENDING");
   assert.equal(managerRuns.runs.length > 0, true);
+  assert.equal(maestroState.schemaVersion, "0.1.0");
+  assert.equal(maestroEvents.length > 0, true);
   assert.match(installedMaestroSkill, /autonomous/i);
   assert.doesNotMatch(maestroPlan, /\$meta-architect/);
 
@@ -252,7 +265,7 @@ test("packed package supports the golden-path onboarding flow", async () => {
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.12.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.13.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });

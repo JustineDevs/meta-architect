@@ -3,9 +3,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { validateReleaseIssueGates } from "../src/release-issue-gates.js";
 
 const CANONICAL_PACKAGE = "@jstn-sdk/ma";
 const CANONICAL_INSTALL = "npm i -g @openai/codex@latest @jstn-sdk/ma@latest";
+const CDN_INSTALL =
+  "curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh";
 const CANONICAL_LAUNCH = "ma --madmax --high";
 const UNINSTALL_MA = "npm uninstall -g @jstn-sdk/ma";
 const UNINSTALL_BOTH = "npm uninstall -g @jstn-sdk/ma @openai/codex";
@@ -40,15 +43,157 @@ function parseVersion(version) {
 
 function verifyInstallBlock(file) {
   const content = readText(file);
-  if (!content.includes(CANONICAL_INSTALL)) {
+  if (!content.includes(CANONICAL_INSTALL) && !content.includes(CDN_INSTALL)) {
     return;
   }
 
+  assert(content.includes(CDN_INSTALL), `${file}: missing jsDelivr POSIX installer command`);
+  assert(content.includes(CANONICAL_INSTALL), `${file}: missing canonical npm install command`);
   assert(content.includes(CANONICAL_LAUNCH), `${file}: missing canonical launch command`);
   assert(content.includes(UNINSTALL_MA), `${file}: missing uninstall Meta-Architect command`);
   assert(
     content.includes(UNINSTALL_BOTH),
     `${file}: missing uninstall Meta-Architect + Codex command`,
+  );
+}
+
+function verifyNpmIgnore() {
+  assert(fs.existsSync(".npmignore"), ".npmignore: missing production package ignore file");
+  const content = readText(".npmignore");
+  for (const requiredPattern of [
+    ".ma/",
+    ".omx/",
+    "node_modules/",
+    ".npm-cache/",
+    "dist/",
+    "test/",
+    ".github/",
+    "*.tgz",
+  ]) {
+    assert(
+      content.includes(requiredPattern),
+      `.npmignore: missing required production ignore pattern ${requiredPattern}`,
+    );
+  }
+}
+
+function verifyDemoDoc({ version, gitTag }) {
+  assert(fs.existsSync("DEMO.md"), "DEMO.md: missing demo guide");
+  const content = readText("DEMO.md");
+  assert(content.includes(`Release line: \`${gitTag}\``), "DEMO.md: wrong release line");
+  assert(content.includes("Package: `@jstn-sdk/ma`"), "DEMO.md: missing package name");
+  assert(content.includes(CDN_INSTALL), "DEMO.md: missing jsDelivr installer");
+  assert(content.includes(CANONICAL_INSTALL), "DEMO.md: missing canonical npm install");
+  assert(content.includes(CANONICAL_LAUNCH), "DEMO.md: missing canonical launch");
+  assert(content.includes(UNINSTALL_MA), "DEMO.md: missing MA uninstall command");
+  assert(content.includes(UNINSTALL_BOTH), "DEMO.md: missing MA + Codex uninstall command");
+  assert(content.includes("npm run release:check"), "DEMO.md: missing full release demo command");
+  assert(
+    content.includes("Learning Loop Core") || content.includes("learning loop"),
+    "DEMO.md: missing learning loop coverage",
+  );
+  assert(content.includes("Obsidian"), "DEMO.md: missing Obsidian coverage");
+  assert(content.includes("Ralph"), "DEMO.md: missing Ralph execution coverage");
+  assert(content.includes("data/clone-data.proof.json"), "DEMO.md: missing clone-data proof");
+  assert(content.includes("COVERAGE.md"), "DEMO.md: missing coverage artifact");
+  assert(content.includes(`version line is \`${version}\``), "DEMO.md: missing current version");
+}
+
+function verifyCoverageDoc({ version, gitTag }) {
+  assert(fs.existsSync("COVERAGE.md"), "COVERAGE.md: missing coverage matrix");
+  const content = readText("COVERAGE.md");
+  assert(content.includes(`Target release: \`${gitTag}\``), "COVERAGE.md: wrong target release");
+  assert(
+    content.includes(`Package: \`@jstn-sdk/ma@${version}\``),
+    "COVERAGE.md: wrong package version",
+  );
+  assert(content.includes("Learning Loop Core"), "COVERAGE.md: missing learning-loop coverage");
+  assert(
+    content.includes("Helper Orchestration Core"),
+    "COVERAGE.md: missing helper orchestration coverage",
+  );
+  assert(
+    content.includes("Environment Awareness Core"),
+    "COVERAGE.md: missing environment awareness coverage",
+  );
+  assert(
+    content.includes("Universal Plugin Broker Core"),
+    "COVERAGE.md: missing universal plugin broker coverage",
+  );
+  assert(content.includes("Obsidian Integration Core"), "COVERAGE.md: missing Obsidian coverage");
+  assert(content.includes("Ralph Execution Core"), "COVERAGE.md: missing Ralph coverage");
+  assert(content.includes("36/36 passing"), "COVERAGE.md: missing current test count");
+  assert(
+    content.includes("This repository is not a toy demo."),
+    "COVERAGE.md: missing truth statement",
+  );
+  assert(!content.includes("@jstn-sdk/ma@0.1.0"), "COVERAGE.md: stale npm package version");
+  assert(!content.includes("v0.1.0 release bar"), "COVERAGE.md: stale release bar");
+}
+
+function verifyCanonicalSemanticSurfaces({ version, gitTag }) {
+  const usageWorkflow = readText(path.join("example", "usage-workflow.md"));
+  assert(
+    usageWorkflow.includes(`$maestro I want to harden Meta-Architect ${gitTag}`),
+    "example/usage-workflow.md: missing current $maestro release-hardening scenario",
+  );
+  for (const requiredTerm of ["Obsidian", "Ralph", "Caveman", "learning-loop"]) {
+    assert(
+      usageWorkflow.includes(requiredTerm),
+      `example/usage-workflow.md: missing ${requiredTerm} semantic-core term`,
+    );
+  }
+  for (const staleTerm of [
+    "Build a demo",
+    "demo app",
+    "collaborative whiteboard",
+    "smart contract security review",
+    "Timeline: 4 weeks",
+    "Delivery plan for v0.1.0",
+    "@jstn-sdk/ma@0.1.0",
+  ]) {
+    assert(
+      !usageWorkflow.includes(staleTerm),
+      `example/usage-workflow.md: stale current-facing term ${staleTerm}`,
+    );
+  }
+
+  const mission = readText(path.join("missions", "collaborative-whiteboard", "mission.md"));
+  assert(
+    mission.includes("# Mission: Semantic Release Hardening"),
+    "missions/collaborative-whiteboard/mission.md: stale mission title",
+  );
+  assert(
+    mission.includes("Obsidian is core vault-context infrastructure"),
+    "missions/collaborative-whiteboard/mission.md: missing Obsidian core mission contract",
+  );
+  assert(
+    mission.includes("Ralph is the execution loop"),
+    "missions/collaborative-whiteboard/mission.md: missing Ralph core mission contract",
+  );
+  assert(
+    !mission.toLowerCase().includes("real-time collaborative whiteboard"),
+    "missions/collaborative-whiteboard/mission.md: stale whiteboard mission text",
+  );
+
+  const currentQa = readText(path.join("docs", "qa", `release-readiness-${version}.md`));
+  assert(
+    currentQa.includes("Harden Meta-Architect v0.1.13 semantic core"),
+    `docs/qa/release-readiness-${version}.md: missing realistic semantic smoke idea`,
+  );
+  assert(
+    !currentQa.includes('ma idea "Build a demo app"'),
+    `docs/qa/release-readiness-${version}.md: stale demo-app helper path`,
+  );
+
+  const archPrompt = readText(path.join("prompts", "architect.md"));
+  assert(
+    !archPrompt.includes("v0.1.0` skills library"),
+    "prompts/architect.md: stale v0.1.0 skills-library wording",
+  );
+  assert(
+    archPrompt.includes("current Meta-Architect skills library"),
+    "prompts/architect.md: missing current library wording",
   );
 }
 
@@ -68,6 +213,13 @@ function main() {
     pkg.publishConfig?.access === "public",
     "package.json: publishConfig.access must be public",
   );
+  assert(pkg.files?.includes("DEMO.md"), "package.json: files must include DEMO.md");
+  assert(pkg.files?.includes("COVERAGE.md"), "package.json: files must include COVERAGE.md");
+
+  verifyNpmIgnore();
+  verifyDemoDoc({ version, gitTag });
+  verifyCoverageDoc({ version, gitTag });
+  verifyCanonicalSemanticSurfaces({ version, gitTag });
 
   const changelog = readText("CHANGELOG.md");
   assert(changelog.includes(`## ${gitTag}`), "CHANGELOG.md: missing current version heading");
@@ -95,6 +247,17 @@ function main() {
   const qa = readText(qaPath);
   assert(qa.includes(`# Release Readiness ${version}`), `${qaPath}: wrong title version`);
 
+  const issueGatesPath = path.join("docs", "qa", `release-issue-gates-${version}.json`);
+  assert(fs.existsSync(issueGatesPath), `Missing release issue gate file: ${issueGatesPath}`);
+  const issueGates = validateReleaseIssueGates(readJson(issueGatesPath), {
+    version,
+    requirePassed: true,
+  });
+  assert(
+    issueGates.valid,
+    `${issueGatesPath}: release issue gates are not production-passed\n- ${issueGates.errors.join("\n- ")}`,
+  );
+
   const pluginApp = readJson(path.join("plugins", "meta-architect", ".app.json"));
   const pluginMcp = readJson(path.join("plugins", "meta-architect", ".mcp.json"));
   const pluginManifest = readJson(
@@ -109,6 +272,8 @@ function main() {
 
   for (const file of [
     "README.md",
+    "DEMO.md",
+    "COVERAGE.md",
     path.join("docs", "getting-started.md"),
     path.join("docs", "onboarding.md"),
     path.join("docs", "skills.md"),

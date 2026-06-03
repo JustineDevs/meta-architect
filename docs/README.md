@@ -5,6 +5,8 @@ Meta-Architect documentation is organized by operator task.
 ## Start here
 
 - [Getting Started](./getting-started.md)
+- [Production Demo Guide](../DEMO.md)
+- [Coverage Matrix](../COVERAGE.md)
 - [Release Spec](./release-spec.md)
 - [Skills Reference](./skills.md)
 - umbrella, gated lanes, and helper skill distinctions live in the Skills Reference
@@ -20,7 +22,8 @@ Meta-Architect documentation is organized by operator task.
 
 ## QA and readiness
 
-- [Release Readiness 0.1.12](./qa/release-readiness-0.1.12.md)
+- [Release Readiness 0.1.13](./qa/release-readiness-0.1.13.md)
+- [Release Issue Gates 0.1.13](./qa/release-issue-gates-0.1.13.json)
 
 ## Repo structure references
 

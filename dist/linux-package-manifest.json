@@ -1,16 +1,16 @@
 {
-  "version": "0.1.12",
+  "version": "0.1.13",
   "packageName": "@jstn-sdk/ma",
   "linuxPackageName": "meta-architect",
   "revision": "1",
   "artifacts": {
-    "deb": "meta-architect_0.1.12_all.deb",
-    "pacman": "meta-architect-0.1.12-1-any.pkg.tar.xz",
-    "rpm": "meta-architect-0.1.12-1.noarch.rpm"
+    "deb": "meta-architect_0.1.13_all.deb",
+    "pacman": "meta-architect-0.1.13-1-any.pkg.tar.xz",
+    "rpm": "meta-architect-0.1.13-1.noarch.rpm"
   },
   "install": {
-    "debian": "sudo apt install ./meta-architect_0.1.12_all.deb",
-    "arch": "sudo pacman -U ./meta-architect-0.1.12-1-any.pkg.tar.xz",
-    "rpm": "sudo dnf install ./meta-architect-0.1.12-1.noarch.rpm"
+    "debian": "sudo apt install ./meta-architect_0.1.13_all.deb",
+    "arch": "sudo pacman -U ./meta-architect-0.1.13-1-any.pkg.tar.xz",
+    "rpm": "sudo dnf install ./meta-architect-0.1.13-1.noarch.rpm"
   }
 }

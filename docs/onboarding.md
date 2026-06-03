@@ -12,6 +12,15 @@ This is the shortest entrypoint for the real first-run Meta-Architect path.
 
 ## Canonical install and start
 
+Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
+
+```bash
+# One-line install (POSIX shells only; use WSL/Git-Bash on Windows)
+curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+```
+
+The installer uses jsDelivr to fetch this repo's POSIX install script and runs the canonical npm install path.
+
 ```bash
 # Install
 npm i -g @openai/codex@latest @jstn-sdk/ma@latest
@@ -28,7 +37,13 @@ npm uninstall -g @jstn-sdk/ma @openai/codex
 
 ## First runtime action
 
-Start with the structured `$arch` prompt from [example/usage-workflow.md](../example/usage-workflow.md):
+Start with `$maestro` when you want MA to choose and drive the next safe lane:
+
+```text
+$maestro
+```
+
+Use the structured `$arch` prompt from [example/usage-workflow.md](../example/usage-workflow.md) when you already know the project brief and want to begin directly with architecture:
 
 ```text
 $arch I want to build: [PROJECT IDEA]
@@ -48,7 +63,8 @@ Only use this when you need local repo scaffolding or scripted validation:
 ```bash
 ma setup
 ma
-ma idea "..."
+ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma run '$maestro'
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'

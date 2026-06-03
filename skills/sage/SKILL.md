@@ -11,8 +11,10 @@ Use this skill inside Codex to verify or challenge stack choices with real sourc
 
 Produce:
 - candidate tools, libraries, or services
+- `decision`, `status`, `evidence`, `blockers`, `next_allowed_triggers`
 - why each option fits or fails the architecture
 - source-backed evidence from official docs, upstream repos, or approved GitMCP sources
+- evidence grade and exact upstream mapping
 - recommendation with tradeoffs
 - unresolved gaps or missing evidence
 - exact next trigger, usually `$flow`

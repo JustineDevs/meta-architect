@@ -19,3 +19,9 @@ Meta-Architect uses external discovery surfaces as inputs to native source-selec
 
 - `$sage` owns source selection and evidence quality
 - helper skills can support preparation, but they do not replace `$sage`
+
+## Evidence grades
+
+- `VERIFIED`: exact upstream mapping plus primary-source confirmation
+- `PARTIAL`: candidate is mapped, but live proof or maturity proof is incomplete
+- `MISSING`: no trustworthy exact upstream mapping yet

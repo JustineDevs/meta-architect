@@ -48,6 +48,13 @@ Use the core repo when you want to develop Meta-Architect itself. Use the plugin
 
 The plugin-facing bundle should be consumed alongside the repository’s documented packaging/install flow.
 
+Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
+
+```bash
+# One-line install (POSIX shells only; use WSL/Git-Bash on Windows)
+curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+```
+
 Canonical package/runtime path:
 
 Debian-family install:
@@ -131,7 +138,7 @@ When consuming the plugin:
 The plugin version should track the release scope of the core repo.
 
 For this repository:
-- plugin scope is aligned to Meta-Architect `v0.1.12`
+- plugin scope is aligned to Meta-Architect `v0.1.13`
 - any breaking contract change should be versioned intentionally
 
 The plugin is one distribution surface of the same product, not a separate product line.

@@ -60,6 +60,30 @@
       "category": "system-design",
       "repo": "checkcheckzz/system-design-interview",
       "endpoint": "https://gitmcp.io/checkcheckzz/system-design-interview"
+    },
+    {
+      "kind": "gitmcp-evidence",
+      "category": "obsidian-api-docs",
+      "repo": "obsidianmd/obsidian-api",
+      "endpoint": "https://gitmcp.io/obsidianmd/obsidian-api"
+    },
+    {
+      "kind": "gitmcp-evidence",
+      "category": "obsidian-plugin-scaffold",
+      "repo": "obsidianmd/obsidian-sample-plugin",
+      "endpoint": "https://gitmcp.io/obsidianmd/obsidian-sample-plugin"
+    },
+    {
+      "kind": "gitmcp-evidence",
+      "category": "context-economy",
+      "repo": "JuliusBrussee/caveman",
+      "endpoint": "https://gitmcp.io/JuliusBrussee/caveman"
+    },
+    {
+      "kind": "gitmcp-evidence",
+      "category": "prompt-techniques",
+      "repo": "NirDiamant/Prompt_Engineering",
+      "endpoint": "https://gitmcp.io/NirDiamant/Prompt_Engineering"
     }
   ]
 }

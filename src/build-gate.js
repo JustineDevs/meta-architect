@@ -26,10 +26,10 @@ export function evaluateBuildGate(releaseState) {
     });
   }
 
-  if (!["LOCKED", "READY"].includes(releaseState.build_status)) {
+  if (!["LOCKED", "READY", "RUNNING"].includes(releaseState.build_status)) {
     blockers.push({
       field: "build_status",
-      expected: "LOCKED or READY",
+      expected: "LOCKED, READY, or RUNNING",
       actual: releaseState.build_status,
       trigger: "$build",
     });

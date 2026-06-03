@@ -10,8 +10,10 @@ Use this skill inside Codex to review whether the system will feel coherent for 
 ## Output
 
 Produce:
+- `decision`, `status`, `evidence`, `blockers`, `next_allowed_triggers`
 - developer workflow risks
 - user workflow risks
+- operator friction and user friction
 - complexity hotspots
 - onboarding or operability friction
 - simplifications that improve clarity
