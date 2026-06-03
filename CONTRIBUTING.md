@@ -1,8 +1,8 @@
 # Contributing to Meta-Architect
 
-Thanks for contributing to Meta-Architect.
-
-Meta-Architect is a production-focused orchestration layer for verified engineering workflows. This repository treats architecture, evidence, security, DX/UX review, and release readiness as first-class contracts. Contributions should preserve those contracts rather than bypass them.
+Meta-Architect is a production-focused orchestration layer for verified engineering workflows.
+This repository treats orchestration, memory, evidence, learning, security, DX/UX review, package hygiene, and release readiness as first-class contracts.
+Contributions should improve those contracts rather than bypass them.
 
 ## Principles
 
@@ -11,6 +11,7 @@ All contributions should follow these rules:
 - Do not weaken gate enforcement.
 - Do not add undocumented behavior to core skills.
 - Do not introduce release automation that hides failures.
+- Do not convert semantic context into build evidence without the owning lane.
 - Do not commit runtime `.ma` state such as logs, state snapshots, or local caches.
 - Prefer explicit, inspectable files over hidden magic.
 - Keep public skill contracts stable unless the change is intentionally versioned.
@@ -21,15 +22,17 @@ High-level repository surfaces:
 
 - `.codex/agents/` — role agent configs
 - `.codex/hooks.json` — pre/post execution rules
-- `.ma/skills/` — internal skill logic
+- `.ma/` — local runtime state seeded by `ma setup`; production packages must not ship local `.ma` state
 - `skills/` — publishable/installable skill surfaces
 - `prompts/` — stable role prompt contracts
 - `templates/` — generated/shared repo templates
 - `mcp/` — GitMCP/MCP server and collection mappings
 - `plugins/meta-architect/` — plugin-installable bundle surface
-- `missions/` — reproducible demo/evaluation missions
+- `data/` — production proof artifacts such as clone-data proof, ledger, and RVF files
 - `.github/workflows/` — CI and release automation
 - `docs/` — user, contributor, and release documentation
+- `DEMO.md` — package-visible production demo guide
+- `COVERAGE.md` — canonical current coverage matrix
 
 ## Local setup
 
@@ -53,12 +56,15 @@ npm install
 Run the release-critical checks:
 
 ```bash
+npm run release:verify
 npm run skills:manifest
 npm run skills:validate
 npm run skills:pack
-npm run skills:install -- --path ./dist/installed-skills
+npm run plugin:sync
+npm run plugin:verify
 npm run check
 npm test
+npm run pack:inspect
 ```
 
 ## Contribution types
@@ -68,14 +74,16 @@ Typical contribution categories:
 - Skill contract changes
 - Prompt refinements
 - MCP mapping improvements
+- Obsidian/context integrations
+- Learning-loop and workspace intelligence improvements
+- Package hygiene and proof artifact updates
 - Release automation fixes
 - Documentation improvements
-- Demo/mission additions
 - CI and packaging hardening
 
 ## Working on skills
 
-When changing any skill in `skills/` or `.ma/skills/`:
+When changing any skill in `skills/` or `plugins/meta-architect/skills/`:
 
 1. Update the skill content.
 2. Update docs if the contract changed.
@@ -90,7 +98,8 @@ When changing any skill in `skills/` or `.ma/skills/`:
 5. Repack and smoke-test install:
    ```bash
    npm run skills:pack
-   npm run skills:install -- --path ./dist/installed-skills
+   npm run plugin:sync
+   npm run plugin:verify
    ```
 
 ### Skill contract expectations
@@ -129,6 +138,32 @@ When editing collections or server mappings:
 - document any new collection categories
 - avoid placeholder URLs in committed production configs
 - update `docs/mcp-setup.md` if the setup flow changes
+- keep discovery accelerators separate from verified evidence claims
+
+## Working on semantic cores
+
+Semantic runtime cores are first-party contracts, not one-off helper files.
+
+Relevant surfaces include:
+
+- `src/runtime/semantic-recording-core.js`
+- `src/runtime/workspace-intelligence-runtime.js`
+- `src/runtime/learning-loop-core.js`
+- `src/runtime/obsidian-integration-core.js`
+- `src/runtime/obsidian-plugin-bridge.js`
+- `src/runtime/context-economy-core.js`
+- `src/runtime/prompt-strategy-core.js`
+- `src/runtime/ralph-execution-core.js`
+- `src/runtime/redaction-gateway.js`
+
+When changing these surfaces:
+
+- add or update focused tests under `test/`
+- ensure `ma setup` seeds any new runtime artifact
+- update `src/runtime/runtime-state.js` when the artifact must appear in snapshots or repair
+- export public APIs through `index.js` when package consumers need them
+- update `COVERAGE.md`, `DEMO.md`, and `README.md` if behavior or proof surfaces changed
+- preserve semantic boundaries: brain context, technical evidence, execution progress, verification confidence, and release authority are separate channels
 
 ## Runtime `.ma` rule
 
@@ -178,7 +213,7 @@ Preferred commit styles:
 - `docs: update <surface>`
 - `ci: harden <workflow>`
 - `chore: maintain <repo surface>`
-- `chore(release): prepare v0.1.0`
+- `chore(release): prepare v0.1.13`
 
 ## Pull requests
 
@@ -204,8 +239,11 @@ If a PR changes skills, release automation, package metadata, or `.github/workfl
 These require extra care:
 
 - `package.json`
+- `package-lock.json`
+- `.npmignore`
 - `skills/index.json`
 - `scripts/skills-*`
+- `scripts/release-verify.js`
 - `.github/workflows/*`
 - `.github/scripts/*`
 - `plugins/meta-architect/*`
@@ -231,12 +269,15 @@ If you change behavior, update the docs in the same PR when applicable:
 Run at least:
 
 ```bash
+npm run release:verify
 npm run skills:manifest
 npm run skills:validate
 npm run skills:pack
-npm run skills:install -- --path ./dist/installed-skills
+npm run plugin:sync
+npm run plugin:verify
 npm run check
 npm test
+npm run pack:inspect
 ```
 
 And verify:
@@ -245,6 +286,7 @@ And verify:
 - no accidental tarballs or temp outputs are committed
 - docs are consistent with behavior
 - release notes are updated if needed
+- package dry-run does not include runtime state, tests, local caches, or generated distro artifacts
 
 ## PR checklist
 

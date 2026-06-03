@@ -37,7 +37,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.0
+8. Delivery plan for first production slice
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -48,6 +48,7 @@ Rules:
 - Explain trade-offs clearly.
 - Optimize for real implementation, not theory only.
 - If the idea is underspecified, make the smallest reasonable assumptions and label them.
+- Treat Obsidian/vault context as `vault_context`, not build evidence, unless an owning gate explicitly promotes it.
 ```
 
 This works well because prompt best-practice guidance consistently recommends assigning a role, separating context from task, numbering required outputs, and constraining the format so the response is reusable inside a workflow rather than just conversational.
@@ -168,7 +169,7 @@ $build Use the approved and security-cleared plan to prepare implementation:
 Required output:
 1. Repo/module structure
 2. Task breakdown by workstream
-3. Milestones for v0.1.0
+3. Milestones for first production slice
 4. Exact implementation order
 5. Environment variables and setup checklist
 6. Testing strategy
@@ -178,37 +179,39 @@ Required output:
 Rules:
 - Do not redesign the system.
 - Translate the approved plan into an execution-ready build plan.
-- Keep scope aligned with v0.1.0.
+- Keep scope aligned with the approved first production slice.
 ```
 
 ## Example
 
-Here’s a realistic example for one of your likely project types.
+Here is a realistic example using this repository's current semantic-core release hardening flow.
 
 ```text
-$arch I want to build: an AI-powered smart contract security review workspace for solo founders and small Web3 teams.
+$maestro I want to harden Meta-Architect v0.1.13 so every core capability is real, package-visible, and proof-gated.
 
 Context:
-- Product type: web app
-- Users: solo founders, indie hackers, small protocol teams
-- Core problem: teams want fast architecture-aware smart contract review before paying for full audits
+- Product type: Codex-native architecture and orchestration system
+- Users: developers using MA inside existing, empty, and newly cloned workspaces
+- Core problem: MA must behave as an active semantic architecture system, not a passive chatbot or generic skill bundle
 - Main features:
-  1. upload or paste smart contracts
-  2. AI-assisted review findings with severity and reasoning
-  3. project workspace with issue tracking and fix suggestions
+  1. Obsidian vault context ingestion with graph-linked notes and frontmatter authority
+  2. Ralph execution loop and issue gates with proof-backed pass/fail status
+  3. Caveman/context-economy behavior that reduces output bloat without losing technical precision
+  4. learning-loop runtime artifacts that improve reliability across sessions
 - Constraints:
-  - Budget: low
-  - Team size: solo
-  - Timeline: 4 weeks to v0.1.0
-  - Preferred stack: TypeScript, Postgres, Vercel-compatible
-  - Avoid: overly complex infra
+  - Budget: local-first package maintenance
+  - Team size: solo maintainer plus agent execution
+  - Timeline: next release
+  - Preferred stack: existing Node.js ESM runtime, no unnecessary new dependencies
+  - Avoid: placeholder notes, mock evidence, stale docs, fake green tests
 - Quality priorities:
-  - speed
-  - trust
+  - proof-gated verification
+  - semantic workspace adoption
   - maintainability
-  - secure handling of user code
+  - package hygiene
+  - active autonomy
 - Deployment target:
-  - Vercel + managed Postgres
+  - npm package plus Codex plugin mirror
 
 Your job:
 Design the system as Meta-Architect, not as a chatbot.
@@ -221,7 +224,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.0
+8. Delivery plan for v0.1.13
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -264,7 +267,7 @@ Output required:
 - data model
 - security concerns
 - DX/UX notes
-- v0.1.0 plan
+- first production-slice plan
 - risks
 - decision log
 - next trigger

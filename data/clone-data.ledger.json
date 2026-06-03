@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0.0",
+  "record_type": "clone_data_ledger",
+  "product": "Meta-Architect",
+  "package": "@jstn-sdk/ma",
+  "release_version": "0.1.13",
+  "records_as": "production_evidence",
+  "build_evidence": true,
+  "entries": [
+    {
+      "id": "clone-data-proof",
+      "path": "data/clone-data.proof.json",
+      "type": "proof",
+      "purpose": "Records the clone-data proof claims and verification commands.",
+      "required": true
+    },
+    {
+      "id": "clone-data-ledger",
+      "path": "data/clone-data.ledger.json",
+      "type": "ledger",
+      "purpose": "Tracks clone-data artifact inventory and package visibility.",
+      "required": true
+    },
+    {
+      "id": "clone-data-rvf",
+      "path": "data/clone-data.rvf",
+      "type": "runtime_verification_file",
+      "purpose": "Defines pass/fail verification criteria for clone-data artifacts.",
+      "required": true
+    }
+  ],
+  "package_visibility": {
+    "package_json_files_entry": "data/",
+    "pack_dry_run_required": true
+  },
+  "integrity_policy": {
+    "empty_files_allowed": false,
+    "placeholder_claims_allowed": false,
+    "must_reference_real_paths": true
+  }
+}

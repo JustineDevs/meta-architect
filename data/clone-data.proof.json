@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "record_type": "clone_data_proof",
+  "product": "Meta-Architect",
+  "package": "@jstn-sdk/ma",
+  "release_version": "0.1.13",
+  "records_as": "production_evidence",
+  "build_evidence": true,
+  "subject": "clone data install and package proof contract",
+  "claims": [
+    {
+      "id": "jsdelivr_posix_installer",
+      "claim": "The recommended POSIX CLI install path is backed by a repository script addressable through jsDelivr.",
+      "evidence": [
+        "scripts/install.sh",
+        "README.md",
+        "docs/getting-started.md",
+        "docs/onboarding.md",
+        "docs/skills.md",
+        "plugins/meta-architect/README.md",
+        "docs/release-spec.md"
+      ]
+    },
+    {
+      "id": "clone_data_artifacts",
+      "claim": "Clone-data proof, ledger, and RVF artifacts exist as package-visible data files.",
+      "evidence": [
+        "data/clone-data.proof.json",
+        "data/clone-data.ledger.json",
+        "data/clone-data.rvf",
+        "package.json files includes data/"
+      ]
+    },
+    {
+      "id": "release_gate_contract",
+      "claim": "Release verification must preserve the jsDelivr installer and canonical npm install command in public install docs.",
+      "evidence": ["scripts/release-verify.js", "npm run release:check"]
+    }
+  ],
+  "verification_commands": [
+    "sh -n scripts/install.sh",
+    "node scripts/release-verify.js",
+    "node --test test/clone-data-artifacts.test.js",
+    "npm run release:check"
+  ],
+  "authority_boundary": {
+    "may_mutate_release_state": false,
+    "authoritative_changes_return_through": "$maestro_or_owning_lane"
+  }
+}

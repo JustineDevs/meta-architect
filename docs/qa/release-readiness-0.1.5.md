@@ -58,7 +58,7 @@ Helper-path validation:
 
 ```bash
 ma setup
-ma idea "Build a demo app"
+ma idea "Harden Meta-Architect semantic core with evidence-backed gate readiness and package-visible proof"
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'

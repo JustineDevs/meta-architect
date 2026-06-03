@@ -69,9 +69,44 @@ To move from discovery to VERIFIED evidence:
 - map that repo to an exact `https://gitmcp.io/{owner}/{repo}` endpoint in `mcp/servers.json`
 - validate the choice against the upstream repo and official docs through `$sage`
 
+## Remote MCP transport
+
+`$sage` opens configured GitMCP endpoints as live MCP servers. Some remote MCP hosts reject direct SSE probes with HTTP 405 and require a host-supported remote MCP bridge. Meta-Architect treats that as a transport blocker, not as verified evidence.
+
+To enable bridge-backed live verification, configure a trusted local bridge command:
+
+```bash
+export MA_MCP_REMOTE_BRIDGE_CMD="mcp-remote {url}"
+```
+
+The `{url}` placeholder is replaced with the exact repo endpoint from `mcp/servers.json`. Use a preinstalled, trusted bridge binary or wrapper; do not depend on automatic package downloads in production verification.
+
+When no bridge is configured:
+- direct-SSE-compatible MCP servers can still verify normally
+- GitMCP 405 responses are recorded as bridge-required blockers
+- `evidence_status` remains `PARTIAL`, so `$flow` and `$build` stay locked
+
 ## Separation of concerns
 
 - `mcp/servers.json` remains for repo-specific GitMCP evidence sources
 - `mcp/collections.json` remains GitMCP-oriented evidence categorization for this release
 - `mcp/local-capabilities.json` is the first-party in-process capability registry
 - `mcp/native-playbooks.json` is internal native curation metadata, not an upstream mirror or user-edited evidence source list
+
+## Current semantic source routing
+
+`mcp/collections.json` maps configured repository evidence into MA lanes.
+The current release intentionally includes both broad discovery lists and core-specific upstream sources.
+
+| Collection | Why it exists | Typical lanes |
+| --- | --- | --- |
+| `meta-list` and language collections | broad OSS candidate discovery before exact upstream selection | `$arch`, `$sage` |
+| `system-design` | architecture and flow reasoning references | `$arch`, `$sage`, `$flow`, `$build` |
+| `security` | trust-boundary and security review evidence | `$vet` |
+| `obsidian-api-docs` | Obsidian API evidence for vault, metadata, workspace, and plugin behavior | `$arch`, `$sage`, `$vibe` |
+| `obsidian-plugin-scaffold` | compatibility reference for MA's in-app Obsidian plugin surface | `$arch`, `$sage` |
+| `context-economy` | context-budget and terse-output source evidence | `$sage`, `$vet`, `$vibe`, `$build` |
+| `prompt-techniques` | prompt strategy source evidence for MA-owned prompt policies | `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build` |
+
+Obsidian-derived notes remain `vault_context`.
+They do not count as `build_evidence` unless `$sage`, `$vet`, or another owning lane promotes a specific claim with source-backed proof.

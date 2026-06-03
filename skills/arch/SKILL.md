@@ -11,9 +11,11 @@ Use this skill inside Codex to turn a product idea into a concrete architecture 
 
 Produce:
 - problem framing
+- `decision`, `status`, `evidence`, `blockers`, `next_allowed_triggers`
 - user and workload assumptions
 - system architecture and subsystem boundaries
 - stack recommendation with tradeoffs
+- rejected alternatives with rationale
 - data model and storage choices
 - auth, security, and operational concerns
 - phased delivery plan

@@ -1,16 +1,17 @@
-# v0.1.12 Requirements & Rules
+# v0.1.13 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.1.12` is production only when:
+Meta-Architect `v0.1.13` is production only when:
 1. the package/install surface works
 2. the in-session skill workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
-## What `v0.1.12` must have
+## What `v0.1.13` must have
 
 ### 1. Canonical package/runtime path
 
+- recommended POSIX one-line install: `curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh`
 - install: `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
 - optional helper launch: `ma --madmax --high`
 - uninstall Meta-Architect only: `npm uninstall -g @jstn-sdk/ma`
@@ -49,15 +50,16 @@ Canonical state files:
 
 ### 4. Required release evidence
 
-- `package.json` version `0.1.12`
-- git tag `v0.1.12`
+- `package.json` version `0.1.13`
+- git tag `v0.1.13`
 - `RELEASE.md`
 - `CHANGELOG.md`
-- `docs/qa/release-readiness-0.1.12.md`
+- `docs/qa/release-readiness-0.1.13.md`
+- `docs/qa/release-issue-gates-0.1.13.json`
 - green `npm run release:check`
-- GitHub release asset `meta-architect_0.1.12_all.deb`
-- GitHub release asset `meta-architect-0.1.12-1-any.pkg.tar.xz`
-- GitHub release asset `meta-architect-0.1.12-1.noarch.rpm`
+- GitHub release asset `meta-architect_0.1.13_all.deb`
+- GitHub release asset `meta-architect-0.1.13-1-any.pkg.tar.xz`
+- GitHub release asset `meta-architect-0.1.13-1.noarch.rpm`
 - green `npm run linux:packages:build`
 - green `npm run linux:packages:smoke`
 - green `npm run release:assets`
@@ -96,6 +98,20 @@ Canonical state files:
 - `npm run release:advance` force-bumps the next patch line after a completed release
 - `.github/workflows/release-sync.yml` automates the sync path on `main`
 - `.github/workflows/release-advance.yml` advances the repo to the next patch line after a published release
+
+### 6.2 Issue proof gates
+
+Every open next-release issue must be represented in `docs/qa/release-issue-gates-0.1.13.json`.
+
+Production pass rule:
+- issue status must be `passed`
+- issue milestone must match `v0.1.13`
+- implementation evidence must be present
+- verification evidence must be present
+- production evidence must be present
+- pending, blocked, failed, or in-progress issues must continue through their loop action instead of being treated as release-ready
+
+`npm run release:verify` enforces this file. If any issue is not production-passed, the release remains blocked.
 
 ### 7. Provenance rule
 

@@ -19,5 +19,5 @@ export function validateMergeTarget(sourceBranch, targetBranch) {
 }
 
 export function canMarkBuildDone(releaseState) {
-  return ["READY", "RUNNING"].includes(releaseState.build_status);
+  return releaseState.build_status === "DONE";
 }

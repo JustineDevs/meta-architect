@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { EventEmitter } from "node:events";
 import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
@@ -11,7 +12,12 @@ import {
   validateLocalCapabilities,
   validateMcpServers,
 } from "../src/mcp-config.js";
-import { parseSseEvent } from "../src/mcp-live-client.js";
+import {
+  createMcpLiveClient,
+  McpRemoteTransportRequiredError,
+  McpStdioBridgeClient,
+  parseSseEvent,
+} from "../src/mcp-live-client.js";
 import { createTempRepo } from "./helpers/temp-repo.js";
 
 const repoRoot = process.cwd();
@@ -52,6 +58,136 @@ test("parses SSE endpoint events", () => {
   const parsed = parseSseEvent("event: endpoint\ndata: /*/message?sessionId=abc123\n");
   assert.equal(parsed.event, "endpoint");
   assert.equal(parsed.data, "/*/message?sessionId=abc123");
+});
+
+test("reports GitMCP direct SSE 405 as bridge-required instead of generic verification", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        error: { code: -32000, message: "Method not allowed" },
+        id: null,
+      }),
+      { status: 405 },
+    );
+
+  try {
+    const client = createMcpLiveClient("https://gitmcp.io/obsidianmd/obsidian-api");
+    await assert.rejects(
+      () => client.connect(),
+      (error) => {
+        assert.equal(error instanceof McpRemoteTransportRequiredError, true);
+        assert.match(error.message, /MA_MCP_REMOTE_BRIDGE_CMD/);
+        assert.match(error.message, /HTTP 405/);
+        return true;
+      },
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("uses configured remote bridge command for live MCP request flow", async () => {
+  const spawned = [];
+  const fakeSpawn = (command, args) => {
+    spawned.push({ command, args });
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    child.stdout.setEncoding = () => {};
+    child.stderr.setEncoding = () => {};
+    child.stdin = {
+      writable: true,
+      end: () => {},
+      write: (line) => {
+        const message = JSON.parse(line);
+        if (!message.id) return;
+
+        const results = {
+          initialize: { serverInfo: { name: "mock-gitmcp", version: "1.0.0" } },
+          "tools/list": { tools: [{ name: "search_obsidian_documentation" }] },
+          "tools/call": {
+            content: [{ type: "text", text: "Obsidian Plugin API evidence" }],
+          },
+        };
+        queueMicrotask(() => {
+          child.stdout.emit(
+            "data",
+            `${JSON.stringify({ jsonrpc: "2.0", id: message.id, result: results[message.method] })}\n`,
+          );
+        });
+      },
+    };
+    child.kill = () => {
+      queueMicrotask(() => child.emit("exit", 0, null));
+      return true;
+    };
+    return child;
+  };
+
+  const client = new McpStdioBridgeClient(
+    "https://gitmcp.io/obsidianmd/obsidian-api",
+    "trusted-bridge --endpoint {url}",
+    fakeSpawn,
+  );
+  const init = await client.connect();
+  const tools = await client.request("tools/list", {});
+  const evidence = await client.request("tools/call", {
+    name: tools.tools[0].name,
+    arguments: { query: "obsidian plugin" },
+  });
+  await client.close();
+
+  assert.deepEqual(spawned[0], {
+    command: "trusted-bridge",
+    args: ["--endpoint", "https://gitmcp.io/obsidianmd/obsidian-api"],
+  });
+  assert.equal(init.serverInfo.name, "mock-gitmcp");
+  assert.equal(tools.tools[0].name, "search_obsidian_documentation");
+  assert.equal(evidence.content[0].text, "Obsidian Plugin API evidence");
+});
+
+test("remote bridge request timeout is configurable for bounded smoke runs", async () => {
+  const previousTimeout = process.env.MA_MCP_REQUEST_TIMEOUT_MS;
+  process.env.MA_MCP_REQUEST_TIMEOUT_MS = "50";
+  const fakeSpawn = () => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    child.stdout.setEncoding = () => {};
+    child.stderr.setEncoding = () => {};
+    child.stdin = {
+      writable: true,
+      end: () => {},
+      write: () => {},
+    };
+    child.kill = () => {
+      queueMicrotask(() => child.emit("exit", 0, null));
+      return true;
+    };
+    return child;
+  };
+
+  try {
+    const client = new McpStdioBridgeClient(
+      "https://gitmcp.io/obsidianmd/obsidian-api",
+      "trusted-bridge {url}",
+      fakeSpawn,
+    );
+
+    await assert.rejects(
+      () => client.connect(),
+      /Timed out waiting for MCP bridge response to initialize/,
+    );
+    await client.close();
+  } finally {
+    if (previousTimeout === undefined) {
+      delete process.env.MA_MCP_REQUEST_TIMEOUT_MS;
+    } else {
+      process.env.MA_MCP_REQUEST_TIMEOUT_MS = previousTimeout;
+    }
+  }
 });
 
 test("validates mcp servers when local capabilities manifest exists alongside them", async () => {

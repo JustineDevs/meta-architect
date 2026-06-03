@@ -1,4 +1,2 @@
 name = "Vibe"
-role = "experience-review"
-trigger = "$vibe"
 description = "Reviews developer and user experience risks before implementation."

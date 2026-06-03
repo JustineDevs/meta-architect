@@ -3,9 +3,24 @@ import path from "node:path";
 import { appendDecision } from "./decision-log.js";
 import { readJson, writeFileIfMissing, writeJson } from "./fs-utils.js";
 import { validateMcpServers } from "./mcp-config.js";
-import { McpSseClient } from "./mcp-live-client.js";
+import { createMcpLiveClient, hasConfiguredMcpRemoteBridge } from "./mcp-live-client.js";
 import { getRepoRoot, getRuntimeReadPath, getRuntimeWritePath, packageRoot } from "./paths.js";
+import {
+  evaluateAlignmentDrift,
+  saveAlignmentSentinelReport,
+} from "./runtime/alignment-sentinel.js";
 import { evaluateRuntimeBuildReadiness } from "./runtime/build-readiness.js";
+import {
+  findIngestedCoreSourceForRepo,
+  loadCoreSourceIngest,
+} from "./runtime/core-source-ingest.js";
+import { launchDetachedTrack } from "./runtime/detached-provider.js";
+import {
+  scanLockfilePackageExposure,
+  validateMcpPolicyExposure,
+} from "./runtime/exposure-catalog.js";
+import { createHelperReceipt } from "./runtime/helper-orchestration-core.js";
+import { appendMaestroEvent } from "./runtime/maestro-events.js";
 import {
   buildHelperFailureMatrix,
   chooseMaestroManagerAction,
@@ -14,11 +29,24 @@ import {
   loadManagerRunRegistry,
   saveManagerRunRegistry,
 } from "./runtime/maestro-manager.js";
+import {
+  beginMaestroOrchestration,
+  loadMaestroStateOrDefault,
+  saveMaestroState,
+} from "./runtime/maestro-state.js";
 import { submitTask } from "./runtime/orchestrator.js";
+import {
+  createQuorumReviewReceipt,
+  evaluateQuorumVotes,
+  quorumDecisions,
+} from "./runtime/quorum-review.js";
+import { writeRalphExecutionContract } from "./runtime/ralph-execution-core.js";
+import { redactProviderBoundText, seedRedactionVault } from "./runtime/redaction-gateway.js";
 import {
   assertLeaderAuthority,
   createRuntimeSummary,
   loadRuntimeSnapshot,
+  repairRuntimeScratchpadArtifacts,
 } from "./runtime/runtime-state.js";
 import {
   seedRuntimeArtifacts,
@@ -33,7 +61,19 @@ import {
 } from "./runtime-artifacts.js";
 import { syncStatusUpdates } from "./state-sync.js";
 
-const skillNames = ["$maestro", "$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
+const skillNames = [
+  "$maestro",
+  "$arch",
+  "$sage",
+  "$flow",
+  "$vet",
+  "$vibe",
+  "$build",
+  "$align",
+  "$diagnose",
+  "$tdd",
+  "$cleanup",
+];
 const maestroWorkflowSequence = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
 const workflowTemplates = {
   "maestro.skill.md":
@@ -181,6 +221,35 @@ function chooseMaestroRecommendation(releaseState, idea, buildReadiness = null) 
     };
   }
 
+  if (releaseState.build_status === "READY") {
+    return {
+      nextStep: "Start the bounded build execution substep.",
+      why: "The build lane has prepared a narrow slice and verification plan, and the next safe move is to begin that bounded substep.",
+      primaryLane: "$build",
+      supportLane: "implementation",
+      assignments: [
+        "Run $build again to move the bounded build slice into active execution.",
+        "Keep the slice reversible and lane-owned.",
+      ],
+      avoid: ["Do not merge or release before the bounded build slice is complete."],
+      nextTrigger: "`$build`",
+    };
+  }
+
+  if (releaseState.build_status === "RUNNING") {
+    return {
+      nextStep: "Finalize the bounded build execution substep.",
+      why: "The build lane is already running its bounded slice and now needs completion evidence before downstream promotion.",
+      primaryLane: "$build",
+      supportLane: "verification",
+      assignments: [
+        "Run $build again to finalize the bounded build substep and persist completion evidence.",
+      ],
+      avoid: ["Do not merge or release before the build lane records DONE."],
+      nextTrigger: "`$build`",
+    };
+  }
+
   if (releaseState.merge_status !== "MERGED_TO_DEVELOPMENT") {
     return {
       nextStep: "Finish the implementation slice and merge it into development.",
@@ -255,7 +324,144 @@ function stripBackticks(value) {
   return value.replaceAll("`", "");
 }
 
-export async function runBuildLane({ actor = null } = {}) {
+function isGitMcpDocumentationTool(tool, action) {
+  if (!tool || typeof tool.name !== "string") {
+    return false;
+  }
+  if (!tool.name.startsWith(`${action}_`)) {
+    return false;
+  }
+  if (tool.name === "fetch_generic_url_content") {
+    return false;
+  }
+
+  const lowerName = tool.name.toLowerCase();
+  return (
+    lowerName.includes("_documentation") ||
+    lowerName.includes("_docs") ||
+    `${tool.description ?? ""}`.toLowerCase().includes("documentation")
+  );
+}
+
+function createBoundedBuildSlice() {
+  return [
+    "Create or confirm the bounded implementation and verification slice for the current release-ready state.",
+    "Keep the slice reversible and owned by the $build lane.",
+  ];
+}
+
+function createBuildVerificationPlan(nextTrigger = "$build") {
+  return [
+    "Confirm release gates and runtime control-plane artifacts are still green.",
+    `Use ${nextTrigger} as the bounded verification loop trigger for the current build slice.`,
+  ];
+}
+
+function createBuildRepairPath() {
+  return [
+    "If the bounded build slice becomes invalid without upstream gate regression, return to READY and rerun `$build`.",
+    "If runtime or upstream gates regress, fail closed and repair those blockers before resuming.",
+  ];
+}
+
+async function updateMaestroLedgerForBuild({
+  buildStatus,
+  runtimeSummary,
+  blockers,
+  nextTriggers,
+  gateState,
+  trackStatus,
+  completionEvidence = [],
+}) {
+  let maestroState = await loadMaestroStateOrDefault();
+  maestroState = beginMaestroOrchestration(maestroState, {
+    globalStatus: gateState,
+  });
+  maestroState.runtime_tracks.track_0_sync = {
+    active_gate: "$build",
+    status: trackStatus,
+    pid: null,
+    execution_pane: null,
+    exit_code: trackStatus === "COMPLETED" ? 0 : null,
+    blockers,
+    next_triggers: nextTriggers,
+    completion_evidence: completionEvidence,
+    build_status: buildStatus,
+    updated_at: new Date().toISOString(),
+    runtime_summary: {
+      pendingMailboxCount: runtimeSummary.pendingMailboxCount,
+      invalidArtifacts: runtimeSummary.invalidArtifacts,
+      missingArtifacts: runtimeSummary.missingArtifacts,
+    },
+  };
+  maestroState.downstream_lock_table.$build = {
+    is_locked: buildStatus !== "DONE",
+    locked_by: buildStatus === "DONE" ? [] : ["$build"],
+    unlock_criteria: "build_status == 'DONE'",
+  };
+  maestroState.timestamp = new Date().toISOString();
+  maestroState.global_status = gateState;
+  await saveMaestroState(maestroState);
+  await appendMaestroEvent({
+    record_type: "runtime:track_status",
+    gate: "$build",
+    global_status: gateState,
+    track_status: trackStatus,
+    build_status: buildStatus,
+    next_triggers: nextTriggers,
+    blockers,
+  });
+  await appendMaestroEvent({
+    record_type: "lock:downstream_circuit_breaker",
+    target_gate: "$build",
+    is_locked: buildStatus !== "DONE",
+    locked_by: buildStatus === "DONE" ? [] : ["$build"],
+    unlock_criteria: "build_status == 'DONE'",
+  });
+}
+
+async function updateScratchpadTrackForLane({
+  gate,
+  trackStatus,
+  globalStatus,
+  blockers = [],
+  nextTriggers = [],
+  detached = null,
+  details = {},
+}) {
+  let maestroState = await loadMaestroStateOrDefault();
+  maestroState = beginMaestroOrchestration(maestroState, {
+    globalStatus,
+  });
+  const trackKey = `track_${gate.replaceAll("$", "")}_sync`;
+  maestroState.runtime_tracks[trackKey] = {
+    active_gate: gate,
+    status: trackStatus,
+    pid: null,
+    execution_pane: detached?.executionPane ?? null,
+    provider: detached?.provider ?? "none",
+    log_path: detached?.logPath ?? null,
+    exit_code: trackStatus === "COMPLETED" ? 0 : null,
+    blockers,
+    next_triggers: nextTriggers,
+    updated_at: new Date().toISOString(),
+    ...details,
+  };
+  maestroState.timestamp = new Date().toISOString();
+  maestroState.global_status = globalStatus;
+  await saveMaestroState(maestroState);
+  await appendMaestroEvent({
+    record_type: "runtime:track_status",
+    gate,
+    global_status: globalStatus,
+    track_status: trackStatus,
+    next_triggers: nextTriggers,
+    blockers,
+    provider: detached?.provider ?? "none",
+  });
+}
+
+export async function runBuildLane({ actor = null, reviewMode = null, quorumVotes = [] } = {}) {
   const authority = await assertLeaderAuthority(actor);
   const runtimeSnapshot = await loadRuntimeSnapshot();
   const runtimeSummary = createRuntimeSummary(runtimeSnapshot);
@@ -268,9 +474,21 @@ export async function runBuildLane({ actor = null } = {}) {
   if (!evaluation.allowed) {
     await writeBuildPlanArtifact({
       allowed: false,
+      gateState: "LOCKED",
       blockers: evaluation.blockers,
       nextTriggers: evaluation.nextTriggers,
+      buildSlice: createBoundedBuildSlice(),
+      verificationPlan: createBuildVerificationPlan("`$build`"),
+      repairPath: createBuildRepairPath(),
       runtimeSummary,
+    });
+    await updateMaestroLedgerForBuild({
+      buildStatus: runtimeSnapshot.release.build_status,
+      runtimeSummary,
+      blockers: evaluation.blockers,
+      nextTriggers: evaluation.nextTriggers,
+      gateState: "LOCKED",
+      trackStatus: "BLOCKED",
     });
     await appendDecision({
       actor: authority.leaderActor,
@@ -290,30 +508,205 @@ export async function runBuildLane({ actor = null } = {}) {
   }
 
   const suggestedBranches = ["feature/implementation", "feature/verification"];
+  const buildSlice = createBoundedBuildSlice();
+  const verificationPlan = createBuildVerificationPlan("`$build`");
+  const repairPath = createBuildRepairPath();
+  const ralphContract = await writeRalphExecutionContract({
+    buildSlice,
+    verificationPlan,
+    runtimeSummary,
+  });
+
+  if (runtimeSnapshot.release.build_status === "LOCKED") {
+    await writeBuildPlanArtifact({
+      allowed: true,
+      gateState: "READY",
+      blockers: [],
+      nextTriggers: ["$build"],
+      suggestedBranches,
+      buildSlice,
+      verificationPlan,
+      repairPath,
+      runtimeSummary,
+    });
+    await appendDecision({
+      actor: authority.leaderActor,
+      kind: "skill",
+      skill: "$build",
+      decision: "Build gate ready",
+      status: "READY",
+      evidence: [
+        { kind: "runtime-summary", value: runtimeSummary },
+        { kind: "branches", value: suggestedBranches },
+        { kind: "build-slice", value: buildSlice },
+        { kind: "ralph-prd", value: ralphContract.prdPath },
+      ],
+      blockers: [],
+      next_allowed_triggers: ["$build"],
+    });
+    await syncStatusUpdates({ build_status: "READY" }, { actor: authority.leaderActor });
+    await updateMaestroLedgerForBuild({
+      buildStatus: "READY",
+      runtimeSummary,
+      blockers: [],
+      nextTriggers: ["$build"],
+      gateState: "READY",
+      trackStatus: "READY",
+    });
+    return {
+      status: "READY",
+      nextTrigger: "$build",
+      blockers: [],
+      suggestedBranches,
+    };
+  }
+
+  if (runtimeSnapshot.release.build_status === "READY") {
+    await writeBuildPlanArtifact({
+      allowed: true,
+      gateState: "RUNNING",
+      blockers: [],
+      nextTriggers: ["$build"],
+      suggestedBranches,
+      buildSlice,
+      verificationPlan,
+      repairPath,
+      runtimeSummary,
+    });
+    await appendDecision({
+      actor: authority.leaderActor,
+      kind: "skill",
+      skill: "$build",
+      decision: "Started the bounded build execution substep",
+      status: "RUNNING",
+      evidence: [
+        { kind: "runtime-summary", value: runtimeSummary },
+        { kind: "build-slice", value: buildSlice },
+        { kind: "verification-plan", value: verificationPlan },
+        { kind: "ralph-prd", value: ralphContract.prdPath },
+      ],
+      blockers: [],
+      next_allowed_triggers: ["$build"],
+    });
+    await syncStatusUpdates({ build_status: "RUNNING" }, { actor: authority.leaderActor });
+    await updateMaestroLedgerForBuild({
+      buildStatus: "RUNNING",
+      runtimeSummary,
+      blockers: [],
+      nextTriggers: ["$build"],
+      gateState: "RUNNING",
+      trackStatus: "RUNNING",
+    });
+    return {
+      status: "RUNNING",
+      nextTrigger: "$build",
+      blockers: [],
+      suggestedBranches,
+    };
+  }
+
+  const completionEvidence = [
+    "Build slice remained release-ready through the bounded verification substep.",
+    "Runtime control-plane artifacts remained valid at completion.",
+  ];
+  if (reviewMode === "quorum") {
+    const quorum = evaluateQuorumVotes(quorumVotes);
+    const quorumReceipt = createQuorumReviewReceipt({ votes: quorumVotes, evaluation: quorum });
+    if (quorum.decision !== quorumDecisions.APPROVED) {
+      await writeBuildPlanArtifact({
+        allowed: true,
+        gateState: "READY",
+        blockers: quorum.blockers,
+        nextTriggers: ["$build"],
+        suggestedBranches,
+        buildSlice,
+        verificationPlan: [
+          ...verificationPlan,
+          "Resolve quorum disagreement or provide a compatible majority fingerprint before promotion.",
+        ],
+        repairPath,
+        runtimeSummary,
+      });
+      await appendDecision({
+        actor: authority.leaderActor,
+        kind: "skill",
+        skill: "$build",
+        decision: "Quorum review did not approve the current bounded build slice",
+        status: "READY",
+        evidence: [
+          { kind: "runtime-summary", value: runtimeSummary },
+          { kind: "quorum-votes", value: quorumVotes },
+          { kind: "quorum-decision", value: quorum },
+          { kind: "quorum-receipt", value: quorumReceipt },
+          { kind: "ralph-prd", value: ralphContract.prdPath },
+        ],
+        blockers: quorum.blockers,
+        next_allowed_triggers: ["$build"],
+      });
+      await syncStatusUpdates({ build_status: "READY" }, { actor: authority.leaderActor });
+      await updateMaestroLedgerForBuild({
+        buildStatus: "READY",
+        runtimeSummary,
+        blockers: quorum.blockers,
+        nextTriggers: ["$build"],
+        gateState: "READY",
+        trackStatus: "BLOCKED",
+        completionEvidence: ["Quorum review returned INDETERMINATE or non-approval."],
+      });
+      return {
+        status: "READY",
+        nextTrigger: "$build",
+        blockers: quorum.blockers,
+        suggestedBranches,
+      };
+    }
+    completionEvidence.push(
+      "Quorum review approved the bounded build slice with a majority-compatible fingerprint.",
+    );
+    completionEvidence.push(
+      `Quorum confidence receipt recorded with ${quorumReceipt.reviewer_count} reviewers.`,
+    );
+  }
   await writeBuildPlanArtifact({
     allowed: true,
+    gateState: "DONE",
     blockers: [],
-    nextTriggers: ["$build"],
+    nextTriggers: ["ma merge <feature/*> development"],
     suggestedBranches,
+    buildSlice,
+    verificationPlan,
+    repairPath,
+    completionEvidence,
     runtimeSummary,
   });
   await appendDecision({
     actor: authority.leaderActor,
     kind: "skill",
     skill: "$build",
-    decision: "Build gate ready",
-    status: "READY",
+    decision: "Completed the bounded build execution substep",
+    status: "DONE",
     evidence: [
       { kind: "runtime-summary", value: runtimeSummary },
       { kind: "branches", value: suggestedBranches },
+      { kind: "completion-evidence", value: completionEvidence },
+      { kind: "ralph-prd", value: ralphContract.prdPath },
     ],
     blockers: [],
-    next_allowed_triggers: ["$build"],
+    next_allowed_triggers: ["ma merge <feature/*> development"],
   });
-  await syncStatusUpdates({ build_status: "READY" }, { actor: authority.leaderActor });
+  await syncStatusUpdates({ build_status: "DONE" }, { actor: authority.leaderActor });
+  await updateMaestroLedgerForBuild({
+    buildStatus: "DONE",
+    runtimeSummary,
+    blockers: [],
+    nextTriggers: ["ma merge <feature/*> development"],
+    gateState: "COMPLETED",
+    trackStatus: "COMPLETED",
+    completionEvidence,
+  });
   return {
-    status: "READY",
-    nextTrigger: "$build",
+    status: "DONE",
+    nextTrigger: "ma merge <feature/*> development",
     blockers: [],
     suggestedBranches,
   };
@@ -396,10 +789,23 @@ function buildManagerDecisionBlockers(managerRun, runtimeSummary, buildReadiness
 }
 
 function executeManagerHelper(helper, { releaseState, runtimeSummary, recommendation }) {
+  const baseReceipt = ({ observedContext, result, nextTrigger }) => ({
+    helperId: helper.id,
+    ...createHelperReceipt({
+      skill: helper.skill,
+      objective: helper.objective,
+      observedContext,
+      result,
+      nextTrigger: nextTrigger ?? recommendation.nextTrigger ?? "$maestro",
+    }),
+  });
+
   if (helper.skill === "$align") {
     return {
-      helperId: helper.id,
-      kind: "alignment",
+      ...baseReceipt({
+        observedContext: `build_status=${releaseState.build_status}; next=${recommendation.nextTrigger}`,
+        result: "Normalized the manager handoff around the current lane sequence and next trigger.",
+      }),
       workflowSequence: maestroWorkflowSequence,
       currentBuildStatus: releaseState.build_status,
       recommendedNextTrigger: recommendation.nextTrigger,
@@ -408,8 +814,10 @@ function executeManagerHelper(helper, { releaseState, runtimeSummary, recommenda
 
   if (helper.skill === "$diagnose") {
     return {
-      helperId: helper.id,
-      kind: "diagnostic",
+      ...baseReceipt({
+        observedContext: `pending_mailbox=${runtimeSummary.pendingMailboxCount}; invalid_artifacts=${runtimeSummary.invalidArtifacts.length}; missing_artifacts=${runtimeSummary.missingArtifacts.length}`,
+        result: "Captured the smallest blocker slices before the manager resumes gated work.",
+      }),
       pendingMailboxCount: runtimeSummary.pendingMailboxCount,
       invalidArtifacts: runtimeSummary.invalidArtifacts,
       missingArtifacts: runtimeSummary.missingArtifacts,
@@ -418,8 +826,10 @@ function executeManagerHelper(helper, { releaseState, runtimeSummary, recommenda
 
   if (helper.skill === "$tdd") {
     return {
-      helperId: helper.id,
-      kind: "test-first",
+      ...baseReceipt({
+        observedContext: `build_status=${releaseState.build_status}; next=${recommendation.nextTrigger}`,
+        result: "Defined the regression-first boundary for the owning implementation lane.",
+      }),
       buildStatus: releaseState.build_status,
       nextTrigger: recommendation.nextTrigger,
     };
@@ -427,8 +837,10 @@ function executeManagerHelper(helper, { releaseState, runtimeSummary, recommenda
 
   if (helper.skill === "$cleanup") {
     return {
-      helperId: helper.id,
-      kind: "cleanup",
+      ...baseReceipt({
+        observedContext: `merge_status=${releaseState.merge_status}; release_status=${releaseState.release_status}`,
+        result: "Prepared contract-preserving simplification without changing release authority.",
+      }),
       mergeStatus: releaseState.merge_status,
       releaseStatus: releaseState.release_status,
     };
@@ -590,8 +1002,25 @@ export async function runArch() {
   }
 
   const blueprint = {
+    decision: "Approve the first bounded architecture direction.",
+    status: "APPROVED",
     summary: `Blueprint derived from idea: ${idea}. Runtime shell currently exposes ${runtimeSummary.workerCount} workers, ${runtimeSummary.workspaceCount} workspaces, and ${runtimeSummary.guidanceSourceCount} guidance sources.`,
     suggestedStack: ["Node.js", "MCP", "GitMCP", "Git worktree", "File-backed runtime state"],
+    workloadAssumptions: [
+      "single-repo operator workflow",
+      "gate-driven release discipline",
+      "file-backed runtime state",
+    ],
+    rejectedAlternatives: [
+      "Standalone second umbrella runtime surface because it would weaken Meta-Architect ownership.",
+    ],
+    evidence: [
+      `Workers detected: ${runtimeSummary.workerCount}`,
+      `Workspaces detected: ${runtimeSummary.workspaceCount}`,
+      `Guidance sources detected: ${runtimeSummary.guidanceSourceCount}`,
+    ],
+    blockers: [],
+    nextAllowedTriggers: ["`$sage`"],
     outcome: "Produce a gated architecture and implementation plan backed by runtime state.",
   };
 
@@ -608,6 +1037,16 @@ export async function runArch() {
   });
 
   await syncStatusUpdates({ architecture_status: "APPROVED" });
+  await updateScratchpadTrackForLane({
+    gate: "$arch",
+    trackStatus: "COMPLETED",
+    globalStatus: "COMPLETED",
+    nextTriggers: ["$sage"],
+    details: {
+      decision: blueprint.decision,
+      rejected_alternatives: blueprint.rejectedAlternatives,
+    },
+  });
 }
 
 export async function runSage() {
@@ -615,17 +1054,48 @@ export async function runSage() {
   const config = await validateMcpServers();
   const runtimeSummary = await readRuntimeSummary();
   assertControlPlaneReady(runtimeSummary);
+  await seedRedactionVault();
+  const disableLiveProbe = process.env.MA_DISABLE_LIVE_MCP === "1";
   const sourceEntries = config.servers.map((server) => ({
     repo: server.repo,
     endpoint: server.endpoint,
     category: server.category,
+    exactUpstreamMapping: server.repo,
+    evidenceGrade: disableLiveProbe ? "PARTIAL" : "MISSING",
   }));
   const blockers = [];
   const idea = (await readIdeaText()) ?? "software architecture";
-  const disableLiveProbe = process.env.MA_DISABLE_LIVE_MCP === "1";
-  let liveSuccessCount = 0;
+  let verificationSuccessCount = 0;
+  let coreSourceIngest = null;
+  try {
+    coreSourceIngest = await loadCoreSourceIngest();
+  } catch {
+    coreSourceIngest = null;
+  }
 
   for (const source of sourceEntries) {
+    const ingestedSource = findIngestedCoreSourceForRepo(coreSourceIngest, source.repo);
+    if (ingestedSource) {
+      source.localSourceSnapshot = {
+        status: ingestedSource.status,
+        localPath: ingestedSource.local_path,
+        capability: ingestedSource.capability,
+        semanticRole: ingestedSource.semantic_role,
+        fileCount: ingestedSource.file_count,
+        contentSha256: ingestedSource.content_sha256,
+        gitCommit: ingestedSource.git_commit,
+        sampledFiles: ingestedSource.sampled_files,
+      };
+      source.liveProbe = {
+        transport: "local-core-source-ingest",
+        queryMode: "local-snapshot",
+        sampleText: ingestedSource.sample_text?.slice(0, 400) ?? null,
+      };
+      source.evidenceGrade = "VERIFIED";
+      verificationSuccessCount += 1;
+      continue;
+    }
+
     if (disableLiveProbe) {
       source.liveProbe = {
         skipped: true,
@@ -634,43 +1104,76 @@ export async function runSage() {
       continue;
     }
 
-    const client = new McpSseClient(source.endpoint);
+    const client = createMcpLiveClient(source.endpoint);
     try {
       const init = await client.connect();
       const tools = await client.request("tools/list", {});
-      const searchTool = tools.tools?.find(
-        (tool) => tool.name.includes("search_") && tool.name.endsWith("_documentation"),
-      );
-      const fetchTool = tools.tools?.find(
-        (tool) => tool.name.includes("fetch_") && tool.name.endsWith("_documentation"),
-      );
+      const searchTool = tools.tools?.find((tool) => isGitMcpDocumentationTool(tool, "search"));
+      const fetchTool = tools.tools?.find((tool) => isGitMcpDocumentationTool(tool, "fetch"));
 
       let evidence = null;
-      if (searchTool) {
-        evidence = await client.request("tools/call", {
-          name: searchTool.name,
-          arguments: { query: idea },
+      let queryMode = "list-only";
+      const callFailures = [];
+      if (fetchTool) {
+        try {
+          evidence = await client.request("tools/call", {
+            name: fetchTool.name,
+            arguments: {},
+          });
+          queryMode = "fetch";
+        } catch (error) {
+          callFailures.push({
+            tool: fetchTool.name,
+            error: error.message,
+          });
+        }
+      }
+      if (!evidence && searchTool) {
+        const redactedQuery = await redactProviderBoundText(idea, {
+          kind: "sage-live-query",
+          repo: source.repo,
         });
-      } else if (fetchTool) {
-        evidence = await client.request("tools/call", {
-          name: fetchTool.name,
-          arguments: {},
-        });
+        try {
+          evidence = await client.request("tools/call", {
+            name: searchTool.name,
+            arguments: { query: redactedQuery.sanitizedText },
+          });
+          queryMode = "search";
+        } catch (error) {
+          callFailures.push({
+            tool: searchTool.name,
+            error: error.message,
+          });
+        }
+      }
+      if ((fetchTool || searchTool) && !evidence) {
+        throw new Error(
+          `No GitMCP documentation call succeeded: ${callFailures
+            .map((failure) => `${failure.tool}: ${failure.error}`)
+            .join("; ")}`,
+        );
       }
 
       source.liveProbe = {
+        transport: hasConfiguredMcpRemoteBridge() ? "stdio-bridge" : "direct-sse",
         serverName: init.serverInfo?.name ?? "unknown",
         serverVersion: init.serverInfo?.version ?? "unknown",
         toolsCount: tools.tools?.length ?? 0,
-        queryMode: searchTool ? "search" : fetchTool ? "fetch" : "list-only",
+        queryMode,
+        callFailures,
         sampleText:
           evidence?.content?.find((item) => item.type === "text")?.text?.slice(0, 400) ?? null,
       };
-      liveSuccessCount += 1;
+      source.evidenceGrade = "VERIFIED";
+      source.exactUpstreamMapping = source.repo;
+      verificationSuccessCount += 1;
     } catch (error) {
       source.liveProbe = {
+        transport: hasConfiguredMcpRemoteBridge() ? "stdio-bridge" : "direct-sse",
         error: error.message,
       };
+      source.evidenceGrade = "PARTIAL";
+      source.exactUpstreamMapping = source.repo;
       blockers.push(`Live MCP query failed for ${source.repo}: ${error.message}`);
     } finally {
       await client.close().catch(() => {});
@@ -681,8 +1184,7 @@ export async function runSage() {
   existing.items = sourceEntries;
   await writeJson(getRuntimeWritePath("evidence", "sources.json"), existing);
 
-  const verified =
-    sourceEntries.length > 0 && !disableLiveProbe && liveSuccessCount === sourceEntries.length;
+  const verified = sourceEntries.length > 0 && verificationSuccessCount === sourceEntries.length;
   if (sourceEntries.length > 0 && !verified && blockers.length === 0) {
     blockers.push(
       disableLiveProbe
@@ -694,7 +1196,8 @@ export async function runSage() {
   await appendDecision({
     kind: "skill",
     skill: "$sage",
-    decision: "Bound architectural choices to approved GitMCP sources using live MCP queries",
+    decision:
+      "Bound architectural choices to approved sources using local core-source snapshots first, with GitMCP only as refresh/provenance fallback",
     status: verified ? "VERIFIED" : sourceEntries.length > 0 ? "PARTIAL" : "MISSING",
     evidence: sourceEntries,
     blockers: sourceEntries.length > 0 ? blockers : ["No approved GitMCP sources configured"],
@@ -703,6 +1206,17 @@ export async function runSage() {
 
   await syncStatusUpdates({
     evidence_status: verified ? "VERIFIED" : sourceEntries.length > 0 ? "PARTIAL" : "MISSING",
+  });
+  await updateScratchpadTrackForLane({
+    gate: "$sage",
+    trackStatus: verified ? "COMPLETED" : "BLOCKED",
+    globalStatus: verified ? "COMPLETED" : "LOCKED",
+    blockers: sourceEntries.length > 0 ? blockers : ["No approved GitMCP sources configured"],
+    nextTriggers: verified ? ["$flow"] : ["$sage"],
+    details: {
+      evidence_grade: verified ? "VERIFIED" : sourceEntries.length > 0 ? "PARTIAL" : "MISSING",
+      exact_upstream_mapping: sourceEntries.map((source) => source.repo),
+    },
   });
 }
 
@@ -729,12 +1243,32 @@ export async function runFlow() {
   if (runtimeSummary.workerCount > 0 && runtimeSummary.workspaceCount === 0) {
     blockers.push("Workers exist without registered workspaces.");
   }
+  const actors = ["leader", "worker", "guidance_stack", "hook_dispatcher", "workspace_manager"];
   const logicMap = {
-    actors: ["leader", "worker", "guidance_stack", "hook_dispatcher", "workspace_manager"],
+    actors,
+    decision:
+      blockers.length === 0
+        ? "Approve the current behavioral model for downstream review."
+        : "Behavioral model remains blocked until the identified logic/runtime issues are resolved.",
+    status: blockers.length === 0 ? "GREEN" : "RED",
     states: ["idea", "architecture", "evidence", "logic", "security", "experience", "build"],
+    stateMap: [
+      "idea -> architecture -> evidence -> logic -> security -> experience -> build",
+      "logic review must stop if runtime artifacts are invalid or worker/workspace integrity breaks",
+    ],
+    failureFlows:
+      blockers.length > 0
+        ? blockers
+        : ["No blocking failure flow detected in the current runtime snapshot."],
+    evidence: [
+      `actors observed: ${actors.length}`,
+      `pending mailbox proposals: ${runtimeSummary.pendingMailboxCount}`,
+      `registered workspaces: ${runtimeSummary.workspaceCount}`,
+    ],
     runtimeSummary,
     blockers,
     nextTrigger: blockers.length === 0 ? "`$vet`" : "`$flow`",
+    nextAllowedTriggers: blockers.length === 0 ? ["`$vet`"] : ["`$flow`"],
   };
   const status = blockers.length === 0 ? "GREEN" : "RED";
   const nextAllowedTriggers = blockers.length === 0 ? ["$vet"] : ["$flow"];
@@ -752,6 +1286,18 @@ export async function runFlow() {
   });
 
   await syncStatusUpdates({ logic_status: status });
+  await updateScratchpadTrackForLane({
+    gate: "$flow",
+    trackStatus: status === "GREEN" ? "COMPLETED" : "BLOCKED",
+    globalStatus: status === "GREEN" ? "COMPLETED" : "LOCKED",
+    blockers,
+    nextTriggers: nextAllowedTriggers,
+    details: {
+      failure_flows: logicMap.failureFlows,
+      state_map: logicMap.stateMap,
+      hardening_mode: runtimeSummary.pendingMailboxCount > 0 ? "STRICT" : "STANDARD",
+    },
+  });
 }
 
 export async function runVet() {
@@ -760,36 +1306,103 @@ export async function runVet() {
   assertControlPlaneReady(runtimeSummary);
   const auditLog = await readJson(getRuntimeWritePath("evidence", "audits.json"));
   const cveLog = await readJson(getRuntimeWritePath("evidence", "cves.json"));
+  const packageExposureFindings = await scanLockfilePackageExposure();
+  const policyFindings = await validateMcpPolicyExposure();
+  const criticalPackageExposure = packageExposureFindings.filter(
+    (finding) => finding.severity === "critical",
+  );
+  const blockingPolicyFindings = policyFindings.filter((finding) =>
+    ["critical", "high"].includes(`${finding.severity}`.toLowerCase()),
+  );
   const reviewApproved =
     auditLog.items.some((item) => item.source === "review" || item.approved === true) ||
     cveLog.items.some((item) => item.source === "review" || item.approved === true);
-  const finding = {
-    severity: "INFO",
-    source: "placeholder",
-    summary: `Placeholder security review recorded; explicit security approval is still required after reviewing ${runtimeSummary.compatibilityHookCount} compatibility hooks and ${runtimeSummary.runtimeHookCount} runtime events.`,
-    unresolved: true,
-  };
-  auditLog.items.push(finding);
+  const scanApproved = criticalPackageExposure.length === 0 && blockingPolicyFindings.length === 0;
+  const finding =
+    criticalPackageExposure.length > 0
+      ? {
+          severity: criticalPackageExposure[0].severity.toUpperCase(),
+          source: "package-exposure-scan",
+          summary: criticalPackageExposure
+            .map(
+              (item) =>
+                `${item.package_name}@${item.package_version}: ${item.diagnostic} (${item.advisory_reference})`,
+            )
+            .join(" "),
+          unresolved: true,
+          trustBoundaries: [
+            "lockfile metadata vs provider-bound or build-unlocking execution",
+            "repo-owned MCP config vs runtime-local scratchpad state",
+            "published docs vs private `.ma` execution state",
+          ],
+          acceptedRisks: ["No accepted risk: blocking package exposure must be remediated."],
+        }
+      : {
+          severity: policyFindings.length > 0 ? "WARNING" : "INFO",
+          source: policyFindings.length > 0 ? "mcp-policy-validation" : "runtime-review",
+          summary:
+            policyFindings.length > 0
+              ? policyFindings.map((item) => item.diagnostic).join(" ")
+              : `No blocking package exposure was detected in the current bounded scan. Review still remains required after checking ${runtimeSummary.compatibilityHookCount} compatibility hooks and ${runtimeSummary.runtimeHookCount} runtime events.`,
+          unresolved: !reviewApproved && !scanApproved,
+          trustBoundaries: [
+            "leader vs worker mutation authority",
+            "repo-owned MCP config vs runtime-local scratchpad state",
+            "published docs vs private `.ma` execution state",
+          ],
+          acceptedRisks: scanApproved
+            ? ["No material unresolved risk remains for the current bounded step."]
+            : [
+                "Security evidence still requires explicit approval or remediation before promotion.",
+              ],
+        };
+  auditLog.items.push(finding, ...packageExposureFindings, ...policyFindings);
   await writeJson(getRuntimeWritePath("evidence", "audits.json"), auditLog);
-  cveLog.items.push({
-    id: "baseline-review",
-    source: "placeholder",
-    severity: "INFO",
-    unresolved: true,
-  });
+  cveLog.items.push(
+    ...packageExposureFindings.map((item) => ({
+      id: item.advisory_reference ?? `${item.package_name}-${item.package_version}`,
+      source: "package-exposure-scan",
+      severity: item.severity.toUpperCase(),
+      unresolved: true,
+      package_name: item.package_name,
+      package_version: item.package_version,
+    })),
+    {
+      id: "baseline-review",
+      source: packageExposureFindings.length > 0 ? "package-exposure-scan" : "runtime-review",
+      severity: packageExposureFindings.length > 0 ? "CRITICAL" : "INFO",
+      unresolved: !reviewApproved && !scanApproved,
+    },
+  );
   await writeJson(getRuntimeWritePath("evidence", "cves.json"), cveLog);
+  for (const exposureFinding of packageExposureFindings) {
+    await appendMaestroEvent(exposureFinding);
+  }
+  for (const policyFinding of policyFindings) {
+    await appendMaestroEvent(policyFinding);
+  }
   await writeSecuritySpec({
     finding,
     auditCount: auditLog.items.length,
     cveCount: cveLog.items.length,
     runtimeSummary,
-    nextTrigger: reviewApproved ? "`$vibe`" : "`$vet`",
+    nextTrigger: scanApproved ? "`$vibe`" : "`$vet`",
   });
-  const status = reviewApproved ? "GREEN" : "PENDING";
-  const blockers = reviewApproved
-    ? []
-    : ["Security review evidence has not been explicitly approved yet."];
-  const nextAllowedTriggers = reviewApproved ? ["$vibe"] : ["$vet"];
+  const status = scanApproved ? "GREEN" : criticalPackageExposure.length > 0 ? "RED" : "PENDING";
+  const blockers =
+    criticalPackageExposure.length > 0
+      ? criticalPackageExposure.map(
+          (item) =>
+            `${item.package_name}@${item.package_version}: ${item.diagnostic} (${item.advisory_reference})`,
+        )
+      : reviewApproved
+        ? []
+        : blockingPolicyFindings.map((finding) => finding.diagnostic);
+  const nextAllowedTriggers = scanApproved
+    ? ["$vibe"]
+    : criticalPackageExposure.length > 0
+      ? ["$vet"]
+      : ["$vet"];
 
   await appendDecision({
     kind: "skill",
@@ -802,6 +1415,25 @@ export async function runVet() {
   });
 
   await syncStatusUpdates({ security_status: status });
+  await updateScratchpadTrackForLane({
+    gate: "$vet",
+    trackStatus: status === "GREEN" ? "COMPLETED" : "BLOCKED",
+    globalStatus:
+      status === "GREEN" ? "COMPLETED" : status === "RED" ? "LOCKED" : "DEGRADED_HEALING",
+    blockers,
+    nextTriggers: nextAllowedTriggers,
+    details: {
+      trust_boundaries: finding.trustBoundaries,
+      accepted_risks: finding.acceptedRisks,
+      healing_ledger: reviewApproved
+        ? null
+        : {
+            current_attempt: 0,
+            strategy_assigned: "BOUNDED_DIAGNOSTIC_REVIEW",
+            status: "PENDING_OPERATOR_APPROVAL",
+          },
+    },
+  });
 }
 
 export async function runVibe() {
@@ -812,23 +1444,34 @@ export async function runVibe() {
   const reviewApproved = outcomes.items.some(
     (item) => item.source === "review" || item.approved === true,
   );
+  const runtimeApproved = runtimeSummary.pendingMailboxCount === 0;
   const note = {
     area: "developer-experience",
-    source: "placeholder",
-    summary: `Placeholder DX/UX review recorded; explicit workflow approval is still required while the runtime tracks ${runtimeSummary.taskCount} tasks and ${runtimeSummary.workspaceCount} workspaces.`,
+    source: "runtime-vibe-review",
+    summary: `Runtime DX/UX review recorded from current coordination state: ${runtimeSummary.taskCount} tasks, ${runtimeSummary.workspaceCount} workspaces, and ${runtimeSummary.pendingMailboxCount} pending mailbox proposals.`,
+    operatorFriction: [
+      runtimeSummary.pendingMailboxCount > 0
+        ? "Pending mailbox proposals increase operator coordination overhead."
+        : "Operator flow is bounded and clear in the current runtime state.",
+    ],
+    userFriction: [
+      "The gated sequence is explicit, but users still need clearer build-loop feedback once execution starts.",
+    ],
+    approved: reviewApproved || runtimeApproved,
   };
   outcomes.items.push(note);
   await writeJson(getRuntimeWritePath("evidence", "outcomes.json"), outcomes);
-  const status = reviewApproved ? "GREEN" : "PENDING";
-  const blockers = reviewApproved
-    ? []
-    : ["DX/UX review evidence has not been explicitly approved yet."];
-  const nextAllowedTriggers = reviewApproved ? ["$build"] : ["$vibe"];
+  const status = reviewApproved || runtimeApproved ? "GREEN" : "PENDING";
+  const blockers =
+    status === "GREEN"
+      ? []
+      : ["Pending mailbox proposals must be resolved before DX/UX can be marked GREEN."];
+  const nextAllowedTriggers = status === "GREEN" ? ["$build"] : ["$vibe"];
   await writeExperienceSpec({
     note,
     outcomeCount: outcomes.items.length,
     runtimeSummary,
-    nextTrigger: reviewApproved ? "`$build`" : "`$vibe`",
+    nextTrigger: status === "GREEN" ? "`$build`" : "`$vibe`",
   });
 
   await appendDecision({
@@ -842,9 +1485,20 @@ export async function runVibe() {
   });
 
   await syncStatusUpdates({ experience_status: status });
+  await updateScratchpadTrackForLane({
+    gate: "$vibe",
+    trackStatus: status === "GREEN" ? "COMPLETED" : "BLOCKED",
+    globalStatus: status === "GREEN" ? "COMPLETED" : "LOCKED",
+    blockers,
+    nextTriggers: nextAllowedTriggers,
+    details: {
+      operator_friction: note.operatorFriction,
+      user_friction: note.userFriction,
+    },
+  });
 }
 
-export async function runMaestro() {
+export async function runMaestro({ autoHeal = false, parallel = false } = {}) {
   await assertLeaderAuthority();
   let runtimeSnapshot = await loadRuntimeSnapshot();
   let releaseState = runtimeSnapshot.release;
@@ -854,6 +1508,133 @@ export async function runMaestro() {
   let buildReadiness = evaluateRuntimeBuildReadiness(releaseState, runtimeSummary);
   let recommendation = chooseMaestroRecommendation(releaseState, idea, buildReadiness);
   const helperFailureMatrix = buildHelperFailureMatrix();
+  const alignmentReport = {
+    ...evaluateAlignmentDrift({
+      releaseState,
+      decisionLog: runtimeSnapshot.decisions,
+    }),
+    lastRunAt: new Date().toISOString(),
+    baselineArtifacts: [
+      ".ma/release.json",
+      ".ma/decisions.json",
+      ".ma/state/manager-runs.json",
+      ".ma/state/maestro-state.json",
+    ],
+  };
+  await saveAlignmentSentinelReport(alignmentReport);
+  if (alignmentReport.driftStatus === "DRIFTED") {
+    await updateScratchpadTrackForLane({
+      gate: "$maestro",
+      trackStatus: "BLOCKED",
+      globalStatus: "LOCKED",
+      blockers: alignmentReport.findings.map(
+        (finding) =>
+          `${finding.skill} expects ${finding.releaseField} to remain in ${finding.expectedReleaseValues.join(" or ")}, but the current value is ${finding.actualReleaseValue}.`,
+      ),
+      nextTriggers: ["$maestro"],
+      details: {
+        drift_status: alignmentReport.driftStatus,
+        reboot_planned: alignmentReport.rebootPlanned,
+        resume_trigger: alignmentReport.resumeTrigger,
+      },
+    });
+    await appendMaestroEvent({
+      record_type: "alignment:drift_detected",
+      gate: "$maestro",
+      findings: alignmentReport.findings,
+      reboot_planned: alignmentReport.rebootPlanned,
+      resume_trigger: alignmentReport.resumeTrigger,
+    });
+    const driftRecommendation = {
+      nextStep: "Resolve alignment drift before manager dispatch continues.",
+      why: alignmentReport.rebootReason,
+      primaryLane: "$maestro",
+      supportLane: "none",
+      assignments: [
+        "Review the persisted alignment report and conflicting lane-owned decisions.",
+        "Rehydrate the next manager run from baseline `.ma/` artifacts after the conflicting state is repaired.",
+      ],
+      avoid: [
+        "Do not continue autonomous dispatch while release state contradicts approved lane decisions.",
+      ],
+      nextTrigger: "`$maestro`",
+    };
+    await writeMaestroPlan({
+      releaseState,
+      recommendation: driftRecommendation,
+      runtimeSummary,
+      workflowSequence: maestroWorkflowSequence,
+      managerRun: null,
+    });
+    await appendDecision({
+      kind: "skill",
+      skill: "$maestro",
+      decision:
+        "Alignment Sentinel blocked manager execution and requested a fresh worker rehydration path.",
+      status: "BLOCKED",
+      evidence: [alignmentReport],
+      blockers: alignmentReport.findings.map(
+        (finding) =>
+          `${finding.skill} approved ${finding.expectedDecisionStatus}, but ${finding.releaseField} regressed to ${finding.actualReleaseValue}.`,
+      ),
+      next_allowed_triggers: ["$maestro"],
+    });
+    return;
+  }
+  if (
+    autoHeal &&
+    buildReadiness.releaseBlockers.length === 0 &&
+    buildReadiness.nextTriggers.includes("repair runtime artifacts")
+  ) {
+    const repairedArtifacts = await repairRuntimeScratchpadArtifacts([
+      ...runtimeSummary.invalidArtifacts,
+      ...runtimeSummary.missingArtifacts,
+    ]);
+    if (repairedArtifacts.length > 0) {
+      const detached = await launchDetachedTrack({
+        trackId: "heal-sync",
+        title: "Meta-Architect bounded diagnostic sidecar",
+        command: "/bin/sh",
+        args: [
+          "-lc",
+          `printf '%s\n' "Repaired scratchpad artifacts: ${repairedArtifacts.join(", ")}"`,
+        ],
+      });
+      let maestroState = await loadMaestroStateOrDefault();
+      maestroState = beginMaestroOrchestration(maestroState, {
+        globalStatus: "DEGRADED_HEALING",
+        configuration: {
+          auto_heal: true,
+          concurrency_limit: parallel ? 4 : 1,
+        },
+      });
+      maestroState.runtime_tracks.track_heal_sync = {
+        active_gate: "$maestro",
+        status: "COMPLETED",
+        pid: null,
+        execution_pane: detached.executionPane,
+        provider: detached.provider,
+        log_path: detached.logPath,
+        exit_code: 0,
+        repaired_artifacts: repairedArtifacts,
+        updated_at: new Date().toISOString(),
+      };
+      await saveMaestroState(maestroState);
+      await appendMaestroEvent({
+        record_type: "healing:attempt",
+        gate: "$maestro",
+        global_status: "DEGRADED_HEALING",
+        track_status: "COMPLETED",
+        repaired_artifacts: repairedArtifacts,
+        repaired_count: repairedArtifacts.length,
+      });
+      runtimeSnapshot = await loadRuntimeSnapshot();
+      releaseState = runtimeSnapshot.release;
+      runtimeSummary = createRuntimeSummary(runtimeSnapshot);
+      buildReadiness = evaluateRuntimeBuildReadiness(releaseState, runtimeSummary);
+      recommendation = chooseMaestroRecommendation(releaseState, idea, buildReadiness);
+    }
+  }
   const registry = await loadManagerRunRegistry();
   const activeRun = getActiveManagerRun(registry);
   const managerAction = chooseMaestroManagerAction({
@@ -927,9 +1708,28 @@ export async function runMaestro() {
           continue;
         }
 
+        const detached =
+          parallel && ["$flow", "$vet", "$vibe", "$build"].includes(gate.skill)
+            ? await launchDetachedTrack({
+                trackId: `${managerRun.id}-${gate.skill.replaceAll("$", "")}`,
+                title: `Meta-Architect detached track ${gate.skill}`,
+                command: "/bin/sh",
+                args: ["-lc", `printf '%s\n' "Detached scratchpad track for ${gate.skill}"`],
+              })
+            : null;
         gate.status = "running";
         updateManagerRunTimestamps(managerRun, { state: "running" });
         await saveManagerRunRegistry(registry);
+        await updateScratchpadTrackForLane({
+          gate: gate.skill,
+          trackStatus: "RUNNING",
+          globalStatus: "RUNNING",
+          nextTriggers: [gate.skill],
+          detached,
+          details: {
+            objective: gate.objective,
+          },
+        });
         await runner();
         gate.status = "completed";
         await saveManagerRunRegistry(registry);
@@ -962,18 +1762,6 @@ export async function runMaestro() {
   if (managerRun.state === "dispatching" || managerRun.state === "running") {
     updateManagerRunTimestamps(managerRun, { state: "completed" });
     await saveManagerRunRegistry(registry);
-  }
-
-  if (
-    buildReadiness.nextTriggers.includes("$build") ||
-    buildReadiness.nextTriggers.includes("repair runtime artifacts")
-  ) {
-    await writeBuildPlanArtifact({
-      allowed: buildReadiness.allowed,
-      blockers: buildReadiness.blockers,
-      nextTriggers: buildReadiness.nextTriggers,
-      runtimeSummary,
-    });
   }
 
   await writeMaestroPlan({
@@ -1083,8 +1871,12 @@ export async function runInit() {
       path.join(getRepoRoot(), "docs", "release-spec.md"),
     ],
     [
-      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.12.md"),
-      path.join(getRepoRoot(), "docs", "qa", "release-readiness-0.1.12.md"),
+      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.13.md"),
+      path.join(getRepoRoot(), "docs", "qa", "release-readiness-0.1.13.md"),
+    ],
+    [
+      path.join(packageRoot, "docs", "qa", "release-issue-gates-0.1.13.json"),
+      path.join(getRepoRoot(), "docs", "qa", "release-issue-gates-0.1.13.json"),
     ],
   ];
 

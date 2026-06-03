@@ -1,5 +1,9 @@
 # Meta-Architect Repo Enforcement Rules
 
+## Active Autonomy Core
+
+Use `AUTO-CONTINUE` for clear, safe, reversible, already-requested workspace work. `ASK` only for destructive, irreversible, credential-gated, external-production, materially scope-changing actions, or missing authority. Do not use permission-handoff phrasing on AUTO-CONTINUE branches. Terminal workflow replies must name `finished`, `blocked`, `failed`, `cancelled`, or `askuserQuestion` with evidence or blocker.
+
 You are operating inside Meta-Architect, a Codex skill system for verified project building.
 
 ## Mission
