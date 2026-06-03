@@ -20,7 +20,7 @@ Meta-Architect documentation is organized by operator task.
 
 ## QA and readiness
 
-- [Release Readiness 0.1.12](./qa/release-readiness-0.1.12.md)
+- [Release Readiness 0.1.13](./qa/release-readiness-0.1.13.md)
 
 ## Repo structure references
 
