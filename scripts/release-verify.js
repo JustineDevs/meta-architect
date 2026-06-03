@@ -131,6 +131,43 @@ function verifyCoverageDoc({ version, gitTag }) {
   assert(!content.includes("v0.1.0 release bar"), "COVERAGE.md: stale release bar");
 }
 
+function verifyReadmeReleaseBanner({ gitTag }) {
+  const content = readText("README.md");
+  assert(
+    content.includes("> [!IMPORTANT]"),
+    "README.md: missing release-line important admonition",
+  );
+  assert(
+    content.includes(`> Meta-Architect \`${gitTag}\` is a production-grade skills line.`),
+    "README.md: stale production-grade skills line version",
+  );
+  assert(
+    content.includes(
+      `> From \`${gitTag}\` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.`,
+    ),
+    "README.md: stale release expectation version",
+  );
+  assert(
+    content.includes(`<td><code>${gitTag}</code></td>`),
+    "README.md: stale release line table version",
+  );
+
+  const bannerVersions = [
+    ...content.matchAll(
+      /(?:Meta-Architect `(v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?)` is a production-grade skills line|From `(v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?)` onward)/g,
+    ),
+  ]
+    .map((match) => match[1] ?? match[2])
+    .filter(Boolean);
+  assert(bannerVersions.length >= 2, "README.md: release banner versions not found");
+  for (const bannerVersion of bannerVersions) {
+    assert(
+      bannerVersion === gitTag,
+      `README.md: release banner version drift: expected ${gitTag}, got ${bannerVersion}`,
+    );
+  }
+}
+
 function verifyCanonicalSemanticSurfaces({ version, gitTag }) {
   const usageWorkflow = readText(path.join("example", "usage-workflow.md"));
   assert(
@@ -178,7 +215,7 @@ function verifyCanonicalSemanticSurfaces({ version, gitTag }) {
 
   const currentQa = readText(path.join("docs", "qa", `release-readiness-${version}.md`));
   assert(
-    currentQa.includes("Harden Meta-Architect v0.1.13 semantic core"),
+    currentQa.includes(`Harden Meta-Architect ${gitTag} semantic core`),
     `docs/qa/release-readiness-${version}.md: missing realistic semantic smoke idea`,
   );
   assert(
@@ -219,6 +256,7 @@ function main() {
   verifyNpmIgnore();
   verifyDemoDoc({ version, gitTag });
   verifyCoverageDoc({ version, gitTag });
+  verifyReadmeReleaseBanner({ gitTag });
   verifyCanonicalSemanticSurfaces({ version, gitTag });
 
   const changelog = readText("CHANGELOG.md");
