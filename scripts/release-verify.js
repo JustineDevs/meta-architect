@@ -168,6 +168,34 @@ function verifyReadmeReleaseBanner({ gitTag }) {
   }
 }
 
+function verifyRealDemoKit() {
+  const runbook = readText(path.join("docs", "demo", "REAL_DEMO_RUNBOOK.md"));
+  const story = readText(path.join("docs", "demo", "DEMO_STORY.md"));
+  const checklist = readText(path.join("docs", "demo", "PROSPECT_CHECKLIST.md"));
+  assert(fs.existsSync(path.join("scripts", "demo-smoke.js")), "scripts/demo-smoke.js: missing");
+  assert(
+    runbook.includes("npm run demo:smoke"),
+    "REAL_DEMO_RUNBOOK.md: missing demo smoke command",
+  );
+  assert(runbook.includes("$maestro"), "REAL_DEMO_RUNBOOK.md: missing maestro scenario");
+  assert(
+    runbook.includes("vault_context"),
+    "REAL_DEMO_RUNBOOK.md: missing Obsidian context boundary",
+  );
+  assert(story.includes("Northstar Logistics"), "DEMO_STORY.md: missing realistic buyer story");
+  assert(story.includes("npm run release:verify"), "DEMO_STORY.md: missing release proof close");
+  assert(
+    checklist.includes("Remove `Demo Account`, `Test Company`, `Sample Co`"),
+    "PROSPECT_CHECKLIST.md: missing no-test-branding check",
+  );
+  for (const forbidden of ["Demo Account", "Test Company", "Sample Co"]) {
+    assert(
+      !runbook.includes(forbidden) && !story.includes(forbidden),
+      `demo docs: forbidden visible demo branding ${forbidden}`,
+    );
+  }
+}
+
 function verifyCanonicalSemanticSurfaces({ version, gitTag }) {
   const usageWorkflow = readText(path.join("example", "usage-workflow.md"));
   assert(
@@ -257,6 +285,7 @@ function main() {
   verifyDemoDoc({ version, gitTag });
   verifyCoverageDoc({ version, gitTag });
   verifyReadmeReleaseBanner({ gitTag });
+  verifyRealDemoKit();
   verifyCanonicalSemanticSurfaces({ version, gitTag });
 
   const changelog = readText("CHANGELOG.md");
