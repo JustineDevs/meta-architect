@@ -6,6 +6,9 @@ Meta-Architect documentation is organized by operator task.
 
 - [Getting Started](./getting-started.md)
 - [Production Demo Guide](../DEMO.md)
+- [Real Demo Runbook](./demo/REAL_DEMO_RUNBOOK.md)
+- [Demo Story](./demo/DEMO_STORY.md)
+- [Prospect Checklist](./demo/PROSPECT_CHECKLIST.md)
 - [Coverage Matrix](../COVERAGE.md)
 - [Release Spec](./release-spec.md)
 - [Skills Reference](./skills.md)
