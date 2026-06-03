@@ -60,6 +60,7 @@
     "prepare": "husky",
     "postinstall": "node ./scripts/postinstall.js",
     "test": "node --test --test-concurrency=1",
+    "demo:smoke": "node ./scripts/demo-smoke.js",
     "status": "node ./bin/ma.js status",
     "linux:packages:build": "node ./scripts/build-linux-packages.mjs",
     "linux:packages:smoke": "node ./scripts/linux-package-smoke.mjs",
