@@ -207,6 +207,7 @@ Expected:
 ## 9. Demo production package proof
 
 ```bash
+npm run demo:smoke
 node scripts/release-verify.js
 npm run check
 npm test
@@ -217,12 +218,20 @@ Expected package proof:
 
 - package name is `@jstn-sdk/ma`
 - version line is `0.1.13`
+- `npm run demo:smoke` creates a realistic Northstar Logistics workspace and Obsidian vault under `/tmp/ma-real-demo-*`
+- the smoke writes `.ma/evidence/real-demo-smoke-proof.json` in that temporary workspace
 - `DEMO.md` is included
 - `COVERAGE.md` is included
 - `data/clone-data.proof.json`, `data/clone-data.ledger.json`, and `data/clone-data.rvf` are included
 - runtime state such as `.ma/`, `.omx/`, `node_modules/`, `test/`, and local caches are excluded
 
 ## 10. Full release demo
+
+For a buyer-facing walkthrough, use the real demo kit:
+
+- [Real Demo Runbook](./docs/demo/REAL_DEMO_RUNBOOK.md)
+- [Demo Story](./docs/demo/DEMO_STORY.md)
+- [Prospect Checklist](./docs/demo/PROSPECT_CHECKLIST.md)
 
 The strongest single command:
 

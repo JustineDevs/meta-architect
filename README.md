@@ -854,6 +854,9 @@ Release automation:
 | [MCP Setup](./docs/mcp-setup.md) | evidence endpoint policy |
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
 | [Production Demo Guide](./DEMO.md) | real MA release-hardening walkthrough |
+| [Real Demo Runbook](./docs/demo/REAL_DEMO_RUNBOOK.md) | live buyer-facing demo path with smoke fallback |
+| [Demo Story](./docs/demo/DEMO_STORY.md) | narrative script for `$maestro`, Obsidian, learning, and release proof |
+| [Prospect Checklist](./docs/demo/PROSPECT_CHECKLIST.md) | pre-call setup, no-test-branding, and leave-behind checklist |
 | [Coverage Matrix](./COVERAGE.md) | current verified capability and package proof map |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
 | [Release Readiness](./docs/qa/release-readiness-0.1.13.md) | QA evidence for the `v0.1.13` line |
