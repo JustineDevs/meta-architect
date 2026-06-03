@@ -24,6 +24,7 @@ jobs:
         env:
           CODEX_REVIEW_APP_SLUG: chatgpt-codex-connector
           CODEX_REVIEW_BOT_LOGINS: chatgpt-codex-connector[bot],app/chatgpt-codex-connector
+          CODEX_REVIEW_ALLOWED_USER_LOGINS: JustineDevs
         with:
           script: |
             const owner = context.repo.owner;
@@ -36,8 +37,12 @@ jobs:
               .split(",")
               .map((value) => value.trim().toLowerCase())
               .filter(Boolean);
+            const allowedUserLogins = (process.env.CODEX_REVIEW_ALLOWED_USER_LOGINS || "")
+              .split(",")
+              .map((value) => value.trim().toLowerCase())
+              .filter(Boolean);
 
-            const expectedLogins = new Set([appSlug, ...botLogins]);
+            const expectedLogins = new Set([appSlug, ...botLogins, ...allowedUserLogins]);
 
             const checkRuns = await github.paginate(github.rest.checks.listForRef, {
               owner,
@@ -80,6 +85,7 @@ jobs:
             core.summary
               .addHeading("Codex review evidence")
               .addRaw(`App slug checked: \`${appSlug}\`\n\n`)
+              .addRaw(`Allowed connector user logins: ${allowedUserLogins.join(", ") || "none"}\n\n`)
               .addRaw(`Matching check runs: ${matchingChecks.length}\n\n`)
               .addRaw(`Matching issue comments: ${matchingComments.length}\n\n`)
               .addRaw(`Matching review events: ${matchingReviews.length}\n\n`);
