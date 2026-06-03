@@ -16,10 +16,10 @@ This release ships Meta-Architect as a Codex-native skills system with:
 
 Target package state:
 - npm package: `@jstn-sdk/ma@0.1.13`
-- npm registry state: pending publish
-- publishability note: `0.1.12` is already published, so `0.1.13` is the next publishable package line
+- npm registry state: published as `latest`
+- publishability note: `0.1.13` is published; future patch work must advance the version before another npm publish
 - release tag: `v0.1.13`
-- GitHub release: pending publish for `v0.1.13`
+- GitHub release: https://github.com/JustineDevs/meta-architect/releases/tag/v0.1.13
 
 ## Verification
 
@@ -46,5 +46,5 @@ This release is only considered real if:
 
 Current release-readiness state:
 - `docs/qa/release-issue-gates-0.1.13.json` records all tracked `v0.1.13` issues as `passed` with implementation, verification, production proof, and labels
-- local release gates are expected to remain green immediately before PR and publish
-- npm publication has not been run yet for `@jstn-sdk/ma@0.1.13`
+- local release gates passed before publish and must remain green for any follow-up PR
+- npm publication completed for `@jstn-sdk/ma@0.1.13`
