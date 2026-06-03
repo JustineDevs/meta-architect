@@ -1442,13 +1442,40 @@ export async function runVibe() {
   assertControlPlaneReady(runtimeSummary);
   const outcomes = await readJson(getRuntimeWritePath("evidence", "outcomes.json"));
   const reviewApproved = outcomes.items.some(
-    (item) => item.source === "review" || item.approved === true,
+    (item) =>
+      ["review", "vibe-review", "dx-ux-review"].includes(item.source) && item.approved === true,
   );
-  const runtimeApproved = runtimeSummary.pendingMailboxCount === 0;
+  const automatedReviewChecks = [
+    {
+      name: "no_pending_mailbox_proposals",
+      passed: runtimeSummary.pendingMailboxCount === 0,
+      evidence: `${runtimeSummary.pendingMailboxCount} pending mailbox proposals`,
+    },
+    {
+      name: "runtime_artifacts_valid",
+      passed: runtimeSummary.invalidArtifacts.length === 0,
+      evidence: `${runtimeSummary.invalidArtifacts.length} invalid runtime artifacts`,
+    },
+    {
+      name: "runtime_artifacts_present",
+      passed: runtimeSummary.missingArtifacts.length === 0,
+      evidence: `${runtimeSummary.missingArtifacts.length} missing runtime artifacts`,
+    },
+    {
+      name: "workspace_context_available",
+      passed: runtimeSummary.workspaceCount > 0,
+      evidence: `${runtimeSummary.workspaceCount} workspace context entries`,
+    },
+  ];
+  const runtimeApproved = automatedReviewChecks.every((check) => check.passed);
+  const failedAutomatedReviewChecks = automatedReviewChecks
+    .filter((check) => !check.passed)
+    .map((check) => `${check.name}: ${check.evidence}`);
   const note = {
     area: "developer-experience",
     source: "runtime-vibe-review",
     summary: `Runtime DX/UX review recorded from current coordination state: ${runtimeSummary.taskCount} tasks, ${runtimeSummary.workspaceCount} workspaces, and ${runtimeSummary.pendingMailboxCount} pending mailbox proposals.`,
+    automatedReviewChecks,
     operatorFriction: [
       runtimeSummary.pendingMailboxCount > 0
         ? "Pending mailbox proposals increase operator coordination overhead."
@@ -1465,7 +1492,10 @@ export async function runVibe() {
   const blockers =
     status === "GREEN"
       ? []
-      : ["Pending mailbox proposals must be resolved before DX/UX can be marked GREEN."];
+      : [
+          "Automated DX/UX review must pass all runtime evidence checks or receive explicit review approval.",
+          ...failedAutomatedReviewChecks,
+        ];
   const nextAllowedTriggers = status === "GREEN" ? ["$build"] : ["$vibe"];
   await writeExperienceSpec({
     note,
