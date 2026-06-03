@@ -33,6 +33,8 @@ const cleanRelease = {
   waiver: null,
   updatedAt: "2026-04-30T00:00:00.000Z",
 };
+const realisticReleaseHardeningIdea =
+  "Harden Meta-Architect v0.1.13 semantic core with Obsidian vault context, Ralph execution proof, context economy, and package-gated release evidence";
 
 test("maestro advances one bounded manager action per call until review gates block it", async () => {
   const tempRoot = await createTempRepo("meta-architect-flow-", repoRoot);
@@ -62,7 +64,7 @@ test("maestro advances one bounded manager action per call until review gates bl
   );
 
   await runInit();
-  await runIdea("Build a demo");
+  await runIdea(realisticReleaseHardeningIdea);
   await runMaestro();
   await runMaestro();
 
@@ -83,6 +85,10 @@ test("maestro advances one bounded manager action per call until review gates bl
     path.join(tempRoot, ".ma", "specs", "architecture.md"),
     "utf8",
   );
+  const evidenceSpec = await fs.readFile(
+    path.join(tempRoot, ".ma", "specs", "evidence.md"),
+    "utf8",
+  );
   const implementationPlan = await fs.readFile(
     path.join(tempRoot, ".ma", "plans", "implementation.md"),
     "utf8",
@@ -95,8 +101,18 @@ test("maestro advances one bounded manager action per call until review gates bl
   const taskRegistry = JSON.parse(
     await fs.readFile(path.join(tempRoot, ".ma", "tasks", "registry.json"), "utf8"),
   );
+  const maestroState = JSON.parse(
+    await fs.readFile(path.join(tempRoot, ".ma", "state", "maestro-state.json"), "utf8"),
+  );
+  const maestroEvents = (
+    await fs.readFile(path.join(tempRoot, ".ma", "logs", "maestro-events.ndjson"), "utf8")
+  )
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
 
-  assert.match(projectContext, /Build a demo/);
+  assert.match(projectContext, /Harden Meta-Architect v0\.1\.13 semantic core/);
   assert.deepEqual(listSkills(), [
     "$maestro",
     "$arch",
@@ -105,17 +121,35 @@ test("maestro advances one bounded manager action per call until review gates bl
     "$vet",
     "$vibe",
     "$build",
+    "$align",
+    "$diagnose",
+    "$tdd",
+    "$cleanup",
   ]);
   assert.equal(skillArtifacts.includes("maestro.skill.md"), true);
   assert.equal(skillArtifacts.includes("meta-architect.skill.md"), false);
   assert.match(maestroPlan, /\$arch/);
   assert.doesNotMatch(maestroPlan, /\$meta-architect/);
-  assert.match(architectureSpec, /Blueprint derived from idea: Build a demo/);
+  assert.match(architectureSpec, /## Decision/);
+  assert.match(architectureSpec, /## Rejected Alternatives/);
+  assert.match(evidenceSpec, /## Evidence Grade/);
+  assert.match(evidenceSpec, /## Exact Upstream Mapping/);
+  assert.match(
+    architectureSpec,
+    /Blueprint derived from idea: Harden Meta-Architect v0\.1\.13 semantic core/,
+  );
   assert.match(implementationPlan, /Validate evidence through approved GitMCP sources/);
   assert.match(architectureSpec, /## Runtime Context/);
   assert.match(maestroPlan, /## Runtime Context/);
   assert.deepEqual(guidanceIndex.sources, []);
   assert.deepEqual(taskRegistry.tasks, []);
+  assert.equal(typeof maestroState.runtime_tracks.track_arch_sync, "object");
+  assert.equal(
+    maestroEvents.some(
+      (event) => event.record_type === "runtime:track_status" && event.gate === "$arch",
+    ),
+    true,
+  );
 
   if (previousRoot === undefined) {
     delete process.env.MA_ROOT;
@@ -182,6 +216,9 @@ test("maestro persists a manager-run artifact with lifecycle and dispatch metada
     const managerRuns = JSON.parse(
       await fs.readFile(path.join(tempRoot, ".ma", "state", "manager-runs.json"), "utf8"),
     );
+    const maestroState = JSON.parse(
+      await fs.readFile(path.join(tempRoot, ".ma", "state", "maestro-state.json"), "utf8"),
+    );
     const latestRun = managerRuns.runs.at(-1);
 
     assert.equal(releaseState.architecture_status, "APPROVED");
@@ -194,8 +231,24 @@ test("maestro persists a manager-run artifact with lifecycle and dispatch metada
     assert.equal(Array.isArray(latestRun.dispatchPlan.helpers), true);
     assert.equal(Array.isArray(latestRun.dispatchPlan.gated), true);
     assert.equal(Array.isArray(latestRun.helperRuns), true);
+    assert.equal(
+      latestRun.dispatchPlan.helpers.some((helper) => helper.skill === "$align"),
+      true,
+    );
+    assert.equal(
+      latestRun.helperRuns.some((helper) => helper.skill === "$align"),
+      true,
+    );
+    const alignRun = latestRun.helperRuns.find((helper) => helper.skill === "$align");
+    const alignReceipt = alignRun.evidence.find((item) => item.record_type === "helper_receipt");
+    assert.equal(alignRun.status, "completed");
+    assert.equal(alignReceipt.skill, "$align");
+    assert.equal(alignReceipt.records_as, "helper_alignment_receipt");
+    assert.equal(alignReceipt.does_not_unlock.includes("build_gate"), true);
+    assert.equal(alignReceipt.authority, "$maestro_or_owning_lane");
     assert.equal(typeof latestRun.pendingReview, "object");
     assert.equal(typeof latestRun.retry, "object");
+    assert.equal(maestroState.schemaVersion, "0.1.0");
   } finally {
     if (previousRoot === undefined) {
       delete process.env.MA_ROOT;

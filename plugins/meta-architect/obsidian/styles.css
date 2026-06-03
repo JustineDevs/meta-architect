@@ -1,0 +1,7 @@
+.ma-status {
+  color: var(--text-muted);
+}
+
+.ma-context-modal pre {
+  white-space: pre-wrap;
+}

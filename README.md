@@ -18,9 +18,30 @@
 </div>
 
 > [!IMPORTANT]
-> Meta-Architect `v0.1.12` is a production-grade skills line.
+> Meta-Architect `v0.1.13` is a production-grade skills line.
 > It is not a lightweight demo branch.
-> From `v0.1.12` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> From `v0.1.13` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+
+## Navigate
+
+<table>
+  <tr>
+    <td><strong>Start</strong></td>
+    <td><a href="#cli-install">CLI Install</a> · <a href="#quick-start">Quick Start</a> · <a href="#setup">Setup</a></td>
+  </tr>
+  <tr>
+    <td><strong>Operate</strong></td>
+    <td><a href="#skill-surface">Skill Surface</a> · <a href="#gated-lanes">Gated Lanes</a> · <a href="#gate-model">Gate Model</a> · <a href="#learning-loop-core">Learning Loop Core</a></td>
+  </tr>
+  <tr>
+    <td><strong>Ship</strong></td>
+    <td><a href="#release-and-packaging">Release and Packaging</a> · <a href="#package-surface">Package Surface</a> · <a href="#release-hygiene">Release Hygiene</a></td>
+  </tr>
+  <tr>
+    <td><strong>Reference</strong></td>
+    <td><a href="#repository-structure">Repository Structure</a> · <a href="#documentation">Documentation</a> · <a href="#core-maintainers">Core Maintainers</a></td>
+  </tr>
+</table>
 
 ## Overview
 
@@ -37,6 +58,11 @@ It adds:
 > [!NOTE]
 > Meta-Architect does not replace your coding runtime.
 > It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
+
+## Acknowledgement
+
+Meta-Architect was shaped in part by ideas surfaced through the `oh-my-codex` ecosystem.
+Acknowledgement is due for the inspiration around Codex-native workflow packaging, skill distribution, and practical delivery surfaces that helped inform this project.
 
 ## Support
 
@@ -62,7 +88,7 @@ It adds:
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.1.12</code></td>
+    <td><code>v0.1.13</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -102,9 +128,35 @@ It adds:
 > [!TIP]
 > The most reliable default environment is a Unix-like shell with Git, Node.js, and an MCP-capable runtime already configured.
 
+## CLI Install
+
+macOS, Linux, WSL, and Git-Bash:
+
+```bash
+# One-line install (POSIX shells only; see Windows note below)
+curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+```
+
+This jsDelivr-backed installer runs the canonical package install:
+
+```bash
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+```
+
+Then it seeds the local MA runtime with `ma setup`. Start with:
+
+```bash
+ma --madmax --high
+```
+
+Windows note: use WSL or Git-Bash for the one-line POSIX installer. In PowerShell, use the npm fallback command directly.
+
 ## Default Install Surfaces
 
-Meta-Architect is a Codex-native session workflow. On Linux, the primary install surface is now distro-style package installation, not a standalone binary shell.
+Meta-Architect is a Codex-native session workflow. The jsDelivr CLI installer is the recommended quick-start path for POSIX shells; Linux distro packages remain available for distro-managed installs.
+
+<details>
+<summary><strong>Platform package commands</strong></summary>
 
 ### Debian, Ubuntu, Linux Mint, Pop!_OS
 
@@ -134,6 +186,11 @@ sudo zypper install ./meta-architect-<version>-1.noarch.rpm
 
 These packages install the Meta-Architect payload and expose `ma` / `meta-architect`, but the product still runs inside a Codex-native session. They do not create a separate desktop or terminal product.
 
+</details>
+
+<details open>
+<summary><strong>npm fallback and runtime assumptions</strong></summary>
+
 ### npm fallback
 
 ```bash
@@ -158,8 +215,9 @@ What this assumes:
 - the product experience happens through the skill workflow inside Codex
 
 > [!IMPORTANT]
-> On Linux, distro-native package install is the default surface.
-> npm remains available as a fallback path.
+> The jsDelivr installer is a POSIX-shell convenience wrapper around the canonical npm install. Use the distro packages when you specifically need distro-managed install assets.
+
+</details>
 
 ## Repository Branch Strategy
 
@@ -281,7 +339,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.12
+8. Delivery plan for v0.1.13
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -407,7 +465,7 @@ Canonical `$sage` order:
 If you need scripted repo-local validation rather than the interactive runtime workflow:
 
 ```bash
-ma idea "Build a real-time collaborative whiteboard for product teams"
+ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'
@@ -461,7 +519,10 @@ ma setup
 ma init
 ma idea "Build a product"
 ma status
+ma status --maestro-view
+ma verify --architect
 ma run '$arch'
+ma run '$maestro' --auto-heal --parallel
 ```
 
 In-session skills are prompts you use inside the Codex conversation after launch:
@@ -518,6 +579,10 @@ What to use when:
 
 ## Skill Surface
 
+> [!TIP]
+> Remember the surface as **manager -> gated lanes -> helpers**.
+> `$maestro` coordinates, gated lanes move release state, and helper skills support without unlocking build.
+
 Meta-Architect’s in-session surface has three layers:
 
 - umbrella autonomous manager: `$maestro`
@@ -525,6 +590,14 @@ Meta-Architect’s in-session surface has three layers:
 - non-gating helper skills: `$align`, `$diagnose`, `$tdd`, `$cleanup`
 
 Helper skills are publishable surfaces, but they do not own release-state transitions.
+
+> [!NOTE]
+> MA also discovers existing repo-local skills, MCP configs, and plugin manifests through the Environment Awareness Core.
+> Discovered capabilities are `available_capability` context only: MA may select them when task-relevant, but it does not auto-run, mutate, or treat them as build evidence.
+
+> [!NOTE]
+> Universal Plugin Broker Core uses a hybrid model for cross-agent plugins: MCP stdio tooling for hosts that support MCP config injection, and `.agents/skills` context payloads for the broader supported-agent surface.
+> Plugin broker receipts are compatibility configuration, not build evidence or lane approval.
 
 ## Core Maintainers
 
@@ -543,16 +616,28 @@ Helper skills are publishable surfaces, but they do not own release-state transi
 
 ## Gated Lanes
 
+> [!IMPORTANT]
+> Read this as a release runway: **design -> evidence -> logic -> security -> experience -> build**.
+> Do not skip lanes when the release gate is still locked.
+
+<details open>
+<summary><strong>Release-gated lane map</strong></summary>
+
 | Trigger | Purpose | Main output | Gate effect |
 | --- | --- | --- | --- |
 | `$arch` | Produce the first-pass architecture blueprint | decision entry | `architecture_status = APPROVED` |
 | `$sage` | Ground major choices in configured GitMCP evidence | evidence records | `evidence_status = VERIFIED | PARTIAL | MISSING` |
-| `$flow` | Review baseline logic and state transitions | logic review entry | `logic_status = GREEN | RED` |
-| `$vet` | Run baseline security and dependency review | audit and CVE records | `security_status = GREEN | RED` |
-| `$vibe` | Review developer and user experience implications | DX/UX outcome record | `experience_status = GREEN | RED | WAIVED` |
-| `$build` | Unlock bounded build planning | build-ready decision + `.ma/plans/build.md` | `build_status = READY` |
+| `$flow` | Review baseline logic and state transitions | logic review entry | `logic_status = PENDING | GREEN | RED` |
+| `$vet` | Run baseline security and dependency review | audit and CVE records | `security_status = PENDING | GREEN | RED` |
+| `$vibe` | Review developer and user experience implications | DX/UX outcome record | `experience_status = PENDING | GREEN | RED | WAIVED` |
+| `$build` | Run a bounded build-readiness loop | build-ready decision + `.ma/plans/build.md` | `build_status = READY | RUNNING | DONE` |
+
+</details>
 
 ## Helper Skills
+
+<details>
+<summary><strong>Non-gating helper skill map</strong></summary>
 
 | Trigger | Purpose | Gate effect |
 | --- | --- | --- |
@@ -561,9 +646,22 @@ Helper skills are publishable surfaces, but they do not own release-state transi
 | `$tdd` | Lock behavior with regression-first or test-first scaffolding | none |
 | `$cleanup` | Simplify noisy output and run a final-pass anti-slop cleanup | none |
 
+> [!NOTE]
+> Helper skills are backed by `helper_orchestration_core`.
+> They write helper receipts, return authority to `$maestro` or the owning lane, and never record as gate approval.
+
+</details>
+
 ## Gate Model
 
 Meta-Architect is intentionally fail-closed.
+
+> [!NOTE]
+> Green states allow the next safe move.
+> Red or locked states preserve the blocker instead of pretending the workflow is ready.
+
+<details open>
+<summary><strong>Status vocabulary</strong></summary>
 
 | Status | Meaning |
 | --- | --- |
@@ -571,26 +669,62 @@ Meta-Architect is intentionally fail-closed.
 | `APPROVED` | the architecture lane produced an acceptable first-pass blueprint |
 | `VERIFIED` | live evidence was grounded through approved GitMCP sources |
 | `PARTIAL` | evidence is configured but live proof is incomplete or unavailable |
+| `PENDING` | the lane has recorded interim review state but not final approval or rejection yet |
 | `GREEN` | the current baseline review passed |
 | `RED` | the lane is blocked or failed |
 | `WAIVED` | the lane was intentionally waived with a recorded reason |
 | `LOCKED` | downstream work is not allowed yet |
-| `READY` | the next gated step is allowed |
+| `READY` | the next bounded gated step is prepared |
+| `RUNNING` | the bounded build substep is active |
+| `DONE` | the current bounded build substep completed with recorded evidence |
+
+</details>
 
 > [!CAUTION]
 > `$build` must stay locked until the upstream release state in `.ma/release.json` satisfies the gate contract.
 > Meta-Architect is designed to stop on blockers rather than silently continue.
 > Rich runtime artifacts live in `.ma/context/`, `.ma/specs/`, `.ma/plans/`, and `.ma/runbook.md`.
 
+## Learning Loop Core
+
+> [!NOTE]
+> Meta-Architect records learnings as candidates first.
+> A learning can influence future context only after it has source, evidence, authority, and a next verification path.
+
+<details open>
+<summary><strong>Reliability domains</strong></summary>
+
+| Domain | What improves over time |
+| --- | --- |
+| Core & Orchestration | manager runs, lane handoffs, and autonomous routing |
+| Memory & Knowledge | project notes, Obsidian vault context, and semantic receipts |
+| Intelligence & Learning | prompt strategy, context budgeting, and rehearsal outcomes |
+| Code Quality & Testing | test failures, build results, and execution learnings |
+| Security & Compliance | trust-boundary findings, exposure scans, and redaction receipts |
+| Architecture & Methodology | decisions, tradeoffs, and reusable patterns |
+| DevOps & Observability | release checks, package smokes, runtime traces, and hook audits |
+| Extensibility | skills, plugins, MCP policy, and host compatibility |
+| Domain-Specific | stack facts, project domain notes, and trusted source context |
+
+</details>
+
 ## Release and Packaging
 
 Meta-Architect has three related but different distribution surfaces.
+
+> [!TIP]
+> Use **npm** for the public package, **Linux packages** for distro-managed installs, and **skills bundle** when only the skill payload is needed.
+
+<details open>
+<summary><strong>Distribution surfaces</strong></summary>
 
 | Surface | Purpose | Produced by |
 | --- | --- | --- |
 | Linux native packages | distro-managed install assets for Debian-family and Arch-family environments | `npm run linux:packages:build` and GitHub release assets |
 | npm package | public package containing the installable Meta-Architect skills/plugin system, docs, scripts, and canonical skills | `npm publish` or `npm pack` |
 | skills bundle | narrower tarball containing `skills/` only | `npm run skills:pack` |
+
+</details>
 
 Required packaging commands:
 
@@ -654,7 +788,7 @@ Release automation:
 <table>
   <tr>
     <td><strong>Included</strong></td>
-    <td><code>bin/</code>, <code>skills/</code>, <code>docs/</code>, <code>scripts/</code>, <code>index.js</code>, <code>README.md</code>, <code>LICENSE</code></td>
+    <td><code>bin/</code>, <code>skills/</code>, <code>docs/</code>, <code>data/</code>, <code>scripts/</code>, <code>index.js</code>, <code>README.md</code>, <code>DEMO.md</code>, <code>COVERAGE.md</code>, <code>LICENSE</code></td>
   </tr>
   <tr>
     <td><strong>Excluded</strong></td>
@@ -663,6 +797,9 @@ Release automation:
 </table>
 
 ## Repository Structure
+
+> [!NOTE]
+> The repository is split by responsibility: runtime prompts, public skills, plugin distribution, docs, MCP evidence config, and release tooling stay in separate folders.
 
 <table>
   <tr>
@@ -705,6 +842,9 @@ Release automation:
 
 ## Documentation
 
+<details open>
+<summary><strong>Primary docs and evidence surfaces</strong></summary>
+
 | Surface | Purpose |
 | --- | --- |
 | [Getting Started](./docs/getting-started.md) | end-to-end local onboarding |
@@ -713,9 +853,12 @@ Release automation:
 | [Skills Publishing](./docs/skills-publishing.md) | source-to-package pipeline |
 | [MCP Setup](./docs/mcp-setup.md) | evidence endpoint policy |
 | [Plugin README](./plugins/meta-architect/README.md) | plugin distribution surface |
-| [Collaborative Whiteboard Mission](./missions/collaborative-whiteboard/mission.md) | concrete scenario walkthrough |
+| [Production Demo Guide](./DEMO.md) | real MA release-hardening walkthrough |
+| [Coverage Matrix](./COVERAGE.md) | current verified capability and package proof map |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.1.12.md) | QA evidence for the `v0.1.12` line |
+| [Release Readiness](./docs/qa/release-readiness-0.1.13.md) | QA evidence for the `v0.1.13` line |
+
+</details>
 
 ## Release Hygiene
 

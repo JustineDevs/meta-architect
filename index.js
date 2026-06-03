@@ -6,9 +6,16 @@ export {
 export {
   appendDecision,
   loadDecisionLog,
-  updateDecisionStatuses,
 } from "./src/decision-log.js";
-export { isValidGitMcpEndpoint, loadMcpServers, validateMcpServers } from "./src/mcp-config.js";
+export {
+  getSupportedLocalCapabilities,
+  isValidGitMcpEndpoint,
+  loadLocalCapabilities,
+  loadMcpServers,
+  runLocalCapabilityReadinessChecks,
+  validateLocalCapabilities,
+  validateMcpServers,
+} from "./src/mcp-config.js";
 export {
   canMarkBuildDone,
   rejectsDirectProdPromotion,
@@ -16,6 +23,218 @@ export {
   validateReleaseOrigin,
 } from "./src/policy.js";
 export { loadReleaseState, saveReleaseState, validateReleaseState } from "./src/release-state.js";
+export {
+  classifyAutonomyBranch,
+  createDefaultActiveAutonomyCore,
+  detectPassivePermissionHandoff,
+  loadActiveAutonomyCore,
+  validateActiveAutonomyCore,
+} from "./src/runtime/active-autonomy-core.js";
+export {
+  createAlignmentRecoveryPlan,
+  createDefaultAlignmentSentinelReport,
+  evaluateAlignmentDrift,
+  loadAlignmentSentinelReportOrDefault,
+  saveAlignmentSentinelReport,
+} from "./src/runtime/alignment-sentinel.js";
+export {
+  createCodeGraphTouchpoint,
+  createCodeGraphTouchpointFromFile,
+  createDefaultCodeGraphRehearse,
+  createRehearsalTrace,
+  extractStaticImports,
+  loadCodeGraphRehearse,
+  validateCodeGraphRehearse,
+} from "./src/runtime/code-graph-rehearse.js";
+export {
+  createContextEconomyPayload,
+  createContextEconomyView,
+  createDefaultContextEconomyCore,
+  createMcpDescriptorEconomy,
+  loadContextEconomyCore,
+  shouldBypassContextEconomy,
+  validateContextEconomyCore,
+} from "./src/runtime/context-economy-core.js";
+export {
+  coreSourceDefinitions,
+  createDefaultCoreSourceIngest,
+  findIngestedCoreSourceForRepo,
+  ingestCoreSources,
+  loadCoreSourceIngest,
+  validateCoreSourceIngest,
+} from "./src/runtime/core-source-ingest.js";
+export {
+  createDefaultEnvironmentAwarenessCore,
+  createDiscoveredEnvironmentAwarenessCore,
+  createEnvironmentCapability,
+  discoverEnvironmentCapabilities,
+  loadEnvironmentAwarenessCore,
+  refreshEnvironmentAwarenessCore,
+  selectEnvironmentCapabilitiesForTask,
+  validateEnvironmentAwarenessCore,
+} from "./src/runtime/environment-awareness-core.js";
+export {
+  scanExposureProfile,
+  scanLockfilePackageExposure,
+  scanPackageExposureFromLockfile,
+  scanPackageExposureFromManifest,
+  validateMcpPolicyExposure,
+} from "./src/runtime/exposure-catalog.js";
+export {
+  chooseHelperRoute,
+  createDefaultHelperOrchestrationCore,
+  createHelperReceipt,
+  evaluateHelperCoreCoverage,
+  helperSkillNames,
+  loadHelperOrchestrationCore,
+  resolveHelperContract,
+  validateHelperOrchestrationCore,
+} from "./src/runtime/helper-orchestration-core.js";
+export {
+  addLearningRecord,
+  createDefaultLearningLoopCore,
+  createLearningRecord,
+  evaluateLearningLoopReadiness,
+  learningLoopDomains,
+  loadLearningLoopCore,
+  validateLearningLoopCore,
+} from "./src/runtime/learning-loop-core.js";
+export {
+  validateRuntimeMcpPolicy,
+  validateRuntimeMcpPolicyFile,
+} from "./src/runtime/mcp-policy.js";
+export {
+  appendObsidianOperationReceipt,
+  createDefaultObsidianBridge,
+  createDefaultObsidianVaultOperations,
+  createObsidianIntakeContext,
+  createObsidianNote,
+  createObsidianPluginRequest,
+  createObsidianVaultContext,
+  createObsidianVaultSnapshotExport,
+  deleteObsidianNote,
+  ensureObsidianGraphLinks,
+  indexObsidianVault,
+  listObsidianNotes,
+  loadObsidianBridge,
+  loadObsidianVaultIndex,
+  loadObsidianVaultOperations,
+  obsidianGraphMapNotePath,
+  readObsidianNote,
+  updateObsidianNote,
+  validateObsidianBridge,
+  validateObsidianVaultIndex,
+  validateObsidianVaultOperations,
+  writeObsidianVaultIndex,
+} from "./src/runtime/obsidian-integration-core.js";
+export {
+  applyObsidianFrontmatterAuthority,
+  createDefaultObsidianPluginBridgeManifest,
+  createObsidianMetadataGraph,
+  createObsidianSelectionContext,
+  drainObsidianPluginRequestQueue,
+  extractObsidianCanvasContext,
+  generateObsidianMarkdownLink,
+  installObsidianPlugin,
+  obsidianPluginActiveContextPath,
+  obsidianPluginAttachmentDir,
+  obsidianPluginId,
+  obsidianPluginName,
+  obsidianPluginQueuePath,
+  registerMetaArchitectObsidianPluginRuntime,
+  registerObsidianEventWatchers,
+  registerObsidianProtocolHandlers,
+  renameObsidianFileSafely,
+  writeObsidianAttachment,
+} from "./src/runtime/obsidian-plugin-bridge.js";
+export {
+  createDefaultPromptStrategyCore,
+  loadPromptStrategyCore,
+  resolvePromptStrategyForRole,
+  resolvePromptStrategyForSurface,
+  validatePromptStrategyCore,
+} from "./src/runtime/prompt-strategy-core.js";
+export {
+  createQuorumReviewReceipt,
+  evaluateQuorumVotes,
+  quorumDecisions,
+} from "./src/runtime/quorum-review.js";
+export {
+  appendRalphProgressEntry,
+  completeRalphStory,
+  createRalphIterationPlan,
+  createRalphPrdContract,
+  selectNextRalphStory,
+  validateRalphPrdContract,
+  writeRalphExecutionContract,
+} from "./src/runtime/ralph-execution-core.js";
+export {
+  loadRedactionVaultOrDefault,
+  maskSensitiveText,
+  redactProviderBoundPayload,
+  redactProviderBoundText,
+  seedRedactionVault,
+} from "./src/runtime/redaction-gateway.js";
+export {
+  createDefaultSemanticRecordingCore,
+  loadSemanticRecordingCore,
+  validateSemanticRecordingCore,
+} from "./src/runtime/semantic-recording-core.js";
+export {
+  agentRegistry,
+  createDefaultSkillsRegistryExport,
+  createHostInstallReceipt,
+  createSkillCompatibilityPayload,
+  createSkillLockEntry,
+  inspectSkillCompatibilityInstall,
+  isUniversalAgent,
+  loadSkillsRegistryExport,
+  renderSkillCompatibilitySkillMd,
+  resolveSkillInstallPlan,
+  validateSkillLockEntry,
+  validateSkillsRegistryExport,
+  verifyCrossAgentInstallMatrix,
+  writeSkillCompatibilityExport,
+} from "./src/runtime/skills-registry-export.js";
+export {
+  createDefaultUniversalPluginBrokerCore,
+  createUniversalPluginManifest,
+  detectInstalledPluginHosts,
+  injectAntigravityMcpServer,
+  injectClaudeCodeMcpServer,
+  injectCodexMcpServer,
+  injectCursorMcpServer,
+  injectPluginToVendors,
+  installUniversalPlugin,
+  loadUniversalPluginBrokerCore,
+  loadUniversalPluginManifest,
+  renderPluginContextSkillMd,
+  renderUniversalMcpServerTemplate,
+  validateUniversalPluginBrokerCore,
+  validateUniversalPluginManifest,
+  writePluginContextSkill,
+} from "./src/runtime/universal-plugin-broker-core.js";
+export {
+  addSemanticReceipt,
+  createDefaultCapabilityComposition,
+  createDefaultSemanticReceiptIndex,
+  createDefaultWorkspaceContextPack,
+  createDefaultWorkspaceEffectiveness,
+  createSemanticReceipt,
+  evaluateWorkspaceEffectiveness,
+  loadWorkspaceIntelligenceArtifacts,
+  validateCapabilityComposition,
+  validateSemanticReceiptIndex,
+  validateWorkspaceContextPack,
+  validateWorkspaceEffectiveness,
+} from "./src/runtime/workspace-intelligence-runtime.js";
+export {
+  createDefaultWorkspaceVirtualizer,
+  createVirtualVerificationReceipt,
+  createVirtualWorkspacePlan,
+  loadWorkspaceVirtualizer,
+  validateWorkspaceVirtualizer,
+} from "./src/runtime/workspace-virtualizer.js";
 export {
   listSkills,
   runArch,
@@ -26,3 +245,4 @@ export {
   runVet,
   runVibe,
 } from "./src/skills.js";
+export { loadCombinedState, syncStatusUpdates } from "./src/state-sync.js";

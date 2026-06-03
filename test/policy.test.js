@@ -14,7 +14,7 @@ test("feature branches cannot release directly to prod", () => {
 
 test("development and release branches are valid release origins", () => {
   assert.equal(validateReleaseOrigin("development"), true);
-  assert.equal(validateReleaseOrigin("release/0.1.12"), true);
+  assert.equal(validateReleaseOrigin("release/0.1.13"), true);
 });
 
 test("merge target policy only allows feature branches into development", () => {
@@ -22,8 +22,9 @@ test("merge target policy only allows feature branches into development", () => 
   assert.equal(validateMergeTarget("feature/ui", "prod"), false);
 });
 
-test("build can only be marked done from ready or running", () => {
-  assert.equal(canMarkBuildDone({ build_status: "READY" }), true);
-  assert.equal(canMarkBuildDone({ build_status: "RUNNING" }), true);
+test("merge can only continue once the bounded build substep is done", () => {
+  assert.equal(canMarkBuildDone({ build_status: "READY" }), false);
+  assert.equal(canMarkBuildDone({ build_status: "RUNNING" }), false);
+  assert.equal(canMarkBuildDone({ build_status: "DONE" }), true);
   assert.equal(canMarkBuildDone({ build_status: "LOCKED" }), false);
 });

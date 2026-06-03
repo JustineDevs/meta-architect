@@ -133,6 +133,38 @@ test("ma status succeeds against the default scaffold", async () => {
   assert.equal(release.build_status, "LOCKED");
 });
 
+test("ma status --maestro-view shows scratchpad runtime telemetry", async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-status-maestro-"));
+  await copyDir(repoRoot, tempRoot);
+  const outputPath = path.join(tempRoot, "maestro-view.txt");
+  const setupResult = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
+    cwd: tempRoot,
+    env: { ...process.env, MA_ROOT: tempRoot },
+    encoding: "utf8",
+  });
+  assert.equal(setupResult.status, 0, setupResult.stderr || setupResult.stdout);
+
+  const result = spawnSync(
+    "/bin/sh",
+    [
+      "-lc",
+      `MA_ROOT='${tempRoot}' '${process.execPath}' '${path.join(repoRoot, "bin/ma.js")}' status --maestro-view > '${outputPath}'`,
+    ],
+    {
+      cwd: tempRoot,
+      env: {
+        ...process.env,
+      },
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(result.status, 0);
+  const output = await fs.readFile(outputPath, "utf8");
+  assert.match(output, /Maestro View/);
+  assert.match(output, /Global status:/);
+});
+
 test("ma run $build fails closed against the default scaffold", async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-build-"));
   await copyDir(repoRoot, tempRoot);
@@ -364,12 +396,16 @@ test("ma run $maestro executes the next eligible gated work and persists manager
   const managerRuns = JSON.parse(
     await fs.readFile(path.join(tempRoot, ".ma", "state", "manager-runs.json"), "utf8"),
   );
+  const maestroState = JSON.parse(
+    await fs.readFile(path.join(tempRoot, ".ma", "state", "maestro-state.json"), "utf8"),
+  );
 
   assert.equal(releaseState.architecture_status, "APPROVED");
   assert.equal(releaseState.evidence_status, "MISSING");
   assert.equal(releaseState.logic_status, "PENDING");
   assert.equal(managerRuns.schemaVersion, "0.1.0");
   assert.equal(managerRuns.runs.length > 0, true);
+  assert.equal(maestroState.schemaVersion, "0.1.0");
 });
 
 test("ma setup seeds canonical .ma runtime state", async () => {
@@ -395,12 +431,14 @@ test("ma setup seeds canonical .ma runtime state", async () => {
   await fs.access(path.join(tempRoot, ".ma", "plans", "implementation.md"));
   await fs.access(path.join(tempRoot, ".ma", "plans", "build.md"));
   await fs.access(path.join(tempRoot, ".ma", "runbook.md"));
+  await fs.access(path.join(tempRoot, "docs", "qa", "release-issue-gates-0.1.13.json"));
   const runtimeArtifacts = [
     ["guidance", "merged.json"],
     ["memory", "notes.md"],
     ["hooks", "config.json"],
     ["tasks", "registry.json"],
     ["workspaces", "index.json"],
+    ["state", "maestro-state.json"],
   ];
   for (const relativePath of runtimeArtifacts) {
     await fs.access(path.join(tempRoot, ".ma", ...relativePath));
@@ -638,4 +676,44 @@ test("ma launcher preserves the delegated codex exit code", async () => {
   });
 
   assert.equal(result.status, 7);
+});
+
+test("ma verify --architect uses the configured external architect reviewer", async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-architect-verify-"));
+  const outputPath = path.join(tempRoot, "architect-verify.txt");
+  const reviewerScript = path.join(tempRoot, "fake-architect-review.sh");
+  await copyDir(repoRoot, tempRoot);
+  await fs.writeFile(
+    reviewerScript,
+    `#!/usr/bin/env bash
+set -euo pipefail
+printf '%s' '{"verdict":"APPROVED","reviewer":"fake-architect","summary":"approved by fake reviewer","findings":[]}' > "$MA_ARCHITECT_REVIEW_OUTPUT"
+`,
+    { mode: 0o755 },
+  );
+  const setupResult = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
+    cwd: tempRoot,
+    env: { ...process.env, MA_ROOT: tempRoot },
+    encoding: "utf8",
+  });
+  assert.equal(setupResult.status, 0, setupResult.stderr || setupResult.stdout);
+
+  const result = spawnSync(
+    "/bin/sh",
+    [
+      "-lc",
+      `MA_ROOT='${tempRoot}' MA_ARCHITECT_REVIEW_CMD='${reviewerScript}' '${process.execPath}' '${path.join(repoRoot, "bin/ma.js")}' verify --architect > '${outputPath}'`,
+    ],
+    {
+      cwd: tempRoot,
+      env: {
+        ...process.env,
+      },
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const output = await fs.readFile(outputPath, "utf8");
+  assert.match(output, /Architect verdict: APPROVED/);
 });

@@ -10,11 +10,13 @@ Use this skill inside Codex to review security posture before the build lane. `$
 ## Output
 
 Produce:
+- `decision`, `status`, `evidence`, `blockers`, `next_allowed_triggers`
 - trust boundaries
 - authn/authz expectations
 - sensitive data paths
 - abuse cases and likely failure modes
 - concrete mitigations
+- accepted risks
 - release blockers vs acceptable risks
 - exact next trigger, usually `$vibe`
 

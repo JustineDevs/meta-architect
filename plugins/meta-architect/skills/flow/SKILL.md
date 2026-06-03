@@ -10,7 +10,9 @@ Use this skill inside Codex to pressure-test how the system behaves, not just ho
 ## Output
 
 Produce:
+- `decision`, `status`, `evidence`, `blockers`, `next_allowed_triggers`
 - key actors and system states
+- state map and failure flows
 - main flows and failure flows
 - invariants and state transitions
 - race conditions, dead ends, and consistency risks

@@ -10,12 +10,29 @@
       "java",
       "dotnet",
       "self-hosted",
-      "system-design"
+      "system-design",
+      "obsidian-api-docs",
+      "obsidian-plugin-scaffold",
+      "prompt-techniques"
     ],
-    "sage": ["meta-list", "typescript", "rust", "go", "python", "java", "dotnet", "self-hosted"],
-    "vet": ["security"],
-    "flow": [],
-    "vibe": [],
-    "build": []
+    "sage": [
+      "meta-list",
+      "typescript",
+      "rust",
+      "go",
+      "python",
+      "java",
+      "dotnet",
+      "self-hosted",
+      "system-design",
+      "obsidian-api-docs",
+      "obsidian-plugin-scaffold",
+      "context-economy",
+      "prompt-techniques"
+    ],
+    "vet": ["security", "context-economy", "prompt-techniques"],
+    "flow": ["system-design", "prompt-techniques"],
+    "vibe": ["obsidian-api-docs", "context-economy", "prompt-techniques"],
+    "build": ["system-design", "context-economy", "prompt-techniques"]
   }
 }

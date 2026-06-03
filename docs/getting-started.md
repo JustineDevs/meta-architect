@@ -22,6 +22,15 @@ By the end of this guide you should be able to:
 
 ## 1. Default install and launch
 
+Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
+
+```bash
+# One-line install (POSIX shells only; use WSL/Git-Bash on Windows)
+curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+```
+
+The jsDelivr installer runs `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`, then `ma setup`.
+
 Debian-family install:
 
 ```bash
@@ -56,7 +65,7 @@ npm uninstall -g @jstn-sdk/ma
 npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
-Linux-native distro packages are the default install surface. The npm path remains a supported fallback. The product experience is still the in-session skill workflow in [example/usage-workflow.md](../example/usage-workflow.md). The `ma` command is only a helper for starting or supporting that flow.
+The jsDelivr CLI installer is the recommended quick-start path for POSIX shells. Linux-native distro packages remain supported release assets, and the npm path remains the canonical package install underneath the installer. The product experience is still the in-session skill workflow in [example/usage-workflow.md](../example/usage-workflow.md). The `ma` command is only a helper for starting or supporting that flow.
 
 ## 2. Real usage workflow
 
@@ -92,7 +101,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.12
+8. Delivery plan for v0.1.13
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -282,7 +291,7 @@ See [docs/mcp-setup.md](./mcp-setup.md) for endpoint policy and evidence semanti
 ## 6. Secondary helper flow
 
 ```bash
-ma idea "Build a real-time collaborative whiteboard for product teams"
+ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ```
 
 Expected effects:
@@ -295,7 +304,7 @@ If this fails:
 
 ## 7. Run the helper skill sequence
 
-### 5.0 Autonomous manager
+### 7.1 Autonomous manager
 
 ```bash
 ma run '$maestro'
@@ -320,7 +329,7 @@ Optional non-gating helper skills that can run before or between gated lanes:
 - `$tdd` for regression-first execution setup
 - `$cleanup` for simplification and final-pass polish
 
-### 5.1 Architecture
+### 7.2 Architecture
 
 ```bash
 ma run '$arch'
@@ -337,7 +346,7 @@ Generated or updated:
 - `.ma/specs/architecture.md`
 - `.ma/plans/implementation.md`
 
-### 5.2 Evidence
+### 7.3 Evidence
 
 ```bash
 ma run '$sage'
@@ -366,7 +375,7 @@ If this fails:
 - verify network access
 - rerun after correcting the endpoint or environment
 
-### 5.3 Logic
+### 7.4 Logic
 
 ```bash
 ma run '$flow'
@@ -380,7 +389,7 @@ Expected effects:
 Generated or updated:
 - `.ma/specs/logic.md`
 
-### 5.4 Security
+### 7.5 Security
 
 ```bash
 ma run '$vet'
@@ -394,7 +403,7 @@ Expected effects:
 Generated or updated:
 - `.ma/specs/security.md`
 
-### 5.5 Experience
+### 7.6 Experience
 
 ```bash
 ma run '$vibe'
@@ -463,11 +472,11 @@ If `$build` fails:
 - fix the corresponding upstream lane
 - rerun that lane, then rerun `$build`
 
-## 10. Example walkthrough: collaborative whiteboard
+## 10. Example walkthrough: MA release hardening
 
 ```bash
 ma setup
-ma idea "Build a collaborative whiteboard with live cursors and shared boards"
+ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'
@@ -480,17 +489,17 @@ ma run '$build'
 If you want an interactive Codex session during the walkthrough, start it separately with `ma`.
 
 What should happen:
-- `$arch` records a structured first-pass blueprint
-- `$sage` binds major choices to configured GitMCP-backed sources
-- `$flow` records the kernel’s baseline state review for the mission
-- `$vet` records a baseline security review
-- `$vibe` records baseline DX/UX guidance
-- `$build` suggests bounded concerns like `feature/implementation` and `feature/verification`
+- `$arch` records the architecture and release-hardening blueprint
+- `$sage` binds package, Obsidian, prompt-strategy, and MCP choices to configured evidence sources
+- `$flow` records state-transition and gate-order review
+- `$vet` records security, package exposure, and provider-bound context review
+- `$vibe` records operator/demo/docs usability guidance
+- `$build` suggests bounded implementation and verification branches after gates pass
 
-Related mission:
-- [missions/collaborative-whiteboard/mission.md](../missions/collaborative-whiteboard/mission.md)
+Canonical demo reference:
+- [DEMO.md](../DEMO.md)
 
-## 9. Merge and release path
+## 11. Merge and release path
 
 After implementation work is complete:
 
@@ -507,7 +516,7 @@ Expected effects:
   - `merge_status = MERGED_TO_DEVELOPMENT`
   - `release_status = SHIPPED_TO_PROD`
 
-## 10. Files generated or updated during a normal run
+## 12. Files generated or updated during a normal run
 
 - `.ma/decisions.json`
 - `.ma/release.json`
@@ -516,6 +525,13 @@ Expected effects:
 - `.ma/evidence/cves.json`
 - `.ma/evidence/outcomes.json`
 - `.ma/context/project.md`
+- `.ma/context/recording-core.json`
+- `.ma/context/learning-loop-core.json`
+- `.ma/context/workspace-context-pack.json`
+- `.ma/context/workspace-effectiveness.json`
+- `.ma/context/prompt-strategy-core.json`
+- `.ma/context/context-economy-core.json`
+- `.ma/context/obsidian-bridge.json`
 - `.ma/specs/architecture.md`
 - `.ma/specs/evidence.md`
 - `.ma/specs/logic.md`
@@ -527,7 +543,7 @@ Expected effects:
 
 These are local product artifacts created by the runtime. They are not a reason to bypass gate logic manually.
 
-## 11. If a gate fails
+## 13. If a gate fails
 
 Rule:
 - do not edit statuses manually

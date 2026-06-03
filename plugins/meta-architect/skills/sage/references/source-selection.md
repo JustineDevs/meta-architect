@@ -23,6 +23,14 @@ Use this reference pack inside `$sage` when the repo needs evidence-backed selec
 - Claimed capability verified from a primary source
 - Maturity caveats called out when evidence is weak
 
+## Evidence grades
+
+- `VERIFIED`: exact upstream mapping plus primary-source confirmation
+- `PARTIAL`: candidate is mapped, but live proof or maturity proof is incomplete
+- `MISSING`: no trustworthy exact upstream mapping yet
+
+Always expose the evidence grade and the exact upstream mapping in user-facing `$sage` output.
+
 ## Native posture
 
 Meta-Architect ships curated guidance and playbooks. It does not ship a raw mirror of external catalogs. External sources remain evidence inputs, not user-facing skill identities.

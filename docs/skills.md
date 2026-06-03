@@ -12,6 +12,13 @@ The package does not ship a separate `$meta-architect` in-session skill. `$maest
 
 Install the package once, start Codex context if needed, and use the skills directly in-session.
 
+Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
+
+```bash
+# One-line install (POSIX shells only; use WSL/Git-Bash on Windows)
+curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+```
+
 ```bash
 # Install
 npm i -g @openai/codex@latest @jstn-sdk/ma@latest
@@ -46,7 +53,10 @@ ma setup
 ma init
 ma idea "Build a product"
 ma status
+ma status --maestro-view
+ma verify --architect
 ma run '$arch'
+ma run '$maestro' --auto-heal --parallel
 ```
 
 In-session skills are used inside the Codex conversation:
@@ -78,6 +88,8 @@ Manager contract:
 - `$maestro` is the only umbrella in-session surface
 - `$maestro` manages the next allowed step, but gated outputs still belong to `$arch -> $sage -> $flow -> $vet -> $vibe -> $build`
 - helper skills are publishable mirrors that can assist a lane, but they do not move release gates
+- `ma run '$maestro' --auto-heal --parallel` enables the bounded runtime repair path and records conductor state in the private scratchpad layer when eligible
+- `ma verify --architect` runs an external architect reviewer command when `MA_ARCHITECT_REVIEW_CMD` is configured
 
 ## Installed support bundle
 
@@ -105,6 +117,7 @@ Relevant packaged assets there include:
 - `plugins/meta-architect/`
 - `templates/`
 - native skill references such as `skills/maestro/references/`, `skills/sage/references/`, `skills/vet/references/`, `skills/align/references/`, and `skills/cleanup/references/`
+- runtime scratchpad state such as `.ma/state/manager-runs.json` and `.ma/state/maestro-state.json` when local execution is active
 
 This exists so Meta-Architect can use relevant packaged files without guessing paths.
 
@@ -128,7 +141,7 @@ Every skill result must include:
 - `$vibe` -> `experience_status`
 - `$build` -> `build_status`
 
-Helper skills do not own release-state fields. They are publishable but non-gating, so they support the current lane and then hand work back to `$maestro` or the gated lane that owns the decision.
+`$maestro` may dispatch a gated lane, but it does not own that lane's artifact or release-state field. Helper skills do not own release-state fields. They are publishable but non-gating, so they support the current lane and then hand work back to `$maestro` or the gated lane that owns the decision.
 
 ## Operator note
 

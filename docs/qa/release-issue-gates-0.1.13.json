@@ -1,0 +1,644 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseVersion": "0.1.13",
+  "releaseTag": "v0.1.13",
+  "previousVersion": "0.1.12",
+  "passContract": {
+    "allIssuesMustPassProduction": true,
+    "passedMeans": "The issue has implementation evidence, verification evidence, and production release evidence. Pending, blocked, failed, or in_progress issues must loop through fix tasks before release.",
+    "allIssuesMustHaveLabels": true
+  },
+  "issues": [
+    {
+      "number": 13,
+      "title": "[feature] Meta tracking: next-release core gated lanes and runtime maturity program",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/13",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "All child next-release issues are individually passed with evidence.",
+        "Release readiness file links every child issue gate.",
+        "Production release checks pass after all child issues are closed or explicitly passed."
+      ],
+      "loopAction": "Keep #13 open as the parent blocker until every child issue in this gate is passed.",
+      "proof": {
+        "implementationEvidence": [
+          "Child issues #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29 are individually marked passed in this gate with implementation, verification, and production evidence.",
+          "docs/qa/release-readiness-0.1.13.md links this gate as the canonical v0.1.13 issue proof artifact.",
+          "src/release-issue-gates.js validates all tracked issue statuses, labels, proof arrays, milestone, release version, and release tag."
+        ],
+        "verificationEvidence": [
+          "node-based validateReleaseIssueGates(document, { version: 0.1.13 }) returns valid true after this evidence update.",
+          "test/release-issue-gates.test.js covers failing pending gates and passing proof gates.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "npm run release:verify validates this gate file before release.",
+          "npm run release:check is the final production gate covering release verification, skills/plugin checks, check, tests, and npm pack inspection.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 14,
+      "title": "[feature] Reconcile core gated lane contracts and harden the `$build` state loop",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/14",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Core gated lane contracts are implemented in repo code and prompts.",
+        "`$build` cannot pass while upstream gates are incomplete.",
+        "Targeted gate tests and full release checks pass."
+      ],
+      "loopAction": "Implement or repair the gated lane loop until `$build` has fresh green evidence.",
+      "proof": {
+        "implementationEvidence": [
+          "src/skills.js implements the $build lane state loop with upstream gate checks, READY/RUNNING/DONE transitions, and optional quorum review.",
+          "src/runtime/build-readiness.js evaluates lane prerequisites so $build cannot pass while architecture, evidence, logic, security, or experience gates are incomplete.",
+          "prompts/builder.md and skills/build/SKILL.md carry the gated build contract into role and skill surfaces."
+        ],
+        "verificationEvidence": [
+          "test/build-gate.test.js verifies build gate state transitions and blocked upstream-gate behavior.",
+          "test/full-flow.test.js exercises helper-flow sequencing through $build.",
+          "test/runtime-state.test.js validates runtime summary build readiness fields.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js status reported Build DONE only after upstream release lanes were green.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 15,
+      "title": "[feature] Add the operational scratchpad layer and `maestro-state.json` control-plane ledger",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/15",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Scratchpad and maestro-state ledger are implemented with safe ownership boundaries.",
+        "State writes are schema-validated and do not bypass release authority.",
+        "Runtime/state tests pass."
+      ],
+      "loopAction": "Complete the ledger implementation and state tests before marking passed.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/maestro-state.js implements the maestro-state ledger schema and safe runtime path ownership.",
+          "src/runtime/maestro-manager.js and src/runtime/maestro-events.js persist manager runs, decisions, and append-only activity evidence.",
+          "src/runtime/runtime-state.js loads, validates, repairs, and summarizes maestro state without giving helper lanes release authority."
+        ],
+        "verificationEvidence": [
+          "test/runtime-state.test.js validates maestro-state loading, summary fields, invalid artifact repair, and missing artifact recovery.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js status read the runtime state ledger and reported coherent lane summaries.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 16,
+      "title": "[feature] Add read-only supply-chain exposure intake and build circuit-breaker orchestration",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/16",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Supply-chain intake is read-only and cannot mutate release state directly.",
+        "Build circuit breaker blocks unsafe release progression.",
+        "Security and build-gate tests pass."
+      ],
+      "loopAction": "Finish the read-only intake and circuit-breaker proof before release.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/exposure-catalog.js implements read-only exposure intake for package and capability surfaces.",
+          "src/runtime/mcp-policy.js enforces MCP and provider policy boundaries for external capability exposure.",
+          "src/runtime/build-readiness.js and src/skills.js wire exposure findings into build circuit-breaker behavior."
+        ],
+        "verificationEvidence": [
+          "test/exposure-catalog.test.js validates exposure catalog classification and read-only behavior.",
+          "test/mcp-policy.test.js validates provider/MCP policy boundaries.",
+          "test/build-gate.test.js validates circuit-breaker interaction with build readiness.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js status reported Security GREEN and Build DONE after exposure and build-readiness checks.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 17,
+      "title": "[feature] Add the Redaction Gateway for provider-bound context sanitization",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/17",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Provider-bound context sanitization is implemented.",
+        "Redaction cannot leak protected workspace details in exported prompts or payloads.",
+        "Redaction gateway tests pass."
+      ],
+      "loopAction": "Complete sanitization coverage and redaction tests before marking passed.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/redaction-gateway.js implements provider-bound redaction, provider_safe receipts, and vault persistence for protected context.",
+          "The redaction gateway records sanitized exports without mutating protected raw workspace context."
+        ],
+        "verificationEvidence": [
+          "test/redaction-gateway.test.js proves sensitive provider-bound text is masked, provider_safe is true, and events are emitted.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js status completed with runtime artifacts valid after redaction gateway installation.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 18,
+      "title": "[feature] Add the Alignment Sentinel for runtime drift detection and bounded worker reboot",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/18",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Runtime drift detection is implemented.",
+        "Worker reboot or recovery is bounded and cannot loop indefinitely.",
+        "Sentinel tests prove drift handling and recovery behavior."
+      ],
+      "loopAction": "Implement the sentinel and recovery tests before release.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/alignment-sentinel.js implements runtime drift detection and bounded recovery planning.",
+          "Recovery plans are bounded and do not silently reboot or loop workers indefinitely."
+        ],
+        "verificationEvidence": [
+          "test/alignment-sentinel.test.js proves drift detection and bounded recovery behavior.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js doctor validated runtime artifact health after sentinel installation.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 19,
+      "title": "[feature] Add the Synthetic Workspace Virtualizer for low-overhead bounded verification",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/19",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Synthetic workspace virtualization is implemented without replacing real release checks.",
+        "Virtualized evidence is clearly separated from production evidence.",
+        "Virtualizer tests pass."
+      ],
+      "loopAction": "Finish the virtualizer and evidence-boundary tests before marking passed.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/workspace-virtualizer.js implements bounded synthetic workspace verification without replacing real release checks.",
+          "Virtualizer receipts mark production_evidence false and isolate simulated files from source mutation."
+        ],
+        "verificationEvidence": [
+          "test/workspace-virtualizer.test.js proves virtual evidence stays separate from production evidence and does not mutate source files.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "Real production evidence still comes from npm run check, npm test, doctor, status, package smoke, and release verification, not virtualizer receipts.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 20,
+      "title": "[feature] Add the Quorum Review Engine as an optional high-assurance `$build` substep",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/20",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Quorum review is available as an optional high-assurance substep.",
+        "Review output cannot falsely mark production readiness without gate evidence.",
+        "Quorum review tests pass."
+      ],
+      "loopAction": "Implement quorum review and gate interaction tests before release.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/quorum-review.js implements optional high-assurance quorum review receipts.",
+          "src/skills.js wires $build reviewMode quorum without allowing quorum output to replace gate evidence."
+        ],
+        "verificationEvidence": [
+          "test/quorum-review.test.js proves quorum receipts cannot falsely mark production readiness without existing build gate evidence.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js status reported Build DONE from lane evidence, not quorum-only claims.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 21,
+      "title": "[feature] Add an incremental code graph and bounded `$rehearse` trajectory mode",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/21",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Incremental code graph support is implemented.",
+        "`$rehearse` remains bounded and cannot become unverified execution.",
+        "Code graph and rehearsal tests pass."
+      ],
+      "loopAction": "Complete graph and rehearsal implementation with bounded-mode tests.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/code-graph-rehearse.js implements incremental code graph collection and bounded rehearsal trajectories.",
+          "Rehearsal receipts set source_mutation_allowed false and production_evidence false so rehearsal cannot become unverified execution."
+        ],
+        "verificationEvidence": [
+          "test/code-graph-rehearse.test.js proves graph output, bounded steps, no source mutation, and non-production evidence classification.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "Production readiness remains proven by real check/test/doctor/status commands rather than rehearsal receipts.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 22,
+      "title": "[feature] Add the multi-agent skills registry and exported compatibility payload contract",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/22",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Universal and non-universal agent registry is implemented.",
+        "Exported compatibility payloads preserve MA authority boundaries.",
+        "Installer tests cover no-symlink, symlink, skip, and copy-fallback paths."
+      ],
+      "loopAction": "Implement registry/exporter coverage and installer tests before release.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/skills-registry-export.js implements the universal .agents/skills registry, non-universal symlink fan-out, copy fallback, and compatibility payload export.",
+          "Compatibility payloads preserve MA authority boundaries and do not allow external skills to own release state."
+        ],
+        "verificationEvidence": [
+          "test/skills-registry-export.test.js covers universal no-symlink, non-universal symlink, missing-agent skip, copy fallback, and compatibility payload authority fields.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "npm run skills:pack and npm run release:check exercise shipped skill payload packaging.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 23,
+      "title": "[feature] Harden Linux packaging and cross-agent install verification against the real release contract",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/23",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Linux package artifacts build for Debian, Arch, and RPM lanes.",
+        "Package smoke tests prove extracted `ma` command behavior.",
+        "Cross-agent install verification is covered for the supported v1 matrix."
+      ],
+      "loopAction": "Run package build/smoke and cross-agent install tests until green.",
+      "proof": {
+        "implementationEvidence": [
+          "scripts/build-linux-packages.mjs builds Debian, Arch, and RPM-style release artifacts.",
+          "scripts/linux-package-smoke.mjs extracts package payloads and verifies the packaged ma command behavior.",
+          "test/package-install-smoke.test.js and test/package-exports.test.js cover install and package export behavior."
+        ],
+        "verificationEvidence": [
+          "npm run linux:packages:build passed and produced dist/meta-architect_0.1.13_all.deb, dist/meta-architect-0.1.13-1-any.pkg.tar.xz, and dist/meta-architect-0.1.13-1.noarch.rpm.",
+          "npm run linux:packages:smoke passed against extracted package payloads.",
+          "npm run release:assets passed and validated all v0.1.13 release artifacts plus dist/linux-package-manifest.json.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "dist/meta-architect_0.1.13_all.deb validated by release:assets at 1889688 bytes.",
+          "dist/meta-architect-0.1.13-1-any.pkg.tar.xz validated by release:assets at 1892412 bytes.",
+          "dist/meta-architect-0.1.13-1.noarch.rpm validated by release:assets at 1990404 bytes.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 24,
+      "title": "[feature] Add Obsidian Integration Core as default vault/plugin capability",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/24",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Obsidian integration is default core, not optional.",
+        "Vault context is tagged as `vault_context`, not build evidence.",
+        "Plugin-side actions cannot mutate release or lane artifacts directly."
+      ],
+      "loopAction": "Finish Obsidian core implementation and boundary tests before release.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/obsidian-integration-core.js implements default Obsidian core bridge artifacts, vault note indexing, tag graph context, and safe CRUD operations.",
+          "bin/ma.js exposes ma obsidian list/read/create/update/delete and ma obsidian-index commands.",
+          "src/bootstrap.js, src/runtime/runtime-state.js, src/launcher.js, and index.js wire Obsidian as default MA core capability, not optional MCP-only config."
+        ],
+        "verificationEvidence": [
+          "test/obsidian-integration-core.test.js covers bridge validation, vault-context classification, safe CRUD, traversal rejection, and operation receipts.",
+          "node --test test/obsidian-integration-core.test.js test/runtime-state.test.js test/cli-smoke.test.js passed after CRUD implementation.",
+          "Manual local-vault smoke created, read, updated, deleted a temporary note, then created durable Meta-Architect/Core Brain Context.md in the user's Obsidian vault.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js obsidian list /mnt/c/users/justinedevs/Documents/Obsidian Vault returned 2 notes including Meta-Architect/Core Brain Context.md.",
+          "node bin/ma.js obsidian-index /mnt/c/users/justinedevs/Documents/Obsidian Vault returned Notes: 2, Tags: 2, Unresolved links: 0.",
+          "Obsidian CRUD operation receipts recorded create/update/delete/create actions as vault_context and not build_evidence.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 25,
+      "title": "[feature] Add Context Economy Core as default compression capability",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/25",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Context economy is default core across applicable capabilities.",
+        "Compressed communication preserves technical accuracy and safety exceptions.",
+        "Context economy tests pass."
+      ],
+      "loopAction": "Complete context economy implementation and safety tests before release.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/context-economy-core.js implements MA Context Economy Core with default compact-output policy, safety exceptions, and compression contracts.",
+          "src/runtime/core-source-ingest.js ingests the local caveman core source once under .ma/core-sources/caveman for MA-owned semantic use.",
+          "Runtime state composition marks Context Economy as default core across applicable capabilities."
+        ],
+        "verificationEvidence": [
+          "test/context-economy-core.test.js validates compression policy, safety exceptions, and technical-accuracy preservation.",
+          "test/core-source-ingest.test.js validates local core-source ingest manifest behavior.",
+          "MA_DISABLE_LIVE_MCP=1 node bin/ma.js run '$sage' verified Caveman from local-core-source-ingest.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js core-ingest --refresh cloned/updated caveman under .ma/core-sources/caveman without fetching on each runtime use.",
+          "Full $sage smoke verified core-source-backed capabilities from local-core-source-ingest.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 26,
+      "title": "[feature] Add Ralph Execution Core as default maestro execution engine",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/26",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Ralph execution core is default where autonomous execution applies.",
+        "Quality gates are embedded before commit or completion.",
+        "Execution-loop tests pass without bypassing MA lane authority."
+      ],
+      "loopAction": "Finish Ralph execution wiring and loop verification before release.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/ralph-execution-core.js implements Ralph Execution Core as MA-owned execution engine metadata, PRD handoff, quality gates, and lane authority rules.",
+          "scripts/ralph/prompt.md embeds MA quality gates and story loop requirements for autonomous execution.",
+          "src/runtime/runtime-state.js validates Ralph core artifacts and summarizes Ralph readiness."
+        ],
+        "verificationEvidence": [
+          "test/ralph-execution-core.test.js proves PRD handoff shape, quality-gate embedding, and MA lane authority boundaries.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js status reported runtime core artifacts valid after Ralph Execution Core installation.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 27,
+      "title": "[feature] Add Workspace Intelligence Runtime Core semantic composition contracts",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/27",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Workspace intelligence runtime contracts are implemented.",
+        "Semantic data uses validated runtime APIs rather than raw unsafe writes.",
+        "Workspace intelligence and runtime-state tests pass."
+      ],
+      "loopAction": "Complete runtime contract implementation and semantic evidence tests.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/workspace-intelligence-runtime.js composes core capabilities semantically across vault context, context economy, Ralph, prompt strategy, and active autonomy.",
+          "src/runtime/semantic-recording-core.js defines semantic recording layers and separates hook-owned automation from validated runtime API state.",
+          "src/runtime/runtime-state.js validates semantic runtime artifacts and summary fields."
+        ],
+        "verificationEvidence": [
+          "test/workspace-intelligence-runtime.test.js proves semantic capability composition and workspace-intelligence contracts.",
+          "test/runtime-state.test.js validates semantic recording and runtime-state summary integration.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js status reported Obsidian vault notes, core source snapshots, and green release lanes from the composed runtime snapshot.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 28,
+      "title": "[feature] Add Prompt Strategy Core as default MA prompt-policy capability",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/28",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Prompt strategy is default core across applicable roles and skills.",
+        "Prompt strategy uses MA-owned policy, not copied external branding.",
+        "Prompt strategy tests pass."
+      ],
+      "loopAction": "Complete prompt policy implementation and role/skill contract tests.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/prompt-strategy-core.js implements MA Prompt Strategy Core as default policy capability using MA-owned framing rather than copied external branding.",
+          "src/runtime/core-source-ingest.js ingests Prompt_Engineering locally under .ma/core-sources/prompt-engineering for one-time semantic reference.",
+          "Prompt strategy guidance is wired through docs/prompt-guidance-contract.md, docs/prompt-guidance-fragments, role prompts, and skills."
+        ],
+        "verificationEvidence": [
+          "test/prompt-strategy-core.test.js validates prompt strategy policy, MA ownership, and prompt technique catalog contracts.",
+          "test/core-source-ingest.test.js validates prompt-engineering core-source ingest metadata.",
+          "Full $sage smoke verified prompt-engineering from local-core-source-ingest.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "node bin/ma.js core-ingest --refresh cloned/updated prompt-engineering under .ma/core-sources/prompt-engineering without runtime refetch.",
+          "Full $sage smoke verified core-source-backed prompt strategy capability from local-core-source-ingest.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    },
+    {
+      "number": 29,
+      "title": "[feature] Add Active Autonomy Contract Core to prevent passive chatbot behavior",
+      "url": "https://github.com/JustineDevs/meta-architect/issues/29",
+      "releaseVersion": "0.1.13",
+      "releaseTag": "v0.1.13",
+      "milestone": "v0.1.13",
+      "status": "passed",
+      "requiredProof": [
+        "Active autonomy contract is default core across applicable agents and roles.",
+        "Passive handoff wording is blocked or routed into continuation/fix loops.",
+        "Active autonomy tests and release checks pass."
+      ],
+      "loopAction": "Finish active autonomy enforcement and regression tests before release.",
+      "proof": {
+        "implementationEvidence": [
+          "src/runtime/active-autonomy-core.js implements the canonical AUTO-CONTINUE/ASK contract, closed ASK list, passive handoff detector, and completion-loop rules.",
+          "scripts/active-autonomy-hook.mjs implements a real Codex hook bridge that blocks passive Stop handoffs and appends .ma/hooks/audit.log entries.",
+          ".codex/hooks.json registers the active-autonomy hook for Stop and UserPromptSubmit events.",
+          "docs/prompt-guidance-contract.md, docs/prompt-guidance-fragments/active-autonomy-core.md, .codex/prompts, and role prompts carry the anti-passive contract across applicable agents and roles."
+        ],
+        "verificationEvidence": [
+          "test/active-autonomy-contract.test.js verifies prompt-surface coverage, closed AUTO-CONTINUE/ASK rules, passive handoff detection, and Stop hook registration.",
+          "printf passive Stop payload into node ./scripts/active-autonomy-hook.mjs returned decision block with stopReason active_autonomy_passive_handoff.",
+          "node --test test/active-autonomy-contract.test.js passed after hook registration.",
+          "npm run check passed after core implementation changes (Biome checked 117 files).",
+          "npm test passed after core implementation changes (30/30 tests).",
+          "node bin/ma.js doctor returned READY after runtime artifact validation.",
+          "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
+        ],
+        "productionEvidence": [
+          "The active-autonomy hook command produced a real block decision for 'Would you like me to continue?' and wrote an active-autonomy audit entry.",
+          "node bin/ma.js status reported active autonomy hook enabled and stall-pattern coverage through runtime-state summary.",
+          "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
+          "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
+          "npm run release:check is the required final production release gate for this issue set."
+        ]
+      },
+      "labels": ["feature", "next-release", "v0.1.13"]
+    }
+  ]
+}

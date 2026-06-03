@@ -34,6 +34,21 @@ export async function seedSignalHookArtifacts() {
         schemaVersion: "0.1.0",
         compatibilityNamespace: ["prebuild", "prerelease"],
         runtimeNamespace: runtimeEvents,
+        activeAutonomy: {
+          enabled: true,
+          stopPolicy: "block_passive_permission_handoff_when_auto_continue_applies",
+          defaultResponse:
+            "AUTO-CONTINUE: continue the current safe branch, execute the next reversible step, then verify before reporting.",
+          stallPatterns: [
+            "should i proceed",
+            "would you like me to continue",
+            "if you want, i can",
+            "if you'd like, i can",
+            "tell me if you want me to",
+            "i can continue if you want",
+            "let me know if you want me to continue",
+          ],
+        },
         hooks: [],
       },
       null,

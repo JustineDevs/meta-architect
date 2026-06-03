@@ -1,0 +1,52 @@
+# Production package hygiene.
+# `package.json#files` is the primary allowlist; this file blocks accidental
+# runtime state, local caches, generated artifacts, and contributor-only files
+# if package surfaces change later.
+
+# Dependency and package-manager state
+node_modules/
+.npm-cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime state and local agent scratchpads
+.ma/
+.omx/
+.claude/
+.cursor/
+.windsurf/
+.continue/
+.roo/
+.goose/
+
+# Generated outputs and local reports
+dist/
+coverage/
+*.tgz
+*.tmp
+*.temp
+*.log
+
+# Source-control and automation internals
+.git/
+.github/
+.husky/
+.gitignore
+renovate.json
+
+# Contributor-only verification fixtures
+test/
+missions/
+example/
+prompts/
+CONTRIBUTING.md
+
+# Local/editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/

@@ -16,6 +16,7 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
   const tempRoot = await createTempRepo("meta-architect-release-sync-", repoRoot);
   const pkgBefore = JSON.parse(await fs.readFile(path.join(tempRoot, "package.json"), "utf8"));
   const nextVersion = bumpPatch(pkgBefore.version);
+  const readmePath = path.join(tempRoot, "README.md");
   const currentQaPath = path.join(
     tempRoot,
     "docs",
@@ -23,6 +24,20 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
     `release-readiness-${pkgBefore.version}.md`,
   );
   const nextQaPath = path.join(tempRoot, "docs", "qa", `release-readiness-${nextVersion}.md`);
+  const staleReadme = (await fs.readFile(readmePath, "utf8"))
+    .replace(
+      /> Meta-Architect `v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?` is a production-grade skills line\./,
+      "> Meta-Architect `v0.1.12` is a production-grade skills line.",
+    )
+    .replace(
+      /> From `v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces\./,
+      "> From `v0.1.12` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.",
+    )
+    .replace(
+      /<td><strong>Release line<\/strong><\/td>\s*\n\s*<td><code>v[0-9]+\.[0-9]+\.[0-9]+(?:-[^<]+)?<\/code><\/td>/,
+      "<td><strong>Release line</strong></td>\n    <td><code>v0.1.12</code></td>",
+    );
+  await fs.writeFile(readmePath, staleReadme);
 
   const result = spawnPortable(
     process.execPath,
@@ -47,8 +62,16 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
     "utf8",
   );
   const releaseText = await fs.readFile(path.join(tempRoot, "RELEASE.md"), "utf8");
+  const readmeText = await fs.readFile(readmePath, "utf8");
   assert.match(releaseText, new RegExp(`@jstn-sdk/ma@${nextVersion}`));
   assert.match(releaseText, new RegExp(`v${nextVersion}`));
+  assert.match(
+    readmeText,
+    new RegExp(`Meta-Architect \`v${nextVersion}\` is a production-grade skills line\\.`),
+  );
+  assert.match(readmeText, new RegExp(`From \`v${nextVersion}\` onward`));
+  assert.match(readmeText, new RegExp(`<td><code>v${nextVersion}</code></td>`));
+  assert.doesNotMatch(readmeText, /Meta-Architect `v0\.1\.12`|From `v0\.1\.12` onward/);
   assert.match(
     pluginManifest,
     /"keywords": \["codex", "skills", "architecture", "workflow", "review"\]/,

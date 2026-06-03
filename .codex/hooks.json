@@ -1,15 +1,16 @@
 {
-  "version": 1,
-  "hooks": [
-    {
-      "event": "prebuild",
-      "action": "deny-unless-gates-green",
-      "source": ".ma/decisions.json"
-    },
-    {
-      "event": "prerelease",
-      "action": "deny-unless-release-origin-valid",
-      "allowedOrigins": ["development", "release/*"]
-    }
-  ]
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node ./scripts/active-autonomy-hook.mjs"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": "node ./scripts/active-autonomy-hook.mjs"
+      }
+    ]
+  }
 }

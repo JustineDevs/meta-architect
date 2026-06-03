@@ -524,6 +524,25 @@ export function chooseMaestroManagerAction({
     };
   }
 
+  if (["READY", "RUNNING"].includes(releaseState.build_status)) {
+    return {
+      mode: "helper+gated",
+      nextAction: "dispatch-gated",
+      dispatchPlan: {
+        helpers: [],
+        gated: [
+          createGatedPlan(
+            "$build",
+            "Advance the bounded build execution substep and persist lane-owned build evidence.",
+            { prerequisites: ["build_status=READY|RUNNING"] },
+          ),
+        ],
+        team: null,
+      },
+      reason: recommendation?.why ?? "The build lane still owns the next bounded execution step.",
+    };
+  }
+
   if (releaseState.merge_status !== "MERGED_TO_DEVELOPMENT") {
     return {
       mode: "team",

@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.1.13
+
+- Adds a release issue-gate matrix so every next-release GitHub issue must carry labels plus implementation, verification, and production evidence before `v0.1.13` can be considered production-passed.
+- Promotes Obsidian into a core semantic brain-context system with vault indexing, graph-linked notes, plugin bridge APIs, frontmatter authority, request queues, attachments, protocol handlers, and note-selection context.
+- Adds Ralph Execution Core for gated PRD/story execution handoff after MA review lanes.
+- Adds Active Autonomy, Context Economy, Prompt Strategy, Learning Loop, Environment Awareness, and Universal Plugin Broker cores as default runtime contracts across applicable MA agents and roles.
+- Adds realistic package/demo/coverage proof surfaces, clone-data proof artifacts, `.npmignore`, Linux package artifacts, and full release smoke coverage.
+- Expands the verified test suite to 36 files and keeps `npm run release:check` as the production readiness gate.
+
 ## v0.1.12
 
 - Makes `$maestro` the singular shipped Meta-Architect umbrella surface and removes the separate shipped `$meta-architect` skill surface.
