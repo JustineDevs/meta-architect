@@ -17,10 +17,10 @@
   </p>
 </div>
 
-> [!IMPORTANT]
-> Meta-Architect `v0.1.13` is a production-grade skills line.
-> It is not a lightweight demo branch.
-> From `v0.1.13` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.
+> [!NOTE]
+> Meta-Architect is a workflow layer for teams that want architecture, evidence, review, and release discipline before build execution.
+> Meta-Architect does not replace your coding runtime.
+> It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
 
 ## Navigate
 
@@ -35,7 +35,7 @@
   </tr>
   <tr>
     <td><strong>Ship</strong></td>
-    <td><a href="#release-and-packaging">Release and Packaging</a> · <a href="#package-surface">Package Surface</a> · <a href="#release-hygiene">Release Hygiene</a></td>
+    <td><a href="#package-surface">Package Surface</a> · <a href="#release-hygiene">Release Hygiene</a></td>
   </tr>
   <tr>
     <td><strong>Reference</strong></td>
@@ -43,31 +43,139 @@
   </tr>
 </table>
 
-## Overview
+<div align="center">
+  <img src="./docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">
+</div>
 
-Meta-Architect is a workflow layer for teams that want architecture, evidence, review, and release discipline before build execution.
+> [!TIP]
+> The most reliable default environment is a Unix-like shell with Git, Node.js, and an MCP-capable runtime already configured.
 
-It adds:
+## CLI Install
 
-- an architecture-first lane before implementation
-- evidence-backed OSS selection through GitMCP-connected sources
-- explicit logic, security, and DX/UX review gates
-- a singular `$maestro` bounded autonomous manager plus non-gating helper skills for alignment, diagnosis, test-first work, and cleanup
-- installable skills and a reproducible package surface
+macOS, Linux, WSL, and Git-Bash:
 
-> [!NOTE]
-> Meta-Architect does not replace your coding runtime.
-> It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
+```bash
+# One-line install (POSIX shells only; see Windows note below)
+curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+```
 
-## Acknowledgement
+This jsDelivr-backed installer runs the canonical package install:
 
-Meta-Architect was shaped in part by ideas surfaced through the `oh-my-codex` ecosystem.
-Acknowledgement is due for the inspiration around Codex-native workflow packaging, skill distribution, and practical delivery surfaces that helped inform this project.
+```bash
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+```
 
-## Support
+Then it seeds the local MA runtime with `ma setup`. Start with:
 
-- [GitHub Sponsors](https://github.com/sponsors/JustineDevs)
-- [Buy Me A Coffee](https://www.buymeacoffee.com/justinedevs)
+```bash
+ma --madmax --high
+```
+
+Windows note: use WSL or Git-Bash for the one-line POSIX installer. In PowerShell, use the npm fallback command directly.
+
+## What You Get
+
+| Capability | Description |
+| --- | --- |
+| 🤖 11 Skill Lanes | `$maestro`, six gated release lanes, and four helper skills for alignment, diagnosis, test-first work, and cleanup |
+| 🧭 Architecture-First Workflow | `$arch -> $sage -> $flow -> $vet -> $vibe -> $build` keeps design, evidence, logic, security, DX, and build readiness explicit |
+| 📚 Evidence Discipline | GitMCP-backed source validation separates candidate discovery from verified upstream evidence |
+| 🧠 Learning Loop | Captures learnings as candidates first, then promotes only with source, authority, evidence, and next verification path |
+| 📝 Obsidian Brain Context | Treats vault notes as graph-linked `vault_context` so project knowledge informs planning without pretending to be build evidence |
+| 🔁 Ralph Execution Core | Converts approved plans into story-sized execution loops with verification before completion claims |
+| 🧩 Universal Plugin Broker | Installs hybrid MCP-plus-skill plugins across supported AI agent hosts from one MA-owned contract |
+| 🛡️ Security & Exposure Control | `$vet`, Redaction Gateway, MCP policy, and exposure catalog protect trust boundaries and sensitive context |
+| ✅ Release Issue Gates | Requires issue-linked proof and production verification before release claims pass |
+| 📦 Production Packaging | Ships npm fallback, Linux package surfaces, package dry-runs, README/DEMO/COVERAGE checks, and release verification scripts |
+
+<details>
+<summary><strong>🔌 All 33 plugins & features</strong></summary>
+
+### Core & Orchestration
+
+| Plugin / feature | What it does |
+| --- | --- |
+| `$maestro` | Singular in-session manager that selects the next safe lane or helper handoff |
+| `$arch` | Architecture-first product and system design lane |
+| `$build` | Build-readiness gate that names the narrowest viable implementation slice |
+| Active Autonomy Core | Prevents passive chatbot behavior through explicit continue-or-ask rules |
+| Helper Orchestration Core | Routes helper work back to `$maestro` or the owning lane without moving gates |
+| Ralph Execution Core | Persistent execution loop for story-by-story implementation after planning is ready |
+
+### Memory & Knowledge
+
+| Plugin / feature | What it does |
+| --- | --- |
+| Obsidian Integration Core | Ingests vault notes as semantic `vault_context`, not build evidence |
+| Obsidian Plugin Bridge | Connects in-app note selection, metadata, and request queue flows to MA |
+| Semantic Recording Core | Records context, decisions, and receipts with authority boundaries |
+| Learning Loop Core | Promotes learnings only after source, evidence, authority, and next verification path exist |
+| Workspace Intelligence Runtime | Builds project context packs and workspace-effectiveness signals |
+| Skills Registry Export | Publishes the canonical skill surface for supported AI agent runtimes |
+
+### Intelligence & Learning
+
+| Plugin / feature | What it does |
+| --- | --- |
+| `$sage` | Evidence-backed stack and OSS validation lane |
+| `$flow` | Logic, state, transition, invariant, and blocker review lane |
+| Context Economy Core | Keeps context compact while preserving exact technical and safety details |
+| Prompt Strategy Core | Applies reusable prompt-engineering patterns without replacing MA lane ownership |
+| Quorum Review Engine | Produces confidence-aware review receipts for higher-risk decisions |
+| Code Graph Rehearse | Rehearses code touchpoints before mutation to reduce implementation drift |
+
+### Code Quality & Testing
+
+| Plugin / feature | What it does |
+| --- | --- |
+| `$tdd` | Regression-first helper for locking behavior before implementation expands |
+| `$cleanup` | Contract-preserving cleanup and anti-slop simplification helper |
+| Workspace Virtualizer | Creates safe workspace rehearsal and context boundaries |
+| jsDelivr CLI Installer | Installs the runtime through the canonical one-line POSIX path |
+
+### Security & Compliance
+
+| Plugin / feature | What it does |
+| --- | --- |
+| `$vet` | Security and trust-boundary review lane before implementation or release |
+| Redaction Gateway | Produces provider-bound redaction receipts for sensitive context |
+| MCP Policy / Exposure Catalog | Controls which MCP surfaces are visible and why |
+
+### Architecture & Methodology
+
+| Plugin / feature | What it does |
+| --- | --- |
+| `$align` | Normalizes terminology, scope, prompts, and docs language without moving gates |
+| `$diagnose` | Decomposes blocked lanes into smallest useful probes |
+| `$vibe` | Reviews operator, developer, and user workflow friction |
+| GitMCP Evidence Sources | Grounds stack and OSS choices in repo-backed source evidence |
+
+### DevOps & Observability
+
+| Plugin / feature | What it does |
+| --- | --- |
+| `ma setup` / `ma bootstrap` / `ma doctor` | Seeds, repairs, and checks local MA runtime support files |
+| Release Issue Gates | Requires issue-backed production proof before release claims pass |
+| Package Surface | Keeps installable package contents explicit and production-safe |
+
+### Extensibility
+
+| Plugin / feature | What it does |
+| --- | --- |
+| Universal Plugin Broker Core | Installs hybrid MCP-plus-skill plugins across supported AI agent hosts |
+| Skill Surface | Ships the canonical Codex skill contracts and plugin mirror |
+| Default Install Surfaces | Supports npm fallback and Linux-native package flows |
+
+### Domain-Specific
+
+| Plugin / feature | What it does |
+| --- | --- |
+| MA Release-Hardening Scenario | Demonstrates the end-to-end gated release workflow on this project |
+| Clone-Data Proof Artifacts | Stores realistic proof, ledger, and RVF data for demo and package checks |
+| Obsidian Vault Graph Links | Uses Obsidian wikilinks as semantic symlinks across project notes |
+
+</details>
+
 
 <table>
   <tr>
@@ -116,40 +224,15 @@ Acknowledgement is due for the inspiration around Codex-native workflow packagin
   </tr>
 </table>
 
-## Prerequisites
+## Acknowledgement
 
-- Node.js `>=20`
-- npm `>=10`
-- Git
-- an MCP-capable coding runtime
-- Codex for the recommended package-first path
-- macOS, Linux, or WSL2 recommended
+<details>
+<summary><strong>Project inspiration</strong></summary>
 
-> [!TIP]
-> The most reliable default environment is a Unix-like shell with Git, Node.js, and an MCP-capable runtime already configured.
+Meta-Architect was shaped in part by ideas surfaced through the `oh-my-codex` ecosystem.
+Acknowledgement is due for the inspiration around Codex-native workflow packaging, skill distribution, and practical delivery surfaces that helped inform this project.
 
-## CLI Install
-
-macOS, Linux, WSL, and Git-Bash:
-
-```bash
-# One-line install (POSIX shells only; see Windows note below)
-curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
-```
-
-This jsDelivr-backed installer runs the canonical package install:
-
-```bash
-npm i -g @openai/codex@latest @jstn-sdk/ma@latest
-```
-
-Then it seeds the local MA runtime with `ma setup`. Start with:
-
-```bash
-ma --madmax --high
-```
-
-Windows note: use WSL or Git-Bash for the one-line POSIX installer. In PowerShell, use the npm fallback command directly.
+</details>
 
 ## Default Install Surfaces
 
@@ -292,6 +375,9 @@ npm link
 `npm link` makes `ma` and `meta-architect` available from the local checkout.
 
 ## Quick Start
+
+<details open>
+<summary><strong>Run the first MA workflow</strong></summary>
 
 ### 1. Start Codex context if needed
 
@@ -577,6 +663,8 @@ What to use when:
 - use `ma setup` or `ma init` only when you want local scaffolding or scripted helper automation from the terminal
 - use `ma sdk-path` when you need the exact installed support-bundle path for packaged prompts, MCP files, sprint files, scripts, plugin metadata, or templates
 
+</details>
+
 ## Skill Surface
 
 > [!TIP]
@@ -707,81 +795,6 @@ Meta-Architect is intentionally fail-closed.
 | Domain-Specific | stack facts, project domain notes, and trusted source context |
 
 </details>
-
-## Release and Packaging
-
-Meta-Architect has three related but different distribution surfaces.
-
-> [!TIP]
-> Use **npm** for the public package, **Linux packages** for distro-managed installs, and **skills bundle** when only the skill payload is needed.
-
-<details open>
-<summary><strong>Distribution surfaces</strong></summary>
-
-| Surface | Purpose | Produced by |
-| --- | --- | --- |
-| Linux native packages | distro-managed install assets for Debian-family and Arch-family environments | `npm run linux:packages:build` and GitHub release assets |
-| npm package | public package containing the installable Meta-Architect skills/plugin system, docs, scripts, and canonical skills | `npm publish` or `npm pack` |
-| skills bundle | narrower tarball containing `skills/` only | `npm run skills:pack` |
-
-</details>
-
-Required packaging commands:
-
-```bash
-npm run skills:manifest
-npm run skills:validate
-npm run skills:pack
-npm run skills:install -- --path ./dist/installed-skills
-npm run linux:packages:build
-npm run release:assets
-npm run pack:inspect
-```
-
-Pre-publish rules:
-
-- `skills/index.json` must be current
-- `npm run skills:validate` must pass
-- `dist/meta-architect-skills.tgz` must exist
-- `dist/meta-architect_<version>_all.deb` must exist for Debian-family installs
-- `dist/meta-architect-<version>-1-any.pkg.tar.xz` must exist for Arch-family installs
-- `dist/meta-architect-<version>-1.noarch.rpm` must exist for Fedora/openSUSE-style installs
-- `npm pack --dry-run` must show only intended public files
-- docs must match the real skills/plugin and release behavior
-
-Release lane discipline:
-- stable versions publish to npm `latest`
-- prerelease versions such as `0.2.0-beta.1` must publish with an explicit dist-tag such as `beta`
-- alternate lanes such as `next`, `beta`, and `canary` must never overwrite `latest`
-
-Maintainer version-bump flow:
-1. Bump the package with `npm version <version> --no-git-tag-version`
-2. Update `CHANGELOG.md`, `RELEASE.md`, and `docs/qa/release-readiness-<version>.md`
-3. Run `npm run release:verify`
-4. Run `npm run release:check`
-5. Create and push tag `v<version>`
-6. Build and smoke-check the Linux native packages with `npm run linux:packages:build`, `npm run linux:packages:smoke`, and `npm run release:assets` on Linux
-7. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
-7. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
-   - Stable publish: `npm publish --access public`
-   - Prerelease publish: `npm publish --access public --tag <lane>`
-8. Verify publish state with `npm view @jstn-sdk/ma version dist-tags time --json`
-9. Confirm the GitHub release includes `dist/meta-architect-skills.tgz`, `meta-architect_<version>_all.deb`, `meta-architect-<version>-1-any.pkg.tar.xz`, and `meta-architect-<version>-1.noarch.rpm`
-
-Provenance note:
-- `npm publish --provenance` requires a supported cloud CI/CD provider
-- a local shell publish will fail with `Automatic provenance generation not supported for provider: null`
-- use the repository publish workflow when provenance is required
-
-Release automation:
-- `npm run release:sync` bumps and synchronizes the active release line only when watched release-relevant files changed
-- `npm run release:advance` force-bumps the next patch line and rewrites the same version-bearing files
-- `.github/workflows/release-sync.yml` runs the sync path on `main` pushes that touch watched release-relevant paths
-- `.github/workflows/release-advance.yml` runs after a published GitHub release and advances the repo to the next patch line automatically
-
-> [!CAUTION]
-> Do not claim npm, GitHub release, or any other publish channel until that channel has actually succeeded.
-> Release documentation must match reality, not intent.
 
 ## Package Surface
 
