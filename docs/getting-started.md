@@ -101,7 +101,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.13
+8. Delivery plan for v0.1.14
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -291,7 +291,7 @@ See [docs/mcp-setup.md](./mcp-setup.md) for endpoint policy and evidence semanti
 ## 6. Secondary helper flow
 
 ```bash
-ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare Meta-Architect v0.1.14 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ```
 
 Expected effects:
@@ -476,7 +476,7 @@ If `$build` fails:
 
 ```bash
 ma setup
-ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare Meta-Architect v0.1.14 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'

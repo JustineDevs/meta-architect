@@ -1,13 +1,13 @@
-# v0.1.13 Requirements & Rules
+# v0.1.14 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.1.13` is production only when:
+Meta-Architect `v0.1.14` is production only when:
 1. the package/install surface works
 2. the in-session skill workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
-## What `v0.1.13` must have
+## What `v0.1.14` must have
 
 ### 1. Canonical package/runtime path
 
@@ -50,16 +50,16 @@ Canonical state files:
 
 ### 4. Required release evidence
 
-- `package.json` version `0.1.13`
-- git tag `v0.1.13`
+- `package.json` version `0.1.14`
+- git tag `v0.1.14`
 - `RELEASE.md`
 - `CHANGELOG.md`
-- `docs/qa/release-readiness-0.1.13.md`
-- `docs/qa/release-issue-gates-0.1.13.json`
+- `docs/qa/release-readiness-0.1.14.md`
+- `docs/qa/release-issue-gates-0.1.14.json`
 - green `npm run release:check`
-- GitHub release asset `meta-architect_0.1.13_all.deb`
-- GitHub release asset `meta-architect-0.1.13-1-any.pkg.tar.xz`
-- GitHub release asset `meta-architect-0.1.13-1.noarch.rpm`
+- GitHub release asset `meta-architect_0.1.14_all.deb`
+- GitHub release asset `meta-architect-0.1.14-1-any.pkg.tar.xz`
+- GitHub release asset `meta-architect-0.1.14-1.noarch.rpm`
 - green `npm run linux:packages:build`
 - green `npm run linux:packages:smoke`
 - green `npm run release:assets`
@@ -101,11 +101,11 @@ Canonical state files:
 
 ### 6.2 Issue proof gates
 
-Every open next-release issue must be represented in `docs/qa/release-issue-gates-0.1.13.json`.
+Every open next-release issue must be represented in `docs/qa/release-issue-gates-0.1.14.json`.
 
 Production pass rule:
 - issue status must be `passed`
-- issue milestone must match `v0.1.13`
+- issue milestone must match `v0.1.14`
 - implementation evidence must be present
 - verification evidence must be present
 - production evidence must be present

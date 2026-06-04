@@ -196,7 +196,7 @@ Windows note: use WSL or Git-Bash for the one-line POSIX installer. In PowerShel
   </tr>
   <tr>
     <td><strong>Release line</strong></td>
-    <td><code>v0.1.13</code></td>
+    <td><code>v0.1.14</code></td>
   </tr>
   <tr>
     <td><strong>License</strong></td>
@@ -425,7 +425,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.13
+8. Delivery plan for v0.1.14
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -551,7 +551,7 @@ Canonical `$sage` order:
 If you need scripted repo-local validation rather than the interactive runtime workflow:
 
 ```bash
-ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare Meta-Architect v0.1.14 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'
@@ -872,7 +872,7 @@ Meta-Architect is intentionally fail-closed.
 | [Prospect Checklist](./docs/demo/PROSPECT_CHECKLIST.md) | pre-call setup, no-test-branding, and leave-behind checklist |
 | [Coverage Matrix](./COVERAGE.md) | current verified capability and package proof map |
 | [Release Spec](./docs/release-spec.md) | release and gate policy |
-| [Release Readiness](./docs/qa/release-readiness-0.1.13.md) | QA evidence for the `v0.1.13` line |
+| [Release Readiness](./docs/qa/release-readiness-0.1.14.md) | QA evidence for the `v0.1.14` line |
 
 </details>
 

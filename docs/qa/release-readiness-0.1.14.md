@@ -1,26 +1,26 @@
-# Release Readiness 0.1.13
+# Release Readiness 0.1.14
 
 ## Production bar
 
-`v0.1.13` is treated as production only when:
+`v0.1.14` is treated as production only when:
 - the package installs cleanly from the canonical public install command
 - the Codex-hosted runtime path works end to end
 - the helper flow remains valid for scripted verification
 - the singular `$maestro` umbrella and helper-skill contract stay coherent
-- release docs, package metadata, and workflows all agree on `0.1.13`
+- release docs, package metadata, and workflows all agree on `0.1.14`
 
 Target release state:
-- npm package: `@jstn-sdk/ma@0.1.13`
+- npm package: `@jstn-sdk/ma@0.1.14`
 - npm registry state: pending publish
-- publishability note: `0.1.12` is already published, so `0.1.13` is the next publishable package line
-- git tag: `v0.1.13`
-- GitHub release: pending publish for `v0.1.13`
+- publishability note: `0.1.13` is already published, so `0.1.14` is the next publishable package line
+- git tag: `v0.1.14`
+- GitHub release: pending publish for `v0.1.14`
 
 ## Production checklist
 
 - skills-first product identity: PASS
 - package/plugin identity aligned to `@jstn-sdk/ma`: PASS
-- version/tag alignment `0.1.13` / `v0.1.13`: PASS
+- version/tag alignment `0.1.14` / `v0.1.14`: PASS
 - install/uninstall docs aligned: PASS
 - onboarding is concise and sequential: PASS
 - helper command documented as secondary: PASS
@@ -36,7 +36,7 @@ Target release state:
 - workflow/release/provenance docs aligned: PASS
 - no stale package names remain in tracked repo surfaces: PASS
 - no conflicting CLI-first product story remains in tracked product docs: PASS
-- issue proof gates for `v0.1.13`: PASS; `release-issue-gates-0.1.13.json` marks issues `#13-#29` passed with implementation, verification, and production evidence, so release verification can enforce the gate artifact instead of blocking on pending issue states
+- issue proof gates for `v0.1.14`: PASS; `release-issue-gates-0.1.14.json` marks issues `#13-#29` passed with implementation, verification, and production evidence, so release verification can enforce the gate artifact instead of blocking on pending issue states
 
 ## Automated checks run
 
@@ -71,10 +71,10 @@ That should prove:
 Issue gate artifact:
 
 ```text
-docs/qa/release-issue-gates-0.1.13.json
+docs/qa/release-issue-gates-0.1.14.json
 ```
 
-Every open issue assigned to `v0.1.13` must remain in this file until it is production-passed. A passed issue requires:
+Every open issue assigned to `v0.1.14` must remain in this file until it is production-passed. A passed issue requires:
 - implementation evidence
 - verification evidence
 - production evidence
@@ -93,7 +93,7 @@ Helper-path validation:
 
 ```bash
 ma setup
-ma idea "Harden Meta-Architect v0.1.13 semantic core with Obsidian vault context, Ralph execution proof, context economy, and package-gated release evidence"
+ma idea "Harden Meta-Architect v0.1.14 semantic core with Obsidian vault context, Ralph execution proof, context economy, and package-gated release evidence"
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'

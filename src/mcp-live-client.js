@@ -93,7 +93,7 @@ export class McpSseClient {
       capabilities: {},
       clientInfo: {
         name: "meta-architect",
-        version: "0.1.13-dev",
+        version: "0.1.14-dev",
       },
     });
 
