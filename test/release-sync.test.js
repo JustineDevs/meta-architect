@@ -24,19 +24,10 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
     `release-readiness-${pkgBefore.version}.md`,
   );
   const nextQaPath = path.join(tempRoot, "docs", "qa", `release-readiness-${nextVersion}.md`);
-  const staleReadme = (await fs.readFile(readmePath, "utf8"))
-    .replace(
-      /> Meta-Architect `v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?` is a production-grade skills line\./,
-      "> Meta-Architect `v0.1.12` is a production-grade skills line.",
-    )
-    .replace(
-      /> From `v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces\./,
-      "> From `v0.1.12` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.",
-    )
-    .replace(
-      /<td><strong>Release line<\/strong><\/td>\s*\n\s*<td><code>v[0-9]+\.[0-9]+\.[0-9]+(?:-[^<]+)?<\/code><\/td>/,
-      "<td><strong>Release line</strong></td>\n    <td><code>v0.1.12</code></td>",
-    );
+  const staleReadme = (await fs.readFile(readmePath, "utf8")).replace(
+    /<td><strong>Release line<\/strong><\/td>\s*\n\s*<td><code>v[0-9]+\.[0-9]+\.[0-9]+(?:-[^<]+)?<\/code><\/td>/,
+    "<td><strong>Release line</strong></td>\n    <td><code>v0.1.12</code></td>",
+  );
   await fs.writeFile(readmePath, staleReadme);
 
   const result = spawnPortable(
@@ -67,11 +58,13 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
   assert.match(releaseText, new RegExp(`v${nextVersion}`));
   assert.match(
     readmeText,
-    new RegExp(`Meta-Architect \`v${nextVersion}\` is a production-grade skills line\\.`),
+    /Meta-Architect is a workflow layer for teams that want architecture, evidence, review, and release discipline before build execution\./,
   );
-  assert.match(readmeText, new RegExp(`From \`v${nextVersion}\` onward`));
+  assert.match(readmeText, /Meta-Architect does not replace your coding runtime\./);
+  assert.match(readmeText, /docs\/assets\/DEMO_VIDEO\.gif/);
+  assert.match(readmeText, /All 33 plugins & features/);
   assert.match(readmeText, new RegExp(`<td><code>v${nextVersion}</code></td>`));
-  assert.doesNotMatch(readmeText, /Meta-Architect `v0\.1\.12`|From `v0\.1\.12` onward/);
+  assert.doesNotMatch(readmeText, /<td><code>v0\.1\.12<\/code><\/td>/);
   assert.match(
     pluginManifest,
     /"keywords": \["codex", "skills", "architecture", "workflow", "review"\]/,

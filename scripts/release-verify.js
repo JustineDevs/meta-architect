@@ -131,41 +131,39 @@ function verifyCoverageDoc({ version, gitTag }) {
   assert(!content.includes("v0.1.0 release bar"), "COVERAGE.md: stale release bar");
 }
 
-function verifyReadmeReleaseBanner({ gitTag }) {
+function verifyReadmeReleaseSurface({ gitTag }) {
   const content = readText("README.md");
+  assert(content.includes("> [!NOTE]"), "README.md: missing product-positioning note admonition");
   assert(
-    content.includes("> [!IMPORTANT]"),
-    "README.md: missing release-line important admonition",
+    content.includes(
+      "> Meta-Architect is a workflow layer for teams that want architecture, evidence, review, and release discipline before build execution.",
+    ),
+    "README.md: missing workflow-layer positioning note",
   );
   assert(
-    content.includes(`> Meta-Architect \`${gitTag}\` is a production-grade skills line.`),
-    "README.md: stale production-grade skills line version",
+    content.includes("> Meta-Architect does not replace your coding runtime."),
+    "README.md: missing runtime-wrapper boundary note",
   );
   assert(
     content.includes(
-      `> From \`${gitTag}\` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.`,
+      "> It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.",
     ),
-    "README.md: stale release expectation version",
+    "README.md: missing runtime-wrapper behavior note",
+  );
+  assert(
+    content.includes(
+      '<img src="./docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">',
+    ),
+    "README.md: missing requested 800px demo GIF",
+  );
+  assert(
+    content.includes("<summary><strong>🔌 All 33 plugins & features</strong></summary>"),
+    "README.md: missing all 33 plugins/features toggle",
   );
   assert(
     content.includes(`<td><code>${gitTag}</code></td>`),
     "README.md: stale release line table version",
   );
-
-  const bannerVersions = [
-    ...content.matchAll(
-      /(?:Meta-Architect `(v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?)` is a production-grade skills line|From `(v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?)` onward)/g,
-    ),
-  ]
-    .map((match) => match[1] ?? match[2])
-    .filter(Boolean);
-  assert(bannerVersions.length >= 2, "README.md: release banner versions not found");
-  for (const bannerVersion of bannerVersions) {
-    assert(
-      bannerVersion === gitTag,
-      `README.md: release banner version drift: expected ${gitTag}, got ${bannerVersion}`,
-    );
-  }
 }
 
 function verifyRealDemoKit() {
@@ -284,7 +282,7 @@ function main() {
   verifyNpmIgnore();
   verifyDemoDoc({ version, gitTag });
   verifyCoverageDoc({ version, gitTag });
-  verifyReadmeReleaseBanner({ gitTag });
+  verifyReadmeReleaseSurface({ gitTag });
   verifyRealDemoKit();
   verifyCanonicalSemanticSurfaces({ version, gitTag });
 
