@@ -184,19 +184,11 @@ function updateCurrentSurfaceFile(file, oldVersion, nextVersion) {
   writeText(file, content);
 }
 
-function syncReadmeReleaseBanner(nextVersion) {
+function syncReadmeReleaseSurface(nextVersion) {
   const readmePath = "README.md";
   const nextTag = `v${nextVersion}`;
   let content = readText(readmePath);
 
-  content = content.replace(
-    /> Meta-Architect `v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?` is a production-grade skills line\./,
-    `> Meta-Architect \`${nextTag}\` is a production-grade skills line.`,
-  );
-  content = content.replace(
-    /> From `v[0-9]+\.[0-9]+\.[0-9]+(?:-[^`]+)?` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces\./,
-    `> From \`${nextTag}\` onward, the package is expected to ship with stable skill contracts, deterministic packaging, explicit release gates, and honest install and publish surfaces.`,
-  );
   content = content.replace(
     /<td><strong>Release line<\/strong><\/td>\s*\n\s*<td><code>v[0-9]+\.[0-9]+\.[0-9]+(?:-[^<]+)?<\/code><\/td>/,
     `<td><strong>Release line</strong></td>\n    <td><code>${nextTag}</code></td>`,
@@ -369,7 +361,7 @@ function main() {
   syncPluginVersions(nextVersion);
   prependChangelog(nextVersion);
   syncCurrentReleaseFiles(currentVersion, nextVersion);
-  syncReadmeReleaseBanner(nextVersion);
+  syncReadmeReleaseSurface(nextVersion);
   syncSupportingCode(currentVersion, nextVersion);
   rewriteReleaseState(nextVersion, currentVersion);
 
