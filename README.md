@@ -17,9 +17,22 @@
   </p>
 </div>
 
-> [!NOTE]
-> Meta-Architect is a workflow layer for teams that want architecture, evidence, review, and release discipline before build execution.
-> Meta-Architect does not replace your coding runtime.
+## Overview  
+  
+**Meta-Architect (MA)** is a workflow layer for Codex-style CLIs and MCP-enabled coding agents — the layer that adds architecture, evidence, and release discipline *before* code gets built.  
+  
+**What Meta-Architect does:**  
+- Adds an architecture-first lane before implementation begins  
+- Backs technical decisions with evidence from GitMCP-connected OSS sources  
+- Enforces explicit logic, security, and DX/UX review gates before release  
+- Runs `$maestro`, a single bounded autonomous manager, alongside non-gating helper skills for alignment, diagnosis, test-first work, and cleanup  
+- Ships as installable skills with a reproducible, versioned package surface  
+  
+**What Meta-Architect does *not* do:**  
+Meta-Architect does not replace your coding runtime, your LLM, or your existing CLI agent. It wraps around whatever you already use — Codex or any MCP-enabled runtime — with architecture, evidence, gate enforcement, and release-sensitive workflow control layered on top.  
+  
+> [!NOTE]  
+> Meta-Architect does not replace your coding runtime.  
 > It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
 
 ## Navigate
