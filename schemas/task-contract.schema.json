@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-architect.dev/schemas/task-contract.schema.json",
+  "title": "Meta-Architect Task Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "record_type",
+    "goal",
+    "context_used",
+    "assumptions",
+    "constraints",
+    "risk",
+    "verification",
+    "stop_condition"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "0.1.0" },
+    "record_type": { "const": "task_contract" },
+    "goal": { "type": "string", "minLength": 1 },
+    "context_used": { "type": "array", "items": { "type": "string" } },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "constraints": { "type": "array", "items": { "type": "string" } },
+    "risk": { "enum": ["low", "medium", "high"] },
+    "verification": { "type": "array", "items": { "type": "string" } },
+    "stop_condition": { "type": "string", "minLength": 1 },
+    "persist": { "type": "boolean" },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

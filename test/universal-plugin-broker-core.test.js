@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { promisify } from "node:util";
 import {
   createDefaultUniversalPluginBrokerCore,
   createUniversalPluginManifest,
@@ -10,9 +11,14 @@ import {
   installUniversalPlugin,
   renderPluginContextSkillMd,
   renderUniversalMcpServerTemplate,
+  renderWrapperScript,
+  rollbackUniversalPluginInstall,
   validateUniversalPluginBrokerCore,
   validateUniversalPluginManifest,
 } from "../src/runtime/universal-plugin-broker-core.js";
+import { createTestNamespace } from "../src/test-fixtures.js";
+
+const execFileAsync = promisify(execFile);
 
 async function writeJson(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -20,7 +26,7 @@ async function writeJson(filePath, value) {
 }
 
 async function createPluginFixture(t) {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "ma-plugin-fixture-"));
+  const root = createTestNamespace("ma-plugin-fixture");
   t.after(async () => {
     await fs.rm(root, { recursive: true, force: true });
   });
@@ -98,9 +104,61 @@ test("Universal Plugin Broker validates manifest and renders MCP plus MA skill c
   );
 });
 
+test("generated wrapper preserves hostile argv as data", async (t) => {
+  const root = createTestNamespace("ma-plugin-wrapper-quoting");
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const entrypoint = path.join(root, "entry;$(touch injected) 'quoted'.mjs");
+  const output = path.join(root, "argv.json");
+  await fs.writeFile(
+    entrypoint,
+    "import { writeFileSync } from 'node:fs'; writeFileSync(process.env.OUTPUT, JSON.stringify(process.argv.slice(2)));\n",
+  );
+  const wrapper = path.join(root, "wrapper.sh");
+  const manifest = createUniversalPluginManifest({
+    name: "quoting",
+    entrypoint: "entry.mjs",
+    mcp: {
+      command: "node",
+      args: [entrypoint, "space;$(touch injected)", "quote'\"`$HOME", "line\nvalue"],
+    },
+  });
+  await fs.writeFile(wrapper, renderWrapperScript({ manifest, pluginDir: root }), { mode: 0o755 });
+  await execFileAsync(wrapper, ["caller;$(touch caller-injected)"], {
+    env: { ...process.env, OUTPUT: output },
+  });
+  assert.deepEqual(JSON.parse(await fs.readFile(output, "utf8")), [
+    "space;$(touch injected)",
+    "quote'\"`$HOME",
+    "line\nvalue",
+    "caller;$(touch caller-injected)",
+  ]);
+  assert.equal(
+    await fs.access(path.join(root, "injected")).then(
+      () => true,
+      () => false,
+    ),
+    false,
+  );
+  assert.equal(
+    await fs.access(path.join(root, "caller-injected")).then(
+      () => true,
+      () => false,
+    ),
+    false,
+  );
+  assert.throws(
+    () =>
+      renderWrapperScript({
+        manifest: { ...manifest, mcp: { command: "node", args: ["bad\0arg"] } },
+        pluginDir: root,
+      }),
+    /NUL bytes/,
+  );
+});
+
 test("Universal Plugin Broker installs local plugin, injects vendor MCP configs, and exports MA context skill", async (t) => {
   const sourceDir = await createPluginFixture(t);
-  const home = await fs.mkdtemp(path.join(os.tmpdir(), "ma-plugin-home-"));
+  const home = createTestNamespace("ma-plugin-home");
   t.after(async () => {
     await fs.rm(home, { recursive: true, force: true });
   });
@@ -155,7 +213,7 @@ test("Universal Plugin Broker installs local plugin, injects vendor MCP configs,
   assert.equal(receipt.vendorInjection.configured_hosts.length, 4);
   assert.equal(repeated.vendorInjection.configured_hosts.length, 4);
   assert.equal(Boolean(wrapperStat.mode & 0o111), true);
-  assert.match(await fs.readFile(receipt.wrapperPath, "utf8"), /exec node/);
+  assert.match(await fs.readFile(receipt.wrapperPath, "utf8"), /exec 'node'/);
   assert.equal(claudeConfig.mcpServers["ma-plugin-web3-scanner"].command, receipt.wrapperPath);
   assert.equal(
     cursorStorage["mcp.mcpServers"]["ma-plugin-web3-scanner"].command,
@@ -170,7 +228,7 @@ test("Universal Plugin Broker installs local plugin, injects vendor MCP configs,
 
 test("Universal Plugin Broker skips absent vendors instead of creating unrelated host config", async (t) => {
   const sourceDir = await createPluginFixture(t);
-  const home = await fs.mkdtemp(path.join(os.tmpdir(), "ma-plugin-empty-home-"));
+  const home = createTestNamespace("ma-plugin-empty-home");
   t.after(async () => {
     await fs.rm(home, { recursive: true, force: true });
   });
@@ -190,4 +248,65 @@ test("Universal Plugin Broker skips absent vendors instead of creating unrelated
     await fs.readdir(path.join(home, ".agents", "skills")).then((items) => items.length),
     1,
   );
+});
+
+test("Universal Plugin Broker refuses symlinked vendor config paths before mutation", async (t) => {
+  const sourceDir = await createPluginFixture(t);
+  const home = createTestNamespace("ma-plugin-symlink-home");
+  const outsideConfig = path.join(home, "outside-config.toml");
+  t.after(async () => fs.rm(home, { recursive: true, force: true }));
+  await fs.mkdir(path.join(home, ".codex"), { recursive: true });
+  await fs.writeFile(outsideConfig, "# original\n");
+  await fs.symlink(outsideConfig, path.join(home, ".codex", "config.toml"));
+
+  await assert.rejects(
+    installUniversalPlugin({ sourceDir, home, targets: ["codex"] }),
+    /symlinked vendor path/,
+  );
+  assert.equal(await fs.readFile(outsideConfig, "utf8"), "# original\n");
+  assert.equal(
+    await fs.access(path.join(home, ".ma", "plugins", "ma-web3-scanner")).then(
+      () => true,
+      () => false,
+    ),
+    false,
+  );
+});
+
+test("Universal Plugin Broker previews and rolls back vendor MCP mutations", async (t) => {
+  const sourceDir = await createPluginFixture(t);
+  const home = createTestNamespace("ma-plugin-rollback-home");
+  t.after(async () => {
+    await fs.rm(home, { recursive: true, force: true });
+  });
+  await fs.mkdir(path.join(home, ".codex"), { recursive: true });
+  await fs.writeFile(path.join(home, ".codex", "config.toml"), "# original\n");
+
+  const preview = await installUniversalPlugin({
+    sourceDir,
+    home,
+    targets: ["codex"],
+    dryRun: true,
+  });
+  assert.equal(preview.record_type, "universal_plugin_broker_dry_run");
+  assert.deepEqual(preview.files, [path.join(home, ".codex", "config.toml")]);
+  assert.equal(await fs.readFile(path.join(home, ".codex", "config.toml"), "utf8"), "# original\n");
+  assert.equal(
+    await fs.access(path.join(home, ".ma", "plugins")).then(
+      () => true,
+      () => false,
+    ),
+    false,
+  );
+
+  const receipt = await installUniversalPlugin({ sourceDir, home, targets: ["codex"] });
+  assert.equal(await fs.stat(path.join(receipt.backupRoot, "receipt.json")).then(() => true), true);
+  assert.equal(receipt.vendorInjection.receipts[0].beforeHash !== null, true);
+  assert.equal(
+    receipt.vendorInjection.receipts[0].afterHash !==
+      receipt.vendorInjection.receipts[0].beforeHash,
+    true,
+  );
+  await rollbackUniversalPluginInstall(receipt);
+  assert.equal(await fs.readFile(path.join(home, ".codex", "config.toml"), "utf8"), "# original\n");
 });

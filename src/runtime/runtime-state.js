@@ -3,7 +3,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { readJson, writeJson } from "../fs-utils.js";
 import { getRepoRoot, getRuntimeReadPath } from "../paths.js";
-import { summarizeReleaseIssueGateStatus } from "../release-issue-gates.js";
+import {
+  resolveReleaseIssueGates,
+  summarizeReleaseIssueGateStatus,
+} from "../release-issue-gates.js";
 import { createDefaultReleaseState, validateReleaseState } from "../release-state.js";
 import {
   createDefaultActiveAutonomyCore,
@@ -20,11 +23,21 @@ import {
   validateCodeGraphRehearse,
 } from "./code-graph-rehearse.js";
 import {
+  createDefaultCodeburnUsage,
+  getCodeburnLogPath,
+  seedCodeburnArtifacts,
+} from "./codeburn-core.js";
+import {
   createDefaultContextEconomyCore,
   getContextEconomyCorePath,
   seedContextEconomyCoreArtifacts,
   validateContextEconomyCore,
 } from "./context-economy-core.js";
+import {
+  createDefaultContinuityGraph,
+  getContinuityGraphPath,
+  validateContinuityGraph,
+} from "./continuity-graph.js";
 import {
   getContinuityIndexPath,
   getContinuityNotesPath,
@@ -43,10 +56,17 @@ import {
   validateEnvironmentAwarenessCore,
 } from "./environment-awareness-core.js";
 import {
+  createDefaultGraphifyIndex,
+  getGraphifyIndexPath,
+  seedGraphifyArtifacts,
+  validateGraphifyIndex,
+} from "./graphify-core.js";
+import {
   getGuidanceIncludeGraphPath,
   getMergedGuidancePath,
   seedGuidanceStackArtifacts,
 } from "./guidance-stack.js";
+import { seedHeadroomArtifacts } from "./headroom-core.js";
 import {
   createDefaultHelperOrchestrationCore,
   getHelperOrchestrationCorePath,
@@ -137,6 +157,7 @@ import { getWorkspacesIndexPath, seedWorkspaceArtifacts } from "./workspaces.js"
 
 const runtimeSubsystemSeeders = [
   seedGuidanceStackArtifacts,
+  seedGraphifyArtifacts,
   seedContinuityArtifacts,
   seedSignalHookArtifacts,
   seedOrchestratorArtifacts,
@@ -147,6 +168,7 @@ const runtimeSubsystemSeeders = [
   seedAlignmentSentinelArtifacts,
   seedSemanticRecordingCoreArtifacts,
   seedHelperOrchestrationCoreArtifacts,
+  seedHeadroomArtifacts,
   seedLearningLoopCoreArtifacts,
   seedWorkspaceIntelligenceArtifacts,
   seedPromptStrategyCoreArtifacts,
@@ -158,6 +180,7 @@ const runtimeSubsystemSeeders = [
   seedObsidianBridgeArtifacts,
   seedWorkspaceVirtualizerArtifacts,
   seedCodeGraphRehearseArtifacts,
+  seedCodeburnArtifacts,
   seedSkillsRegistryExportArtifacts,
 ];
 const defaultMergedGuidance = {
@@ -256,11 +279,13 @@ const defaultObsidianVaultIndex = createDefaultObsidianVaultIndex();
 const defaultObsidianVaultOperations = createDefaultObsidianVaultOperations();
 const defaultWorkspaceVirtualizer = createDefaultWorkspaceVirtualizer();
 const defaultCodeGraphRehearse = createDefaultCodeGraphRehearse();
+const defaultCodeburnUsage = createDefaultCodeburnUsage();
 const defaultSkillsRegistryExport = createDefaultSkillsRegistryExport();
 const defaultCapabilityComposition = createDefaultCapabilityComposition();
 const defaultWorkspaceContextPack = createDefaultWorkspaceContextPack();
 const defaultWorkspaceEffectiveness = createDefaultWorkspaceEffectiveness();
 const defaultSemanticReceiptIndex = createDefaultSemanticReceiptIndex();
+const defaultContinuityGraph = createDefaultContinuityGraph();
 const terminalManagerStates = new Set(["completed", "blocked", "failed", "cancelled"]);
 const repairableRuntimeArtifacts = new Set([
   "guidance.merged",
@@ -284,6 +309,7 @@ const repairableRuntimeArtifacts = new Set([
   "context.workspaceEffectiveness",
   "evidence.semanticReceipts",
   "memory.index",
+  "memory.graph",
   "hooks.config",
   "tasks.registry",
   "workspaces.index",
@@ -418,11 +444,17 @@ export async function loadRuntimeSnapshot() {
   await fs.access(getTaskLockRoot()).catch(() => {
     missingArtifacts.push("tasks.locks");
   });
+  const releaseIssueGatesResolution = resolveReleaseIssueGates(getRepoRoot());
+  if (!releaseIssueGatesResolution) {
+    missingArtifacts.push("release.issueGates");
+  }
 
   const [
     mergedGuidance,
     guidanceGraph,
+    graphifyIndex,
     continuityIndex,
+    continuityGraph,
     continuityNotes,
     hookConfig,
     taskRegistry,
@@ -448,6 +480,7 @@ export async function loadRuntimeSnapshot() {
     obsidianVaultOperations,
     workspaceVirtualizer,
     codeGraphRehearse,
+    codeburnUsage,
     skillsRegistryExport,
     capabilityComposition,
     workspaceContextPack,
@@ -460,7 +493,9 @@ export async function loadRuntimeSnapshot() {
       defaultGuidanceGraph,
       "guidance.includeGraph",
     ),
+    readJsonWithStatus(getGraphifyIndexPath(), createDefaultGraphifyIndex(), "context.graphify"),
     readJsonWithStatus(getContinuityIndexPath(), defaultContinuityIndex, "memory.index"),
+    readJsonWithStatus(getContinuityGraphPath(), defaultContinuityGraph, "memory.graph"),
     readTextWithStatus(getContinuityNotesPath(), "", "memory.notes"),
     readJsonWithStatus(getRuntimeHooksConfigPath(), defaultHookConfig, "hooks.config"),
     readJsonWithStatus(getTaskRegistryPath(), defaultTaskRegistry, "tasks.registry"),
@@ -488,7 +523,8 @@ export async function loadRuntimeSnapshot() {
     ),
     readJsonWithStatus(getRuntimeReadPath("evidence", "cves.json"), defaultCves, "runtime.cves"),
     readJsonWithStatus(
-      path.join(getRepoRoot(), "docs", "qa", "release-issue-gates-0.1.13.json"),
+      releaseIssueGatesResolution?.path ??
+        path.join(getRepoRoot(), "docs", "qa", "release-issue-gates-missing.json"),
       defaultReleaseIssueGates,
       "release.issueGates",
     ),
@@ -560,6 +596,7 @@ export async function loadRuntimeSnapshot() {
       defaultCodeGraphRehearse,
       "context.codeGraphRehearse",
     ),
+    readJsonWithStatus(getCodeburnLogPath(), defaultCodeburnUsage, "context.codeburnUsage"),
     readJsonWithStatus(
       getSkillsRegistryExportPath(),
       defaultSkillsRegistryExport,
@@ -608,6 +645,20 @@ export async function loadRuntimeSnapshot() {
       Array.isArray(value.edges),
     invalidArtifacts,
   );
+  const validatedGraphifyIndex = coerceValidated(
+    graphifyIndex,
+    createDefaultGraphifyIndex(),
+    "context.graphify",
+    (value) => {
+      try {
+        validateGraphifyIndex(value);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    invalidArtifacts,
+  );
   const validatedContinuityIndex = coerceValidated(
     continuityIndex,
     defaultContinuityIndex,
@@ -617,6 +668,20 @@ export async function loadRuntimeSnapshot() {
       typeof value === "object" &&
       typeof value.sessionCount === "number" &&
       "lastUpdatedAt" in value,
+    invalidArtifacts,
+  );
+  const validatedContinuityGraph = coerceValidated(
+    continuityGraph,
+    defaultContinuityGraph,
+    "memory.graph",
+    (value) => {
+      try {
+        validateContinuityGraph(value);
+        return true;
+      } catch {
+        return false;
+      }
+    },
     invalidArtifacts,
   );
   const validatedHookConfig = coerceValidated(
@@ -895,6 +960,19 @@ export async function loadRuntimeSnapshot() {
     },
     invalidArtifacts,
   );
+  const validatedCodeburnUsage = coerceValidated(
+    codeburnUsage,
+    defaultCodeburnUsage,
+    "context.codeburnUsage",
+    (value) =>
+      value &&
+      typeof value === "object" &&
+      value.schemaVersion === defaultCodeburnUsage.schemaVersion &&
+      Array.isArray(value.entries) &&
+      Number.isFinite(value.totalTokens) &&
+      Number.isFinite(value.totalCost),
+    invalidArtifacts,
+  );
   const validatedSkillsRegistryExport = coerceValidated(
     skillsRegistryExport,
     defaultSkillsRegistryExport,
@@ -969,7 +1047,9 @@ export async function loadRuntimeSnapshot() {
   return {
     mergedGuidance: validatedMergedGuidance,
     guidanceGraph: validatedGuidanceGraph,
+    graphifyIndex: validatedGraphifyIndex,
     continuityIndex: validatedContinuityIndex,
+    continuityGraph: validatedContinuityGraph,
     continuityNotes,
     hookConfig: validatedHookConfig,
     taskRegistry: validatedTaskRegistry,
@@ -980,6 +1060,7 @@ export async function loadRuntimeSnapshot() {
     audits: validatedAudits,
     cves: validatedCves,
     releaseIssueGateStatus,
+    releaseIssueGatesSource: releaseIssueGatesResolution,
     managerRuns: validatedManagerRuns,
     maestroState: validatedMaestroState,
     activeAutonomyCore: validatedActiveAutonomyCore,
@@ -996,6 +1077,7 @@ export async function loadRuntimeSnapshot() {
     obsidianVaultOperations: validatedObsidianVaultOperations,
     workspaceVirtualizer: validatedWorkspaceVirtualizer,
     codeGraphRehearse: validatedCodeGraphRehearse,
+    codeburnUsage: validatedCodeburnUsage,
     skillsRegistryExport: validatedSkillsRegistryExport,
     capabilityComposition: validatedCapabilityComposition,
     workspaceContextPack: validatedWorkspaceContextPack,
@@ -1021,6 +1103,9 @@ export function createRuntimeSummary(snapshot) {
   return {
     guidanceSourceCount: snapshot.mergedGuidance.sources.length,
     guidanceIncludeRoots: snapshot.guidanceGraph.roots.length,
+    graphNodeCount: snapshot.graphifyIndex.nodes.length,
+    graphEdgeCount: snapshot.graphifyIndex.edges.length,
+    graphLastRebuiltAt: snapshot.graphifyIndex.lastRebuiltAt,
     continuitySessionCount: snapshot.continuityIndex.sessionCount,
     continuityHasNotes:
       trimmedNotes.length > 0 &&
@@ -1103,6 +1188,8 @@ export function createRuntimeSummary(snapshot) {
     codeGraphRehearseSourceMutationAllowed:
       snapshot.codeGraphRehearse.mutation_policy.may_mutate_source,
     codeGraphRehearseMaxSteps: snapshot.codeGraphRehearse.max_steps,
+    tokenUsage: snapshot.codeburnUsage.totalTokens,
+    estimatedCost: snapshot.codeburnUsage.totalCost,
     skillsRegistryCanonicalDir: snapshot.skillsRegistryExport.canonical_dir,
     skillsRegistryReleaseMutationAllowed:
       snapshot.skillsRegistryExport.authority_boundary.exported_payloads_may_mutate_release_state,
@@ -1198,6 +1285,9 @@ export async function repairRuntimeScratchpadArtifacts(artifactLabels = []) {
         break;
       case "memory.index":
         await writeJson(getContinuityIndexPath(), defaultContinuityIndex);
+        break;
+      case "memory.graph":
+        await writeJson(getContinuityGraphPath(), defaultContinuityGraph);
         break;
       case "hooks.config":
         await writeJson(getRuntimeHooksConfigPath(), defaultHookConfig);

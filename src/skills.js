@@ -1,10 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { appendDecision } from "./decision-log.js";
-import { readJson, writeFileIfMissing, writeJson } from "./fs-utils.js";
+import { readJson, writeFileIfMissing, writeJson, writeTextAtomically } from "./fs-utils.js";
 import { validateMcpServers } from "./mcp-config.js";
 import { createMcpLiveClient, hasConfiguredMcpRemoteBridge } from "./mcp-live-client.js";
 import { getRepoRoot, getRuntimeReadPath, getRuntimeWritePath, packageRoot } from "./paths.js";
+import { resolveReleaseIssueGates, resolveReleaseReadiness } from "./release-issue-gates.js";
 import {
   evaluateAlignmentDrift,
   saveAlignmentSentinelReport,
@@ -19,6 +20,8 @@ import {
   scanLockfilePackageExposure,
   validateMcpPolicyExposure,
 } from "./runtime/exposure-catalog.js";
+import { getMergedGuidancePath } from "./runtime/guidance-stack.js";
+import { createHandoffPacket, writeHandoffPacket } from "./runtime/handoff-packets.js";
 import { createHelperReceipt } from "./runtime/helper-orchestration-core.js";
 import { appendMaestroEvent } from "./runtime/maestro-events.js";
 import {
@@ -34,7 +37,10 @@ import {
   loadMaestroStateOrDefault,
   saveMaestroState,
 } from "./runtime/maestro-state.js";
+import { embedProjectContext } from "./runtime/obsidian-integration-core.js";
 import { submitTask } from "./runtime/orchestrator.js";
+import { seedPreferences } from "./runtime/preferences.js";
+import { refreshProjectIndex } from "./runtime/project-context.js";
 import {
   createQuorumReviewReceipt,
   evaluateQuorumVotes,
@@ -48,6 +54,8 @@ import {
   loadRuntimeSnapshot,
   repairRuntimeScratchpadArtifacts,
 } from "./runtime/runtime-state.js";
+import { migrateSchemas } from "./runtime/schema-migrations.js";
+import { createTaskContract, writeTaskContract } from "./runtime/task-contracts.js";
 import {
   seedRuntimeArtifacts,
   writeArchitectureArtifacts,
@@ -59,6 +67,14 @@ import {
   writeProjectContext,
   writeSecuritySpec,
 } from "./runtime-artifacts.js";
+import {
+  assertNoSymlinkComponents,
+  assertSetupReceiptHealthy,
+  compactRuntimeState,
+  listManagedArtifacts,
+  withSetupLock,
+  writeSetupReceipt,
+} from "./setup-lifecycle.js";
 import { syncStatusUpdates } from "./state-sync.js";
 
 const skillNames = [
@@ -1001,10 +1017,19 @@ export async function runArch() {
     throw new Error("Cannot run $arch before ma idea captures a project brief");
   }
 
+  const guidance = await readJson(getMergedGuidancePath()).catch(() => ({
+    sources: [],
+    content: "",
+  }));
+  const advisoryGuidance = guidance.sources
+    .map((source) => `${source.label ?? source.id ?? "Guidance"}: ${source.content ?? ""}`)
+    .filter(Boolean)
+    .join(" ");
+
   const blueprint = {
     decision: "Approve the first bounded architecture direction.",
     status: "APPROVED",
-    summary: `Blueprint derived from idea: ${idea}. Runtime shell currently exposes ${runtimeSummary.workerCount} workers, ${runtimeSummary.workspaceCount} workspaces, and ${runtimeSummary.guidanceSourceCount} guidance sources.`,
+    summary: `Blueprint derived from idea: ${idea}. Runtime shell currently exposes ${runtimeSummary.workerCount} workers, ${runtimeSummary.workspaceCount} workspaces, and ${runtimeSummary.guidanceSourceCount} guidance sources. Advisory guidance: ${advisoryGuidance}`,
     suggestedStack: ["Node.js", "MCP", "GitMCP", "Git worktree", "File-backed runtime state"],
     workloadAssumptions: [
       "single-repo operator workflow",
@@ -1055,6 +1080,7 @@ export async function runSage() {
   const runtimeSummary = await readRuntimeSummary();
   assertControlPlaneReady(runtimeSummary);
   await seedRedactionVault();
+  await seedPreferences();
   const disableLiveProbe = process.env.MA_DISABLE_LIVE_MCP === "1";
   const sourceEntries = config.servers.map((server) => ({
     repo: server.repo,
@@ -1528,8 +1554,52 @@ export async function runVibe() {
   });
 }
 
-export async function runMaestro({ autoHeal = false, parallel = false } = {}) {
+export async function runMaestro({
+  autoHeal = false,
+  parallel = false,
+  taskContract = {},
+  handoff = {},
+} = {}) {
   await assertLeaderAuthority();
+  const intakeContract = createTaskContract({
+    goal: taskContract.goal ?? "Execute the next eligible Meta-Architect workflow step",
+    contextUsed: taskContract.contextUsed ?? [
+      ".ma/context/project-index.json",
+      ".ma/context/agent-brief.md",
+    ],
+    assumptions: taskContract.assumptions ?? [
+      "Source files and fresh verification output outrank generated context",
+    ],
+    constraints: taskContract.constraints ?? [
+      "Do not mutate release state outside the owning lane",
+    ],
+    risk: taskContract.risk ?? "medium",
+    verification: taskContract.verification ?? ["ma doctor", "focused tests"],
+    stopCondition:
+      taskContract.stopCondition ??
+      "Stop when the selected lane is complete, blocked, or requires review",
+    persist: taskContract.persist !== false,
+  });
+  if (intakeContract.persist) {
+    await writeTaskContract(`maestro-${Date.now()}`, intakeContract);
+  }
+  if (handoff.persist !== false) {
+    await writeHandoffPacket(
+      `maestro-${Date.now()}`,
+      createHandoffPacket({
+        goal: intakeContract.goal,
+        currentState: "Manager intake accepted",
+        contextUsed: intakeContract.context_used,
+        decisions: handoff.decisions ?? [],
+        blockers: handoff.blockers ?? [],
+        risks: handoff.risks ?? [],
+        changedFiles: handoff.changedFiles ?? [],
+        verification: intakeContract.verification,
+        nextAction: handoff.nextAction ?? "Continue the selected bounded workflow lane",
+        status: handoff.status ?? "active",
+      }),
+    );
+  }
   let runtimeSnapshot = await loadRuntimeSnapshot();
   let releaseState = runtimeSnapshot.release;
   let runtimeSummary = createRuntimeSummary(runtimeSnapshot);
@@ -1813,8 +1883,18 @@ export async function runMaestro({ autoHeal = false, parallel = false } = {}) {
   });
 }
 
-export async function runInit() {
-  const created = [];
+async function runInitUnlocked({
+  refresh = false,
+  obsidianVault = process.env.MA_OBSIDIAN_VAULT,
+} = {}) {
+  const repoRoot = getRepoRoot();
+  const migrations = await migrateSchemas(repoRoot);
+  const managedBefore = await listManagedArtifacts(repoRoot);
+  const report = {
+    directories: [],
+    files: [],
+    migrations,
+  };
   const targets = [
     ".codex/agents",
     ".codex/prompts",
@@ -1829,6 +1909,7 @@ export async function runInit() {
     ".ma/context",
     ".ma/specs",
     ".ma/plans",
+    "scripts",
     "mcp",
     "docs",
     "docs/qa",
@@ -1837,8 +1918,14 @@ export async function runInit() {
 
   for (const relative of targets) {
     const target = path.join(getRepoRoot(), relative);
+    const existed = await pathExists(target);
+    await assertNoSymlinkComponents(getRepoRoot(), target);
     await fs.mkdir(target, { recursive: true });
-    created.push(relative);
+    report.directories.push({
+      path: relative,
+      kind: "directory",
+      status: existed ? "existing" : "created",
+    });
   }
 
   const templateCopies = [
@@ -1886,6 +1973,14 @@ export async function runInit() {
       path.join(packageRoot, ".codex", "prompts", "onboarding.md"),
       path.join(getRepoRoot(), ".codex", "prompts", "onboarding.md"),
     ],
+    [
+      path.join(packageRoot, "scripts", "active-autonomy-hook.mjs"),
+      path.join(getRepoRoot(), "scripts", "active-autonomy-hook.mjs"),
+    ],
+    [
+      path.join(packageRoot, "scripts", "context-hydration-hook.mjs"),
+      path.join(getRepoRoot(), "scripts", "context-hydration-hook.mjs"),
+    ],
     [path.join(packageRoot, "docs", "README.md"), path.join(getRepoRoot(), "docs", "README.md")],
     [
       path.join(packageRoot, "docs", "getting-started.md"),
@@ -1901,12 +1996,16 @@ export async function runInit() {
       path.join(getRepoRoot(), "docs", "release-spec.md"),
     ],
     [
-      path.join(packageRoot, "docs", "qa", "release-readiness-0.1.13.md"),
-      path.join(getRepoRoot(), "docs", "qa", "release-readiness-0.1.13.md"),
+      resolveReleaseReadiness(packageRoot)?.path ??
+        path.join(packageRoot, "docs", "qa", "release-readiness-missing.md"),
+      resolveReleaseReadiness(getRepoRoot())?.path ??
+        path.join(getRepoRoot(), "docs", "qa", "release-readiness-missing.md"),
     ],
     [
-      path.join(packageRoot, "docs", "qa", "release-issue-gates-0.1.13.json"),
-      path.join(getRepoRoot(), "docs", "qa", "release-issue-gates-0.1.13.json"),
+      resolveReleaseIssueGates(packageRoot)?.path ??
+        path.join(packageRoot, "docs", "qa", "release-issue-gates-missing.json"),
+      resolveReleaseIssueGates(getRepoRoot())?.path ??
+        path.join(getRepoRoot(), "docs", "qa", "release-issue-gates-missing.json"),
     ],
   ];
 
@@ -1941,14 +2040,46 @@ export async function runInit() {
   }
 
   for (const [src, dest] of templateCopies) {
-    try {
-      await fs.access(dest);
-    } catch {
-      await fs.copyFile(src, dest);
-    }
+    report.files.push(await syncTemplateFile(src, dest, { refresh }));
   }
 
   await seedRuntimeArtifacts();
+  const projectIndex = await refreshProjectIndex(repoRoot);
+  report.context = {
+    path: path.relative(repoRoot, getRuntimeWritePath("context", "project-index.json")),
+    status: projectIndex.quality.confidence,
+    completeness: projectIndex.quality.completeness,
+    detected: {
+      languages: projectIndex.languages,
+      frameworks: projectIndex.frameworks,
+      packageManager: projectIndex.packageManager,
+      commands: projectIndex.commands,
+      entrypoints: projectIndex.entrypoints,
+      importantDocs: projectIndex.importantDocs,
+      vendorIntegrations: projectIndex.vendorIntegrations,
+    },
+    unknown: projectIndex.quality.gaps,
+  };
+
+  if (obsidianVault) {
+    const embedded = await embedProjectContext({
+      vaultPath: obsidianVault,
+      projectIndex,
+    });
+    report.integrations = report.integrations ?? [];
+    report.integrations.push({
+      kind: "obsidian",
+      status: embedded.noteStatus,
+      vaultPath: embedded.vaultPath,
+      notePath: embedded.notePath,
+      indexPath: path.relative(
+        repoRoot,
+        getRuntimeWritePath("context", "obsidian-vault-index.json"),
+      ),
+      records_as: "vault_context",
+      build_evidence: false,
+    });
+  }
 
   await writeFileIfMissing(
     getRuntimeWritePath("decisions.json"),
@@ -2073,5 +2204,122 @@ export async function runInit() {
     "# Onboarding\n\nMeta-Architect initializes the core scaffold, MCP config, and canonical .ma runtime files.\n",
   );
 
-  return created;
+  const reported = new Set([
+    ...report.directories.map((entry) => entry.path),
+    ...report.files.map((entry) => entry.path),
+  ]);
+  const managedAfter = await listManagedArtifacts(repoRoot);
+  for (const [relative, kind] of managedAfter) {
+    if (!managedBefore.has(relative) && !reported.has(relative)) {
+      report.files.push({ path: relative, kind, status: "created" });
+    }
+  }
+
+  report.onboarding = {
+    context: ".ma/context/project-index.json",
+    future_agents_read: [
+      ".ma/context/agent-brief.md",
+      ".ma/context/project-index.json",
+      "AGENTS.md",
+    ],
+    integrations: {
+      obsidian: report.integrations?.[0]?.status ?? "not configured",
+      mcp: "local read-only context resources",
+      hooks: ".codex/hooks.json",
+    },
+    freshness: report.context?.status ?? "unknown",
+    next: ["ma doctor", "ma context refresh", "ma setup --rollback"],
+  };
+
+  return report;
+}
+
+export async function runInit(options = {}) {
+  const repoRoot = getRepoRoot();
+  return withSetupLock(repoRoot, async () => {
+    await assertSetupReceiptHealthy(repoRoot);
+    const managedBefore = await listManagedArtifacts(repoRoot);
+    let report;
+    try {
+      report = await runInitUnlocked(options);
+    } catch (error) {
+      const managedAfter = await listManagedArtifacts(repoRoot);
+      const partialFiles = [...managedAfter]
+        .filter(([relative]) => !managedBefore.has(relative))
+        .map(([relative, kind]) => ({
+          path: relative,
+          kind,
+          status: "created",
+        }));
+      try {
+        await writeSetupReceipt(repoRoot, { files: partialFiles });
+      } catch (receiptError) {
+        error.message = `${error.message}; failed to persist partial setup receipt: ${receiptError.message}`;
+      }
+      throw error;
+    }
+    const receipt = await writeSetupReceipt(repoRoot, report);
+    await compactRuntimeState(repoRoot);
+    report.files.push({ ...receipt, kind: "file", status: "refreshed" });
+    return report;
+  });
+}
+
+async function syncTemplateFile(src, dest, { refresh = false } = {}) {
+  const relativePath = path.relative(getRepoRoot(), dest);
+  try {
+    const [sourceContent, destContent] = await Promise.all([
+      fs.readFile(src, "utf8"),
+      fs.readFile(dest, "utf8").catch((error) => {
+        if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+          return null;
+        }
+        throw error;
+      }),
+    ]);
+
+    if (destContent === null) {
+      await writeTextAtomically(dest, sourceContent);
+      return {
+        path: relativePath,
+        kind: "file",
+        status: "created",
+      };
+    }
+
+    if (destContent !== sourceContent && refresh) {
+      await writeTextAtomically(dest, sourceContent);
+      return {
+        path: relativePath,
+        kind: "file",
+        status: "refreshed",
+      };
+    }
+
+    if (destContent !== sourceContent) {
+      return {
+        path: relativePath,
+        kind: "file",
+        status: "skipped",
+        warning: "existing file differs; rerun with --refresh to update it",
+      };
+    }
+
+    return {
+      path: relativePath,
+      kind: "file",
+      status: "existing",
+    };
+  } catch (error) {
+    throw new Error(`Unable to sync managed template ${relativePath}`, { cause: error });
+  }
+}
+
+async function pathExists(target) {
+  try {
+    await fs.access(target);
+    return true;
+  } catch {
+    return false;
+  }
 }

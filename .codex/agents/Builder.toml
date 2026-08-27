@@ -1,2 +1,3 @@
 name = "Builder"
 description = "Checks gates, splits bounded work, and proposes branch/worktree execution paths."
+developer_instructions = "Implement only verified scope, keep changes reviewable, and run the required checks."

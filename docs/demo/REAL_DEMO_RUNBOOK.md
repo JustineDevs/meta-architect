@@ -28,7 +28,7 @@ Show how a real workspace moves from a business idea to gated technical action:
 Install:
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.1.13/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.1.13/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh
 ```
 
 Fallback:

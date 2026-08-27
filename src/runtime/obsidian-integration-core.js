@@ -3,11 +3,49 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { ensureDir, readJson, writeFileIfMissing, writeJson } from "../fs-utils.js";
 import { getRuntimeSubsystemPath } from "../paths.js";
+import { createManagedMarkdownBlock } from "./managed-markdown.js";
 import { createDefaultObsidianPluginBridgeManifest } from "./obsidian-plugin-bridge.js";
 
 export const obsidianIntegrationSchemaVersion = "0.1.0";
 export const obsidianGraphMapNotePath = "Meta-Architect/Map of Content.md";
+const obsidianConfigPath = () => getRuntimeSubsystemPath("obsidian", "config.json");
 const obsidianGraphSectionHeading = "## Obsidian Graph Links";
+
+export async function configureObsidianVault(vaultPath) {
+  const resolved = path.resolve(vaultPath ?? "");
+  const stat = await fs.stat(resolved).catch(() => null);
+  if (!stat?.isDirectory()) throw new Error(`Invalid Obsidian vault: ${resolved}`);
+  const config = {
+    schemaVersion: obsidianIntegrationSchemaVersion,
+    vaultPath: resolved,
+    updatedAt: new Date().toISOString(),
+  };
+  await writeJson(obsidianConfigPath(), config);
+  return config;
+}
+
+export async function loadObsidianVaultConfig() {
+  return readJson(obsidianConfigPath()).catch(() => null);
+}
+
+export async function resolveObsidianVault(vaultPath) {
+  const configured =
+    vaultPath || process.env.MA_OBSIDIAN_VAULT || (await loadObsidianVaultConfig())?.vaultPath;
+  if (!configured)
+    throw new Error("Obsidian vault path required; run `ma obsidian configure <vault-path>`");
+  const resolved = path.resolve(configured);
+  const stat = await fs.stat(resolved).catch(() => null);
+  if (!stat?.isDirectory()) throw new Error(`Invalid Obsidian vault: ${resolved}`);
+  return fs.realpath(resolved);
+}
+const allowedObsidianPluginActions = new Set([
+  "capture_active_note",
+  "create_note",
+  "index_vault",
+  "rename_note",
+  "select-notes",
+  "write_attachment",
+]);
 
 export function getObsidianBridgePath() {
   return getRuntimeSubsystemPath("context", "obsidian-bridge.json");
@@ -104,6 +142,9 @@ export function createObsidianPluginRequest({
   if (!action || typeof action !== "string") {
     throw new Error("Obsidian plugin request requires an action");
   }
+  if (!allowedObsidianPluginActions.has(action)) {
+    throw new Error(`Obsidian plugin request action is not allowed: ${action}`);
+  }
 
   return {
     record_type: "obsidian_plugin_request",
@@ -111,8 +152,8 @@ export function createObsidianPluginRequest({
     reason,
     records_as: "vault_context",
     authoritative_change: false,
-    note_paths: notePaths.filter((entry) => typeof entry === "string" && entry.trim()),
-    tags: tags.filter((entry) => typeof entry === "string" && entry.trim()),
+    note_paths: notePaths.map(assertSafeQueuedPath),
+    tags: tags.map(assertSafeQueuedTag),
     queued_at: new Date().toISOString(),
   };
 }
@@ -284,6 +325,7 @@ export async function indexObsidianVault({ vaultPath, maxExcerptChars = 360 } = 
 
 export async function listObsidianNotes({ vaultPath } = {}) {
   const resolvedVaultPath = await resolveVaultRoot(vaultPath);
+  await configureObsidianVault(resolvedVaultPath);
   const notePaths = await listMarkdownNotes(resolvedVaultPath);
   return {
     record_type: "obsidian_note_list",
@@ -324,7 +366,7 @@ export async function createObsidianNote({ vaultPath, notePath, content, overwri
     throw new Error(`Obsidian note already exists: ${target.relativePath}`);
   }
   await fs.mkdir(path.dirname(target.absolutePath), { recursive: true });
-  await fs.writeFile(target.absolutePath, content, "utf8");
+  await writeVaultNote(target.absolutePath, content, overwrite);
   return createObsidianOperationReceipt({
     operation: overwrite ? "update_note" : "create_note",
     target,
@@ -337,8 +379,22 @@ export async function updateObsidianNote({ vaultPath, notePath, content } = {}) 
     throw new Error("Obsidian update requires non-empty note content");
   }
   const target = await resolveVaultNotePath({ vaultPath, notePath, mustExist: true });
-  await fs.writeFile(target.absolutePath, content, "utf8");
+  await writeVaultNote(target.absolutePath, content, true);
   return createObsidianOperationReceipt({ operation: "update_note", target, content });
+}
+
+async function writeVaultNote(filePath, content, overwrite) {
+  const flags =
+    fs.constants.O_WRONLY |
+    fs.constants.O_CREAT |
+    (overwrite ? fs.constants.O_TRUNC : fs.constants.O_EXCL) |
+    (fs.constants.O_NOFOLLOW ?? 0);
+  const handle = await fs.open(filePath, flags, 0o600);
+  try {
+    await handle.writeFile(content, "utf8");
+  } finally {
+    await handle.close();
+  }
 }
 
 export async function deleteObsidianNote({ vaultPath, notePath } = {}) {
@@ -390,7 +446,7 @@ export async function ensureObsidianGraphLinks({ vaultPath } = {}) {
       hasCoreNote,
     });
     if (linked === current) continue;
-    await fs.writeFile(target.absolutePath, linked, "utf8");
+    await writeVaultNote(target.absolutePath, linked, true);
     receipts.push(
       createObsidianOperationReceipt({
         operation: "update_note",
@@ -416,7 +472,9 @@ export async function appendObsidianOperationReceipt(receipt) {
   let log = createDefaultObsidianVaultOperations();
   try {
     log = validateObsidianVaultOperations(await readJson(getObsidianVaultOperationsPath()));
-  } catch {}
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
   log.operations.push(receipt);
   await writeJson(getObsidianVaultOperationsPath(), log);
   return log;
@@ -610,6 +668,69 @@ export async function writeObsidianVaultIndex({ vaultPath, ensureGraphLinks = tr
   return index;
 }
 
+export async function embedProjectContext({ vaultPath, projectIndex } = {}) {
+  if (!projectIndex || typeof projectIndex !== "object") {
+    throw new Error("Obsidian project context requires a project index");
+  }
+
+  const resolvedVaultPath = await resolveVaultRoot(vaultPath);
+  await configureObsidianVault(resolvedVaultPath);
+  const projectName =
+    String(projectIndex.project?.name ?? "project")
+      .replace(/[^a-zA-Z0-9._ -]/g, "-")
+      .trim()
+      .replace(/[ .]+$/g, "") || "project";
+  const notePath = `Meta-Architect/Projects/${projectName}/Project Context.md`;
+  const content = createProjectContextNote(projectIndex);
+  const operation = await upsertObsidianNoteContent({
+    vaultPath: resolvedVaultPath,
+    notePath,
+    content,
+  });
+  if (operation) await appendObsidianOperationReceipt(operation);
+
+  const index = await writeObsidianVaultIndex({ vaultPath: resolvedVaultPath });
+  return {
+    vaultPath: resolvedVaultPath,
+    notePath,
+    noteStatus: operation ? operation.operation : "unchanged",
+    index,
+  };
+}
+
+export async function appendObsidianLearningRecord({ vaultPath, record } = {}) {
+  if (!record || typeof record !== "object") throw new Error("Learning record is required");
+  const notePath = "Meta-Architect/Learning Memory.md";
+  const existing = await readObsidianNote({ vaultPath, notePath }).catch(
+    () => "# Learning Memory\n",
+  );
+  const lines = [
+    `## ${record.created_at ?? new Date().toISOString()}`,
+    "",
+    `- Claim: ${record.claim}`,
+    `- Source: ${record.source}`,
+    `- Status: ${record.status}`,
+    ...(record.failure_state
+      ? [
+          `- Failure state: ${record.failure_state}`,
+          `- Resolution status: ${record.resolution_status ?? record.failure_state}`,
+          `- Attempted fixes: ${(record.attempted_fixes ?? []).join(", ") || "none"}`,
+        ]
+      : []),
+    `- Evidence: ${(record.evidence ?? []).join(", ") || "none"}`,
+    `- Files: ${(record.files_involved ?? []).join(", ") || "none"}`,
+    `- Next verification: ${record.next_verification}`,
+    "",
+  ];
+  await upsertObsidianNoteContent({
+    vaultPath,
+    notePath,
+    content: `${existing.trimEnd()}\n\n${lines.join("\n")}`,
+  });
+  await ensureObsidianGraphLinks({ vaultPath });
+  return notePath;
+}
+
 async function upsertObsidianNoteContent({ vaultPath, notePath, content }) {
   const target = await resolveVaultNotePath({ vaultPath, notePath, mustExist: false });
   let current = null;
@@ -619,7 +740,7 @@ async function upsertObsidianNoteContent({ vaultPath, notePath, content }) {
   if (current === content) return null;
 
   await fs.mkdir(path.dirname(target.absolutePath), { recursive: true });
-  await fs.writeFile(target.absolutePath, content, "utf8");
+  await writeVaultNote(target.absolutePath, content, Boolean(current));
   return createObsidianOperationReceipt({
     operation: current === null ? "create_note" : "update_note",
     target,
@@ -661,6 +782,53 @@ These linked notes are vault_context. They are not build_evidence. Build evidenc
 
 #ma/core #ma/map #ma/obsidian #ma/vault-context
 `;
+}
+
+function createProjectContextNote(projectIndex) {
+  const project = projectIndex.project ?? {};
+  const lines = [
+    `# ${project.name ?? "Project"}`,
+    "",
+    "This note is Meta-Architect vault context, not build evidence.",
+    "",
+    `- Graph hub: ${toObsidianWikiLink(obsidianGraphMapNotePath, "MA Map of Content")}`,
+    `- Source authority: ${projectIndex.authority ?? "source_truth"}`,
+    `- Freshness: ${projectIndex.freshness?.status ?? "unknown"}`,
+    `- Source files scanned: ${projectIndex.quality?.coverage?.sourceFiles ?? 0}`,
+    `- Context quality: ${projectIndex.quality?.completeness ?? "unknown"} / ${projectIndex.quality?.confidence ?? "unknown"}`,
+    `- Canonical facts: ${(projectIndex.facts ?? []).map((fact) => fact.id).join(", ") || "none"}`,
+    "",
+    "## Stack",
+    "",
+    `- Languages: ${(projectIndex.languages ?? []).join(", ") || "unknown"}`,
+    `- Frameworks: ${(projectIndex.frameworks ?? []).join(", ") || "unknown"}`,
+    `- Package manager: ${projectIndex.packageManager ?? "unknown"}`,
+    "",
+    "## Commands",
+    "",
+    ...Object.entries(projectIndex.commands ?? {}).map(
+      ([name, command]) => `- ${name}: \`${command}\``,
+    ),
+    "",
+    "## Entry points and documentation",
+    "",
+    ...((projectIndex.entrypoints ?? []).length
+      ? projectIndex.entrypoints.map((entry) => `- ${entry}`)
+      : ["- No entry points detected."]),
+    ...((projectIndex.importantDocs ?? []).length
+      ? projectIndex.importantDocs.map((entry) => `- ${entry}`)
+      : ["- No important documentation detected."]),
+    "",
+    "## Agent integrations",
+    "",
+    `- ${(projectIndex.vendorIntegrations ?? []).join(", ") || "None detected"}`,
+    "",
+  ];
+  return createManagedMarkdownBlock({
+    id: "obsidian-project-context",
+    source: ".ma/context/project-index.json",
+    body: lines.join("\n"),
+  });
 }
 
 function withObsidianGraphSection(content, { currentPath, hasCoreNote }) {
@@ -705,15 +873,7 @@ function createObsidianOperationReceipt({ operation, target, content }) {
 }
 
 async function resolveVaultRoot(vaultPath) {
-  if (!vaultPath || typeof vaultPath !== "string") {
-    throw new Error("Obsidian vault operation requires vaultPath");
-  }
-  const resolvedVaultPath = path.resolve(vaultPath);
-  const stat = await fs.stat(resolvedVaultPath);
-  if (!stat.isDirectory()) {
-    throw new Error(`Obsidian vault path is not a directory: ${resolvedVaultPath}`);
-  }
-  return resolvedVaultPath;
+  return resolveObsidianVault(vaultPath);
 }
 
 async function resolveVaultNotePath({ vaultPath, notePath, mustExist }) {
@@ -721,7 +881,10 @@ async function resolveVaultNotePath({ vaultPath, notePath, mustExist }) {
   if (!notePath || typeof notePath !== "string") {
     throw new Error("Obsidian note operation requires notePath");
   }
-  const normalizedInput = normalizeVaultPath(notePath.trim()).replace(/^\/+/, "");
+  const normalizedInput = path.posix
+    .normalize(normalizeVaultPath(notePath.trim()))
+    .replace(/^(\.\/)+/, "")
+    .replace(/^\/+/, "");
   if (
     !normalizedInput ||
     normalizedInput.startsWith("../") ||
@@ -740,6 +903,7 @@ async function resolveVaultNotePath({ vaultPath, notePath, mustExist }) {
   const relativePath = normalizedInput.toLowerCase().endsWith(".md")
     ? normalizedInput
     : `${normalizedInput}.md`;
+  await rejectSymlinkComponents(resolvedVaultPath, relativePath);
   const absolutePath = path.resolve(resolvedVaultPath, relativePath);
   if (!absolutePath.startsWith(`${resolvedVaultPath}${path.sep}`)) {
     throw new Error("Obsidian note path resolved outside the vault");
@@ -747,7 +911,51 @@ async function resolveVaultNotePath({ vaultPath, notePath, mustExist }) {
   if (mustExist && !(await pathExists(absolutePath))) {
     throw new Error(`Obsidian note does not exist: ${relativePath}`);
   }
+  try {
+    if ((await fs.lstat(absolutePath)).isSymbolicLink()) {
+      throw new Error("Obsidian note path cannot be a symlink");
+    }
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
+  const resolvedTarget = await resolveExistingPathOrParent(absolutePath);
+  if (
+    resolvedTarget !== resolvedVaultPath &&
+    !resolvedTarget.startsWith(`${resolvedVaultPath}${path.sep}`)
+  ) {
+    throw new Error("Obsidian note path resolves through a symlink outside the vault");
+  }
   return { vaultPath: resolvedVaultPath, relativePath, absolutePath };
+}
+
+async function resolveExistingPathOrParent(filePath) {
+  let candidate = filePath;
+  while (candidate !== path.dirname(candidate)) {
+    try {
+      return await fs.realpath(candidate);
+    } catch (error) {
+      if (error?.code !== "ENOENT") {
+        throw error;
+      }
+      candidate = path.dirname(candidate);
+    }
+  }
+  return fs.realpath(candidate);
+}
+
+async function rejectSymlinkComponents(rootPath, relativePath) {
+  let current = rootPath;
+  for (const component of relativePath.split("/")) {
+    current = path.join(current, component);
+    try {
+      if ((await fs.lstat(current)).isSymbolicLink()) {
+        throw new Error("Obsidian note path cannot traverse a symlink");
+      }
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+      break;
+    }
+  }
 }
 
 async function pathExists(filePath) {
@@ -832,6 +1040,36 @@ function normalizeLinkKey(value) {
     .replace(/\.md$/i, "")
     .replace(/^\/+/, "")
     .toLowerCase();
+}
+
+function assertSafeQueuedPath(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error("Obsidian plugin request path must be a non-empty string");
+  }
+  const normalized = normalizeVaultPath(value.trim()).replace(/^\/+/, "");
+  if (
+    normalized.startsWith("../") ||
+    normalized.includes("/../") ||
+    normalized === ".." ||
+    normalized.startsWith(".obsidian/") ||
+    normalized.startsWith(".trash/") ||
+    normalized.startsWith(".git/") ||
+    normalized.startsWith(".ma/")
+  ) {
+    throw new Error(`Obsidian plugin request path is not allowed: ${normalized}`);
+  }
+  return normalized;
+}
+
+function assertSafeQueuedTag(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error("Obsidian plugin request tag must be a non-empty string");
+  }
+  const normalized = value.trim().replace(/^#/, "");
+  if (!/^[A-Za-z0-9_/-]+$/.test(normalized)) {
+    throw new Error(`Obsidian plugin request tag is not allowed: ${normalized}`);
+  }
+  return normalized;
 }
 
 function escapeRegExp(value) {

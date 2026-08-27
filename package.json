@@ -1,6 +1,6 @@
 {
   "name": "@jstn-sdk/ma",
-  "version": "0.1.13",
+  "version": "0.14.0",
   "description": "Codex-native skills system for architecture, evidence, review, and gated build guidance.",
   "license": "MIT",
   "author": "JustineDevs",
@@ -40,9 +40,20 @@
     "templates/",
     "sprint/",
     "skills/",
-    "docs/",
+    "docs/README.md",
+    "docs/getting-started.md",
+    "docs/skills.md",
+    "docs/mcp-setup.md",
+    "docs/installed-sdk.md",
+    "docs/release-spec.md",
+    "docs/quality.md",
+    "docs/codex-integration.md",
+    "docs/reference/",
+    "docs/qa/",
     "data/",
     "scripts/",
+    "schemas/",
+    "support-bundle.json",
     "index.js",
     "README.md",
     "DEMO.md",
@@ -58,8 +69,11 @@
   },
   "scripts": {
     "prepare": "husky",
+    "prepack": "node ./scripts/prepack.js",
     "postinstall": "node ./scripts/postinstall.js",
-    "test": "node --test --test-concurrency=1",
+    "test": "node --test --test-concurrency=1 test/*.test.js",
+    "test:disk": "node --test --test-concurrency=1 test/test-fixtures.test.js",
+    "fixtures:cleanup": "bash ./scripts/cleanup-test-fixtures.sh",
     "demo:smoke": "node ./scripts/demo-smoke.js",
     "status": "node ./bin/ma.js status",
     "linux:packages:build": "node ./scripts/build-linux-packages.mjs",
@@ -70,6 +84,7 @@
     "release:advance": "node ./scripts/release-sync.js --force --bump patch",
     "release:verify": "node ./scripts/release-verify.js",
     "release:assets": "node ./.github/scripts/validate-release-assets.js",
+    "release:assets:generate": "node ./.github/scripts/validate-release-assets.js --generate",
     "release:check": "npm run release:verify && npm run skills:manifest && npm run plugin:sync && npm run skills:validate && npm run plugin:verify && npm run skills:pack && npm run check && npm test && npm run pack:inspect",
     "skills:manifest": "node ./scripts/skills-manifest.js",
     "skills:validate": "node ./scripts/skills-validate.js",
@@ -78,7 +93,9 @@
     "plugin:sync": "node ./scripts/plugin-sync.js",
     "plugin:verify": "node ./scripts/plugin-sync.js --check",
     "pack:inspect": "npm pack --dry-run --ignore-scripts --cache ./.npm-cache",
-    "doctor": "node ./scripts/doctor.js",
+    "package:size": "node ./scripts/package-size-check.mjs",
+    "package:doctor": "node ./scripts/doctor.js",
+    "release:doctor": "npm run package:doctor",
     "lint": "biome lint .",
     "format": "biome format .",
     "check": "biome check ."
@@ -90,5 +107,8 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
     "husky": "^9.1.7"
+  },
+  "dependencies": {
+    "@jstn-sdk/agents": "0.1.0"
   }
 }

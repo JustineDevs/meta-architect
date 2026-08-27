@@ -1,9 +1,26 @@
 import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { maskSensitiveText } from "./runtime/redaction-gateway.js";
+
+const packageMetadata = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+);
+
+export function resolveMcpClientVersion(metadata) {
+  return typeof metadata?.version === "string" && metadata.version.trim()
+    ? metadata.version
+    : "0.0.0-dev";
+}
+
+export const mcpClientVersion = resolveMcpClientVersion(packageMetadata);
 
 const GITMCP_ENDPOINT_PATTERN = /^https:\/\/gitmcp\.io\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const BRIDGE_COMMAND_ENV = "MA_MCP_REMOTE_BRIDGE_CMD";
 const REQUEST_TIMEOUT_ENV = "MA_MCP_REQUEST_TIMEOUT_MS";
 const DEFAULT_REQUEST_TIMEOUT_MS = 15000;
+const BRIDGE_POLICY_PATH = path.join("mcp", "bridge.json");
 
 function readRequestTimeoutMs() {
   const raw = process.env[REQUEST_TIMEOUT_ENV]?.trim();
@@ -43,10 +60,44 @@ export function hasConfiguredMcpRemoteBridge() {
 
 export function createMcpLiveClient(endpoint) {
   if (hasConfiguredMcpRemoteBridge()) {
-    return new McpStdioBridgeClient(endpoint, process.env[BRIDGE_COMMAND_ENV]);
+    return new McpStdioBridgeClient(
+      endpoint,
+      process.env[BRIDGE_COMMAND_ENV],
+      spawn,
+      getMcpBridgeConfiguration(),
+    );
   }
 
   return new McpSseClient(endpoint);
+}
+
+export function getMcpBridgeConfiguration(root = process.env.MA_ROOT ?? process.cwd()) {
+  const allowedCommands = new Set(
+    (process.env.MA_MCP_REMOTE_BRIDGE_ALLOWLIST ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+  );
+  const configPath = path.join(root, BRIDGE_POLICY_PATH);
+  try {
+    const config = JSON.parse(readFileSync(configPath, "utf8"));
+    for (const command of config.allowedCommands ?? []) {
+      if (typeof command === "string" && command.trim()) allowedCommands.add(command.trim());
+    }
+    return {
+      configured: true,
+      configPath,
+      allowedCommands: [...allowedCommands],
+      source: "environment+project",
+    };
+  } catch {
+    return {
+      configured: true,
+      configPath,
+      allowedCommands: [...allowedCommands],
+      source: allowedCommands.size > 0 ? "environment" : "none",
+    };
+  }
 }
 
 export class McpSseClient {
@@ -93,7 +144,7 @@ export class McpSseClient {
       capabilities: {},
       clientInfo: {
         name: "meta-architect",
-        version: "0.1.13-dev",
+        version: mcpClientVersion,
       },
     });
 
@@ -227,10 +278,11 @@ export class McpSseClient {
 }
 
 export class McpStdioBridgeClient {
-  constructor(endpoint, commandTemplate, spawnImpl = spawn) {
+  constructor(endpoint, commandTemplate, spawnImpl = spawn, bridgeConfiguration = {}) {
     this.endpoint = endpoint;
     this.commandTemplate = commandTemplate;
     this.spawnImpl = spawnImpl;
+    this.bridgeConfiguration = bridgeConfiguration;
     this.child = null;
     this.buffer = "";
     this.pending = new Map();
@@ -240,10 +292,18 @@ export class McpStdioBridgeClient {
   }
 
   async connect() {
-    const { command, args } = buildBridgeCommand(this.commandTemplate, this.endpoint);
+    const { command, args } = buildBridgeCommand(
+      this.commandTemplate,
+      this.endpoint,
+      this.bridgeConfiguration,
+    );
     this.child = this.spawnImpl(command, args, {
       stdio: ["pipe", "pipe", "pipe"],
-      env: process.env,
+      env: buildBridgeEnv(),
+    });
+    await writeBridgeReceipt(this.endpoint, command, args, {
+      status: "started",
+      pid: this.child.pid ?? null,
     });
 
     this.child.stdout.setEncoding("utf8");
@@ -254,6 +314,10 @@ export class McpStdioBridgeClient {
     });
     this.child.on("error", (error) => {
       this.closed = true;
+      void writeBridgeReceipt(this.endpoint, command, args, {
+        status: "failed",
+        error: error.message,
+      });
       for (const [, handlers] of this.pending) {
         handlers.reject(new Error(`MCP bridge failed to start: ${error.message}`));
       }
@@ -261,6 +325,12 @@ export class McpStdioBridgeClient {
     });
     this.child.on("exit", (code, signal) => {
       this.closed = true;
+      void writeBridgeReceipt(this.endpoint, command, args, {
+        status: "exited",
+        code,
+        signal,
+        stderr: this.stderr,
+      });
       const reason = signal
         ? `MCP bridge exited with signal ${signal}`
         : `MCP bridge exited with code ${code}`;
@@ -275,7 +345,7 @@ export class McpStdioBridgeClient {
       capabilities: {},
       clientInfo: {
         name: "meta-architect",
-        version: "0.1.13-dev",
+        version: mcpClientVersion,
       },
     });
 
@@ -373,7 +443,7 @@ export class McpStdioBridgeClient {
   }
 }
 
-function buildBridgeCommand(commandTemplate, endpoint) {
+function buildBridgeCommand(commandTemplate, endpoint, bridgeConfiguration = {}) {
   const template = commandTemplate?.trim();
   if (!template) {
     throw new Error(`${BRIDGE_COMMAND_ENV} is empty`);
@@ -390,7 +460,47 @@ function buildBridgeCommand(commandTemplate, endpoint) {
   }
 
   const [command, ...args] = substituted;
+  const allowedCommands = new Set(bridgeConfiguration.allowedCommands ?? []);
+  const commandName = path.basename(command);
+  if (!allowedCommands.has(command) && !allowedCommands.has(commandName)) {
+    throw new Error(
+      `${BRIDGE_COMMAND_ENV} command is not allowlisted: ${command}. ` +
+        "Add its exact command or basename to MA_MCP_REMOTE_BRIDGE_ALLOWLIST or mcp/bridge.json.",
+    );
+  }
   return { command, args };
+}
+
+async function writeBridgeReceipt(endpoint, command, args, details) {
+  const root = process.env.MA_ROOT ?? process.cwd();
+  const receiptDir = path.join(root, ".ma", "evidence", "mcp-bridge-receipts");
+  const safeError = details.error
+    ? maskSensitiveText(String(details.error)).sanitizedText
+    : undefined;
+  const safeStderr = details.stderr
+    ? maskSensitiveText(String(details.stderr)).sanitizedText
+    : undefined;
+  await fs.mkdir(receiptDir, { recursive: true }).catch(() => {});
+  await fs
+    .writeFile(
+      path.join(receiptDir, `bridge-${Date.now()}-${process.pid}.json`),
+      `${JSON.stringify(
+        {
+          schemaVersion: "0.1.0",
+          record_type: "mcp_bridge_receipt",
+          generatedAt: new Date().toISOString(),
+          endpoint,
+          command,
+          args,
+          ...details,
+          ...(safeError ? { error: safeError } : {}),
+          ...(safeStderr ? { stderr: safeStderr } : {}),
+        },
+        null,
+      )}\n`,
+      { mode: 0o600 },
+    )
+    .catch(() => {});
 }
 
 async function readResponsePreview(response) {
@@ -455,6 +565,29 @@ function splitCommand(command) {
   }
 
   return parts;
+}
+
+function buildBridgeEnv() {
+  const passthroughKeys = new Set([
+    "PATH",
+    "HOME",
+    "USERPROFILE",
+    "TMPDIR",
+    "TMP",
+    "TEMP",
+    "LANG",
+    "LC_ALL",
+    "SYSTEMROOT",
+    "COMSPEC",
+    "MA_ROOT",
+  ]);
+  const env = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (passthroughKeys.has(key)) {
+      env[key] = value;
+    }
+  }
+  return env;
 }
 
 export function parseSseEvent(rawEvent) {

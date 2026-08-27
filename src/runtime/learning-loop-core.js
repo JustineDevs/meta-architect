@@ -1,5 +1,9 @@
+import fs from "node:fs/promises";
 import { ensureDir, readJson, writeFileIfMissing } from "../fs-utils.js";
 import { getRuntimeSubsystemPath } from "../paths.js";
+import { createFreshness } from "./context-authority.js";
+import { appendObsidianLearningRecord } from "./obsidian-integration-core.js";
+import { maskSensitiveText } from "./redaction-gateway.js";
 
 export const learningLoopCoreSchemaVersion = "0.1.0";
 
@@ -17,6 +21,10 @@ export const learningLoopDomains = [
 
 export function getLearningLoopCorePath() {
   return getRuntimeSubsystemPath("context", "learning-loop-core.json");
+}
+
+export function getLearningRecordsPath() {
+  return getRuntimeSubsystemPath("learning", "records.jsonl");
 }
 
 export function createDefaultLearningLoopCore() {
@@ -113,11 +121,13 @@ export function createDefaultLearningLoopCore() {
       evidence: ["path_or_command_or_receipt"],
       status: "candidate | verified | rejected | superseded",
       applies_to: ["agent_or_role_or_lane"],
+      fact_ids: ["canonical_project_fact_id"],
       cannot_mutate: ["release_state_without_owning_lane", "source_evidence", "security_boundary"],
       next_verification: "string",
     },
     hard_rules: [
       "Learning records require domain, claim, source, evidence, status, applies_to, and next_verification.",
+      "fact_ids may reference only canonical source-truth project facts.",
       "Candidate learnings can inform context but cannot mutate gates, release state, or durable policy.",
       "Verified learnings must preserve lane authority and semantic channel boundaries.",
       "Obsidian and memory context can inform planning but do not become build evidence without owning-lane promotion.",
@@ -169,9 +179,17 @@ export function createLearningRecord({
   claim,
   source,
   evidence = [],
+  filesInvolved = [],
+  decisionsMade = [],
+  knownRisks = [],
+  userPreferences = {},
   status = "candidate",
   appliesTo = ["all_applicable_agents", "all_applicable_roles"],
   nextVerification,
+  factIds = [],
+  failureState,
+  attemptedFixes = [],
+  resolutionStatus,
 }) {
   if (!learningLoopDomains.includes(domain)) {
     throw new Error(`Unsupported learning domain: ${domain}`);
@@ -179,17 +197,52 @@ export function createLearningRecord({
   if (!claim || !source || !nextVerification) {
     throw new Error("Learning record requires domain, claim, source, and nextVerification");
   }
+  if (
+    !Array.isArray(factIds) ||
+    factIds.some((entry) => typeof entry !== "string" || !/^fact-[a-f0-9]{16}$/.test(entry))
+  ) {
+    throw new Error("Learning record factIds must use canonical fact IDs");
+  }
+  const createdAt = new Date().toISOString();
   return {
     domain,
-    claim,
-    source,
-    evidence: evidence.filter((entry) => typeof entry === "string" && entry.trim()),
+    claim: sanitizeLearningText(claim),
+    source: sanitizeLearningText(source),
+    evidence: evidence
+      .filter((entry) => typeof entry === "string" && entry.trim())
+      .map(sanitizeLearningText),
+    files_involved: filesInvolved
+      .filter((entry) => typeof entry === "string" && entry.trim())
+      .map(sanitizeLearningText),
+    decisions_made: decisionsMade
+      .filter((entry) => typeof entry === "string" && entry.trim())
+      .map(sanitizeLearningText),
+    known_risks: knownRisks
+      .filter((entry) => typeof entry === "string" && entry.trim())
+      .map(sanitizeLearningText),
+    user_preferences: userPreferences && typeof userPreferences === "object" ? userPreferences : {},
     status,
+    authority: "learning_memory",
+    freshness: createFreshness({ checkedAt: createdAt }),
     applies_to: appliesTo.filter((entry) => typeof entry === "string" && entry.trim()),
+    fact_ids: factIds.filter((entry) => typeof entry === "string" && entry.trim()),
     cannot_mutate: ["release_state_without_owning_lane", "source_evidence", "security_boundary"],
     next_verification: nextVerification,
-    created_at: new Date().toISOString(),
+    created_at: createdAt,
+    ...(failureState
+      ? {
+          failure_state: failureState,
+          attempted_fixes: attemptedFixes
+            .filter((entry) => typeof entry === "string")
+            .map(sanitizeLearningText),
+          resolution_status: resolutionStatus ?? "active",
+        }
+      : {}),
   };
+}
+
+function sanitizeLearningText(value) {
+  return maskSensitiveText(String(value)).sanitizedText;
 }
 
 export function addLearningRecord(core, record) {
@@ -235,4 +288,57 @@ export async function seedLearningLoopCoreArtifacts() {
 
 export async function loadLearningLoopCore() {
   return validateLearningLoopCore(await readJson(getLearningLoopCorePath()));
+}
+
+export async function appendLearningRecord(record) {
+  const validated = createLearningRecord(record);
+  await ensureDir(getRuntimeSubsystemPath("learning"));
+  await fs.appendFile(getLearningRecordsPath(), `${JSON.stringify(validated)}\n`, "utf8");
+  return validated;
+}
+
+export async function recordWorkLearning({ vaultPath, ...record }) {
+  const validated = await appendLearningRecord(record);
+  if (vaultPath) await appendObsidianLearningRecord({ vaultPath, record: validated });
+  return validated;
+}
+
+export async function recordFailureMemory({
+  cause,
+  source = "workflow",
+  evidence = [],
+  attemptedFixes = [],
+  resolutionStatus = "active",
+  filesInvolved = [],
+  vaultPath,
+} = {}) {
+  if (!cause) throw new Error("failure memory requires cause");
+  if (!["active", "resolved", "stale"].includes(resolutionStatus)) {
+    throw new Error(`Unsupported failure resolution status: ${resolutionStatus}`);
+  }
+  return recordWorkLearning({
+    vaultPath,
+    domain: "code_quality_testing",
+    claim: `Failure: ${cause}`,
+    source,
+    evidence,
+    filesInvolved,
+    knownRisks: [cause],
+    status: resolutionStatus === "resolved" ? "verified" : "candidate",
+    nextVerification:
+      resolutionStatus === "resolved" ? "Monitor for recurrence" : "Re-run the failing workflow",
+    failureState: resolutionStatus,
+    attemptedFixes,
+    resolutionStatus,
+  });
+}
+
+export async function loadLearningRecords({ limit = 20 } = {}) {
+  const raw = await fs.readFile(getLearningRecordsPath(), "utf8").catch(() => "");
+  return raw
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
+    .slice(-Math.max(1, Math.min(100, limit)))
+    .reverse();
 }

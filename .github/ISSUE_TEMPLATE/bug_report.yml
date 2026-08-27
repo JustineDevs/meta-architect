@@ -86,3 +86,23 @@ body:
       render: shell
     validations:
       required: false
+  - type: textarea
+    id: context_privacy
+    attributes:
+      label: Context and privacy impact
+      description: State whether `.ma`, Obsidian, MCP, hooks, or public artifacts are involved, and whether secrets or local paths were checked.
+      placeholder: |
+        Context freshness:
+        Affected .ma artifacts:
+        Obsidian/MCP/hooks impact:
+        Secret and local-path exposure check:
+    validations:
+      required: false
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification evidence
+      description: Include a focused test, command, receipt, or reproducible evidence.
+      render: shell
+    validations:
+      required: false

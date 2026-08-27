@@ -65,3 +65,33 @@ body:
       placeholder: Define observable outcomes.
     validations:
       required: false
+  - type: input
+    id: linked_issues
+    attributes:
+      label: Linked issues or task contract
+      description: Link related issues and describe the contract an implementation must satisfy.
+    validations:
+      required: false
+  - type: textarea
+    id: context_privacy
+    attributes:
+      label: Context and privacy impact
+      description: Describe `.ma`, Obsidian, MCP, hook, public-output, secret, or local-path implications.
+      placeholder: None, or describe the affected surfaces and freshness requirements.
+    validations:
+      required: false
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification evidence
+      description: State how the feature will be proven and what evidence should be attached.
+      placeholder: Focused test, smoke command, receipt, or conformance fixture.
+    validations:
+      required: false
+  - type: textarea
+    id: generated_artifacts
+    attributes:
+      label: Generated artifacts and release impact
+      description: Note `.ma`, package, docs, CI, or other generated output and how it should be verified.
+    validations:
+      required: false

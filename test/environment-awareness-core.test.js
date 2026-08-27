@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import {
@@ -9,14 +8,16 @@ import {
   selectEnvironmentCapabilitiesForTask,
   validateEnvironmentAwarenessCore,
 } from "../src/runtime/environment-awareness-core.js";
+import { createTestNamespace, removeTestNamespace } from "../src/test-fixtures.js";
 
 async function writeJson(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
-test("Environment Awareness discovers repo skills, MCP servers, and plugin manifests safely", async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "ma-env-awareness-"));
+test("Environment Awareness discovers repo skills, MCP servers, and plugin manifests safely", async (t) => {
+  const root = createTestNamespace("ma-env-awareness");
+  t.after(() => removeTestNamespace(root));
   await fs.mkdir(path.join(root, ".agents", "skills", "outside-helper"), { recursive: true });
   await fs.writeFile(
     path.join(root, ".agents", "skills", "outside-helper", "SKILL.md"),
@@ -67,9 +68,10 @@ test("Environment Awareness discovers repo skills, MCP servers, and plugin manif
   );
 });
 
-test("Environment Awareness global scan is opt-in and redacts home paths", async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "ma-env-awareness-root-"));
-  const home = await fs.mkdtemp(path.join(os.tmpdir(), "ma-env-awareness-home-"));
+test("Environment Awareness global scan is opt-in and redacts home paths", async (t) => {
+  const root = createTestNamespace("ma-env-awareness-root");
+  const home = createTestNamespace("ma-env-awareness-home");
+  t.after(() => Promise.all([removeTestNamespace(root), removeTestNamespace(home)]));
   await fs.mkdir(path.join(home, ".codex", "skills", "global-skill"), { recursive: true });
   await fs.writeFile(
     path.join(home, ".codex", "skills", "global-skill", "SKILL.md"),

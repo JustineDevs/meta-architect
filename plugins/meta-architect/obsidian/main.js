@@ -1,4 +1,5 @@
 const { MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } = require("obsidian");
+const { createHash, randomUUID } = require("node:crypto");
 
 const DEFAULT_SETTINGS = {
   projectName: "Meta-Architect",
@@ -6,13 +7,29 @@ const DEFAULT_SETTINGS = {
   queuePath: "Meta-Architect/Plugin Requests/request-queue.json",
   attachmentDir: "Meta-Architect/Attachments",
   sourceWorkspace: "",
+  protocolToken: "",
 };
 
 const FORBIDDEN_TARGETS = [".ma/release.json", ".ma/decisions.json", ".ma/plans/", ".ma/specs/"];
+const MAX_ATTACHMENT_BYTES = 1_048_576;
+const ALLOWED_ATTACHMENT_TYPES = new Set([
+  "application/octet-stream",
+  "application/json",
+  "text/plain",
+  "text/markdown",
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+]);
 
 module.exports = class MetaArchitectPlugin extends Plugin {
   async onload() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, (await this.loadData()) || {});
+    this.queueBusy = Promise.resolve();
+    if (!this.settings.protocolToken) {
+      this.settings.protocolToken = randomUUID();
+      await this.saveSettings();
+    }
     this.addRibbonIcon("network", "Send current note/selection to MA", async () => {
       await this.captureActiveNote();
     });
@@ -164,8 +181,14 @@ ${JSON.stringify(context.pane_state || {}, null, 2)}
         return;
       }
       if (params.action === "capture" || params.open === "active") {
+        if (!hasProtocolAuthority(params, this.settings)) {
+          throw new Error("obsidian_protocol_authority_required");
+        }
         await this.captureActiveNote();
         return;
+      }
+      if (!hasProtocolAuthority(params, this.settings)) {
+        throw new Error("obsidian_protocol_authority_required");
       }
       await this.openNote(params.path || "Meta-Architect/Map of Content.md");
     });
@@ -196,14 +219,22 @@ ${JSON.stringify(context.pane_state || {}, null, 2)}
   }
 
   async queueRequest(params) {
+    return this.withQueueLock(() => this.queueRequestUnlocked(params));
+  }
+
+  async queueRequestUnlocked(params) {
+    if (!hasProtocolAuthority(params, this.settings)) {
+      throw new Error("obsidian_protocol_queue_authority_required");
+    }
     await this.ensureFolder(this.pathParent(this.settings.queuePath));
     const file = this.app.vault.getAbstractFileByPath(this.settings.queuePath);
     const queue = file ? JSON.parse(await this.app.vault.read(file)) : [];
     queue.push({
-      ...params,
+      ...Object.fromEntries(Object.entries(params).filter(([key]) => key !== "protocol_token")),
       id: params.id || `ma-${Date.now()}`,
       queued_at: new Date().toISOString(),
       records_as: "vault_context",
+      protocol_token_hash: params.protocol_token_hash || tokenHash(params.protocol_token),
     });
     const payload = `${JSON.stringify(queue, null, 2)}\n`;
     if (file) await this.app.vault.modify(file, payload);
@@ -211,12 +242,29 @@ ${JSON.stringify(context.pane_state || {}, null, 2)}
   }
 
   async drainRequestQueue() {
+    return this.withQueueLock(() => this.drainRequestQueueUnlocked());
+  }
+
+  async drainRequestQueueUnlocked() {
     const file = this.app.vault.getAbstractFileByPath(this.settings.queuePath);
     const queue = file ? JSON.parse(await this.app.vault.read(file)) : [];
     const processed = [];
     const refused = [];
+    const refusedQueueItems = [];
     for (const request of queue) {
       try {
+        const mutating = [
+          "capture_active_note",
+          "create_note",
+          "rename_note",
+          "write_attachment",
+        ].includes(request.action);
+        if (
+          (mutating && !hasProtocolAuthority(request, this.settings)) ||
+          (!mutating && !hasVaultContextAuthority(request, this.settings))
+        ) {
+          throw new Error("obsidian_queue_authority_required");
+        }
         const target = request.note_path || request.path || "";
         if (target) assertSafeVaultPath(target);
         if (request.action === "capture_active_note") {
@@ -224,6 +272,7 @@ ${JSON.stringify(context.pane_state || {}, null, 2)}
         } else if (request.action === "create_note") {
           processed.push(await this.writeVaultContextNote(target, request.content, true));
         } else if (request.action === "rename_note") {
+          assertSafeVaultPath(request.from);
           assertSafeVaultPath(request.to);
           const fileToRename = this.app.vault.getAbstractFileByPath(request.from);
           await this.app.fileManager.renameFile(fileToRename, request.to);
@@ -236,6 +285,7 @@ ${JSON.stringify(context.pane_state || {}, null, 2)}
           throw new Error(`unsupported_action:${request.action}`);
         }
       } catch (error) {
+        refusedQueueItems.push(request);
         refused.push({
           action: request?.action || null,
           reason: error.message,
@@ -244,7 +294,11 @@ ${JSON.stringify(context.pane_state || {}, null, 2)}
         });
       }
     }
-    if (file && queue.length > 0) await this.app.vault.modify(file, "[]\n");
+    if (file && queue.length > 0) {
+      const nextQueue = `${JSON.stringify(refusedQueueItems, null, 2)}\n`;
+      const currentQueue = await this.app.vault.read(file);
+      if (currentQueue !== nextQueue) await this.app.vault.modify(file, nextQueue);
+    }
     return {
       record_type: "obsidian_plugin_queue_drain",
       records_as: "vault_context",
@@ -254,8 +308,18 @@ ${JSON.stringify(context.pane_state || {}, null, 2)}
     };
   }
 
+  withQueueLock(task) {
+    const previous = this.queueBusy;
+    let release;
+    this.queueBusy = new Promise((resolve) => {
+      release = resolve;
+    });
+    return previous.then(task).finally(release);
+  }
+
   async writeVaultContextNote(notePath, content, overwrite) {
     assertSafeVaultPath(notePath);
+    assertMaOwnedPath(notePath, "Meta-Architect/");
     if (!content?.trim()) throw new Error("vault_context note content required");
     await this.ensureFolder(this.pathParent(notePath));
     const file = this.app.vault.getAbstractFileByPath(notePath);
@@ -273,8 +337,18 @@ ${JSON.stringify(context.pane_state || {}, null, 2)}
 
   async writeBinaryAttachment(attachmentPath, data, contentType) {
     assertSafeVaultPath(attachmentPath);
+    assertMaOwnedPath(attachmentPath, "Meta-Architect/Attachments/");
+    if (!ALLOWED_ATTACHMENT_TYPES.has(contentType)) {
+      throw new Error(`attachment_type_forbidden:${contentType}`);
+    }
     await this.ensureFolder(this.pathParent(attachmentPath));
     const bytes = new TextEncoder().encode(String(data || ""));
+    if (bytes.byteLength > MAX_ATTACHMENT_BYTES) {
+      throw new Error(`attachment_too_large:${attachmentPath}:${bytes.byteLength}`);
+    }
+    if (this.app.vault.getAbstractFileByPath(attachmentPath)) {
+      throw new Error(`attachment_exists:${attachmentPath}`);
+    }
     if (this.app.vault.createBinary) {
       await this.app.vault.createBinary(attachmentPath, bytes.buffer);
     } else {
@@ -369,7 +443,21 @@ class MetaArchitectSettingTab extends PluginSettingTab {
 
 function withVaultContextFrontmatter(content) {
   if (content.trimStart().startsWith("---")) {
-    return content;
+    const start = content.indexOf("---");
+    const end = content.indexOf("\n---", start + 3);
+    if (end > start) {
+      let frontmatter = content.slice(start + 4, end);
+      for (const [key, value] of [
+        ["ma_records_as", "vault_context"],
+        ["ma_project", "Meta-Architect"],
+      ]) {
+        const pattern = new RegExp(`^${key}:.*$`, "m");
+        frontmatter = pattern.test(frontmatter)
+          ? frontmatter.replace(pattern, `${key}: ${value}`)
+          : `${key}: ${value}\n${frontmatter}`;
+      }
+      return `---\n${frontmatter}\n---${content.slice(end + 4)}`;
+    }
   }
   return `---
 ma_records_as: vault_context
@@ -382,9 +470,13 @@ ${content}`;
 }
 
 function assertSafeVaultPath(targetPath) {
-  const normalized = String(targetPath || "")
+  const raw = String(targetPath || "")
     .replaceAll("\\", "/")
     .replace(/^\/+/, "");
+  if (raw === ".." || raw.startsWith("../") || raw.includes("/../")) {
+    throw new Error("path_traversal_forbidden");
+  }
+  const normalized = pathNormalize(raw);
   if (
     !normalized ||
     normalized === ".." ||
@@ -393,9 +485,50 @@ function assertSafeVaultPath(targetPath) {
   ) {
     throw new Error("path_traversal_forbidden");
   }
+  if ([".obsidian/", ".trash/", ".git/"].some((prefix) => normalized.startsWith(prefix))) {
+    throw new Error("vault_control_path_forbidden");
+  }
   for (const forbidden of FORBIDDEN_TARGETS) {
     if (normalized === forbidden || normalized.startsWith(forbidden)) {
       throw new Error(`forbidden_authoritative_mutation:${forbidden}`);
     }
   }
+}
+
+function assertMaOwnedPath(targetPath, prefix) {
+  const normalized = pathNormalize(String(targetPath || "").replaceAll("\\", "/"));
+  if (!normalized.startsWith(prefix)) throw new Error(`ma_owned_path_required:${prefix}`);
+}
+
+function pathNormalize(value) {
+  const parts = [];
+  for (const part of value.split("/")) {
+    if (!part || part === ".") continue;
+    if (part === "..") {
+      parts.pop();
+    } else {
+      parts.push(part);
+    }
+  }
+  return parts.join("/");
+}
+
+function hasVaultContextAuthority(params, settings) {
+  const requiredAuthority = settings.protocolAuthority || "vault_context";
+  return params?.authority === requiredAuthority;
+}
+
+function tokenHash(value) {
+  return createHash("sha256")
+    .update(String(value || ""))
+    .digest("hex");
+}
+
+function hasProtocolAuthority(params, settings) {
+  return (
+    Boolean(settings.protocolToken) &&
+    (params?.protocol_token === settings.protocolToken ||
+      params?.protocol_token_hash === tokenHash(settings.protocolToken)) &&
+    hasVaultContextAuthority(params, settings)
+  );
 }

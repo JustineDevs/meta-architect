@@ -51,6 +51,15 @@
       "module": "./local/playbooks.js",
       "readinessCheck": "checkPlaybooksCapability",
       "seededByBootstrap": true
+    },
+    {
+      "kind": "local-capability",
+      "capability": "context",
+      "transport": "inproc",
+      "module": "./local/context.js",
+      "readinessCheck": "checkContextCapability",
+      "seededByBootstrap": true,
+      "authorityMode": "read-only-evidence"
     }
   ]
 }

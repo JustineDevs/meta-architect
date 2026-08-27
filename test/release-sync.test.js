@@ -24,6 +24,18 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
     `release-readiness-${pkgBefore.version}.md`,
   );
   const nextQaPath = path.join(tempRoot, "docs", "qa", `release-readiness-${nextVersion}.md`);
+  const currentIssueGatesPath = path.join(
+    tempRoot,
+    "docs",
+    "qa",
+    `release-issue-gates-${pkgBefore.version}.json`,
+  );
+  const nextIssueGatesPath = path.join(
+    tempRoot,
+    "docs",
+    "qa",
+    `release-issue-gates-${nextVersion}.json`,
+  );
   const staleReadme = (await fs.readFile(readmePath, "utf8")).replace(
     /<td><strong>Release line<\/strong><\/td>\s*\n\s*<td><code>v[0-9]+\.[0-9]+\.[0-9]+(?:-[^<]+)?<\/code><\/td>/,
     "<td><strong>Release line</strong></td>\n    <td><code>v0.1.12</code></td>",
@@ -46,7 +58,12 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
   assert.equal(result.status, 0, result.stderr || result.stdout);
   const pkgAfter = JSON.parse(await fs.readFile(path.join(tempRoot, "package.json"), "utf8"));
   assert.equal(pkgAfter.version, nextVersion);
+  const supportBundle = JSON.parse(
+    await fs.readFile(path.join(tempRoot, "support-bundle.json"), "utf8"),
+  );
+  assert.equal(supportBundle.bundleVersion, nextVersion);
   await fs.access(nextQaPath);
+  await fs.access(nextIssueGatesPath);
   await fs.access(path.join(tempRoot, "plugins", "meta-architect", ".app.json"));
   const pluginManifest = await fs.readFile(
     path.join(tempRoot, "plugins", "meta-architect", ".codex-plugin", "plugin.json"),
@@ -70,6 +87,7 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
     /"keywords": \["codex", "skills", "architecture", "workflow", "review"\]/,
   );
   await assert.rejects(() => fs.access(currentQaPath));
+  await assert.rejects(() => fs.access(currentIssueGatesPath));
 });
 
 test("release-sync --force bumps even without detected file changes", async () => {

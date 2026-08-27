@@ -52,7 +52,7 @@ Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
 
 ```bash
 # One-line install (POSIX shells only; use WSL/Git-Bash on Windows)
-curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh
 ```
 
 Canonical package/runtime path:
@@ -138,7 +138,7 @@ When consuming the plugin:
 The plugin version should track the release scope of the core repo.
 
 For this repository:
-- plugin scope is aligned to Meta-Architect `v0.1.13`
+- plugin scope is aligned to Meta-Architect `v0.14.0`
 - any breaking contract change should be versioned intentionally
 
 The plugin is one distribution surface of the same product, not a separate product line.

@@ -1,5 +1,9 @@
 # MCP / GitMCP Setup
 
+The MCP client advertises the installed Meta-Architect version read from the
+package metadata. `ma doctor` reports the same value, while `0.0.0-dev` is used
+only when development metadata is unavailable.
+
 1. Use approved discovery accelerators when you need to find OSS candidates faster than browsing GitHub directly.
 2. Add repo-specific GitMCP endpoints in `mcp/servers.json` for any project you want to treat as approved evidence.
 3. Confirm categories in `mcp/collections.json`.
@@ -15,6 +19,7 @@
 - `team_run`
 - `code_intel`
 - `playbooks`
+- `context`
 
 `playbooks` is a read-only packaged capability. It does not point at external MCP servers and it does not repurpose `mcp/collections.json`.
 
@@ -77,9 +82,16 @@ To enable bridge-backed live verification, configure a trusted local bridge comm
 
 ```bash
 export MA_MCP_REMOTE_BRIDGE_CMD="mcp-remote {url}"
+export MA_MCP_REMOTE_BRIDGE_ALLOWLIST="mcp-remote"
 ```
 
-The `{url}` placeholder is replaced with the exact repo endpoint from `mcp/servers.json`. Use a preinstalled, trusted bridge binary or wrapper; do not depend on automatic package downloads in production verification.
+The `{url}` placeholder is replaced with the exact repo endpoint from `mcp/servers.json`. The command must be explicitly allowlisted by basename or exact path in `MA_MCP_REMOTE_BRIDGE_ALLOWLIST`, or by a project-local `mcp/bridge.json` file such as `{ "allowedCommands": ["mcp-remote"] }`. Use a preinstalled, trusted bridge binary or wrapper; do not depend on automatic package downloads in production verification.
+
+Bridge startup, exit, failure, and bounded stderr diagnostics are recorded as
+redacted receipts under `.ma/evidence/mcp-bridge-receipts/`. The bridge receives
+only a minimal environment allowlist, and request timeouts are bounded by
+`MA_MCP_REQUEST_TIMEOUT_MS` (15 seconds by default). `ma doctor` should be used
+to verify the command policy before live evidence collection.
 
 When no bridge is configured:
 - direct-SSE-compatible MCP servers can still verify normally
@@ -110,3 +122,20 @@ The current release intentionally includes both broad discovery lists and core-s
 
 Obsidian-derived notes remain `vault_context`.
 They do not count as `build_evidence` unless `$sage`, `$vet`, or another owning lane promotes a specific claim with source-backed proof.
+## Local context capability
+
+The setup-owned local MCP registry exposes read-only context evidence through
+the `context` capability. Its resources are:
+
+- `context://project-index` — source-truth project fingerprint and file metadata.
+- `context://freshness` — incremental refresh status and changed-file evidence.
+- `context://learning` — validated learning-loop state.
+- `context://obsidian` — validated vault index and operation receipts when configured.
+- `context://hooks` — hook configuration and audit evidence.
+- `context://commands` — source-derived command map.
+- `context://agent-brief` — bounded first-read generated context.
+- `context://architecture` — bounded generated architecture map.
+
+Every response includes `record_type`, `authority`, `source`, and `available`
+metadata. Missing optional artifacts return an unavailable result; writes are
+not exposed by this capability.

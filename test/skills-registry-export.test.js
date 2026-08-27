@@ -16,6 +16,7 @@ import {
   verifyCrossAgentInstallMatrix,
   writeSkillCompatibilityExport,
 } from "../src/runtime/skills-registry-export.js";
+import { createTestNamespace } from "../src/test-fixtures.js";
 
 test("skills registry export defines MA authority boundaries", () => {
   const registry = validateSkillsRegistryExport(createDefaultSkillsRegistryExport());
@@ -111,7 +112,7 @@ test("skills registry renders MA-owned compatibility payloads and install receip
 });
 
 test("skills registry writes canonical compatibility export files", async (t) => {
-  const tempRoot = await fs.mkdtemp("/tmp/ma-skills-export-");
+  const tempRoot = createTestNamespace("ma-skills-export");
   t.after(async () => {
     await fs.rm(tempRoot, { recursive: true, force: true });
   });
@@ -148,7 +149,7 @@ test("skills registry writes canonical compatibility export files", async (t) =>
 });
 
 test("skills registry fans out to non-universal host roots and supports copy mode", async (t) => {
-  const tempRoot = await fs.mkdtemp("/tmp/ma-skills-fanout-");
+  const tempRoot = createTestNamespace("ma-skills-fanout");
   t.after(async () => {
     await fs.rm(tempRoot, { recursive: true, force: true });
   });
@@ -186,7 +187,7 @@ test("skills registry fans out to non-universal host roots and supports copy mod
 });
 
 test("skills registry verifies symlink, copy fallback, and skipped missing-root fanout", async (t) => {
-  const tempRoot = await fs.mkdtemp("/tmp/ma-skills-verify-");
+  const tempRoot = createTestNamespace("ma-skills-verify");
   t.after(async () => {
     await fs.rm(tempRoot, { recursive: true, force: true });
   });
@@ -240,7 +241,7 @@ test("skills registry verifies symlink, copy fallback, and skipped missing-root 
 });
 
 test("cross-agent install verification covers supported v1 matrix behaviors", async (t) => {
-  const tempRoot = await fs.mkdtemp("/tmp/ma-cross-agent-install-");
+  const tempRoot = createTestNamespace("ma-cross-agent-install");
   t.after(async () => {
     await fs.rm(tempRoot, { recursive: true, force: true });
   });

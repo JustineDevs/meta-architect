@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import { printDoctorStatuses } from "../src/runtime/doctor-report.js";
 import {
   getDebArtifactName,
   getPacmanArtifactName,
@@ -56,14 +57,15 @@ const checks = [
   ["prompts/architect.md", fs.existsSync("prompts/architect.md")],
 ];
 
-let failures = 0;
+const statuses = [];
 for (const [label, ok] of checks) {
-  if (ok) {
-    console.log(`[OK] ${label}`);
-  } else {
-    console.log(`[MISSING] ${label}`);
-    failures += 1;
-  }
+  statuses.push({
+    kind: ok ? "OK" : "BLOCKED",
+    label,
+    detail: ok ? "present" : "missing release artifact",
+  });
 }
 
-process.exitCode = failures === 0 ? 0 : 1;
+console.log("Scope: maintainer release/package artifacts (not installed environment health)");
+const result = printDoctorStatuses("Meta-Architect Package Doctor", statuses);
+process.exitCode = result === "READY" ? 0 : 1;

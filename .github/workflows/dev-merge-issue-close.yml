@@ -7,7 +7,7 @@ on:
 
 jobs:
   close-linked-issues:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'development'
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'dev'
     runs-on: ubuntu-latest
     permissions:
       issues: write

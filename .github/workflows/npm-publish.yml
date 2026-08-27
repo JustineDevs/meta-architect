@@ -71,3 +71,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm view @jstn-sdk/ma version dist-tags time --json
+
+      - name: Remove temporary npm auth config
+        if: always()
+        run: rm -f -- "${NPM_CONFIG_USERCONFIG:-}"

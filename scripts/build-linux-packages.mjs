@@ -2,9 +2,9 @@
 
 import { spawnSync } from "node:child_process";
 import fsp from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { createTestNamespace } from "../src/test-fixtures.js";
 import {
   getDebArtifactPath,
   getLinuxPackageManifestPath,
@@ -282,7 +282,7 @@ async function main() {
     { cwd: repoRoot },
   );
 
-  const workRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "meta-architect-linux-packages-"));
+  const workRoot = createTestNamespace("meta-architect-linux-packages");
   const commonRoot = path.join(workRoot, "root");
   await createCommonRoot(commonRoot, packArtifactPath);
 

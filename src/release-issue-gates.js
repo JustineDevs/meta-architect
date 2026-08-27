@@ -1,9 +1,71 @@
+import fs from "node:fs";
+import path from "node:path";
+
 const ALLOWED_STATUSES = new Set(["pending", "in_progress", "blocked", "failed", "passed"]);
 const REQUIRED_PROOF_FIELDS = [
   "implementationEvidence",
   "verificationEvidence",
   "productionEvidence",
 ];
+
+function compareVersions(left, right) {
+  return right
+    .split(".")
+    .map(Number)
+    .reduce((result, value, index) => result || value - Number(left.split(".")[index]), 0);
+}
+
+export function resolveReleaseIssueGates(root, version = null) {
+  return resolveVersionedQaArtifact(root, "release-issue-gates", version);
+}
+
+export function resolveReleaseReadiness(root, version = null) {
+  return resolveVersionedQaArtifact(root, "release-readiness", version);
+}
+
+function resolveVersionedQaArtifact(root, prefix, version = null) {
+  const repoRoot = path.resolve(root);
+  let currentVersion = version;
+  if (!currentVersion) {
+    try {
+      currentVersion = JSON.parse(
+        fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"),
+      ).version;
+    } catch {
+      currentVersion = null;
+    }
+  }
+
+  const qaRoot = path.join(repoRoot, "docs", "qa");
+  const extension = prefix === "release-readiness" ? "md" : "json";
+  const currentPath = currentVersion
+    ? path.join(qaRoot, `${prefix}-${currentVersion}.${extension}`)
+    : null;
+  if (currentPath && fs.existsSync(currentPath)) {
+    return { path: currentPath, version: currentVersion, fallback: false };
+  }
+
+  let entries;
+  try {
+    entries = fs.readdirSync(qaRoot, { withFileTypes: true });
+  } catch {
+    return null;
+  }
+
+  const history = entries
+    .flatMap((entry) => {
+      const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const match = entry.name.match(
+        new RegExp(`^${escapedPrefix}-(\\d+\\.\\d+\\.\\d+)\\.${extension}$`),
+      );
+      return entry.isFile() && match
+        ? [{ version: match[1], path: path.join(qaRoot, entry.name) }]
+        : [];
+    })
+    .sort((left, right) => compareVersions(left.version, right.version));
+  const previous = history[0];
+  return previous ? { ...previous, fallback: true } : null;
+}
 
 function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;

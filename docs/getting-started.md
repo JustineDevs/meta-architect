@@ -26,10 +26,15 @@ Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
 
 ```bash
 # One-line install (POSIX shells only; use WSL/Git-Bash on Windows)
-curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh
 ```
 
 The jsDelivr installer runs `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`, then `ma setup`.
+Use `sh install.sh --dry-run` to inspect the plan, `--no-setup` to skip local
+runtime writes, or `--no-skills` to skip skill/support-bundle writes. The
+installer prints Node/npm/Codex versions and an uninstall command after a real
+install. Package postinstall supports `MA_SKIP_AUTO_INSTALL=1`,
+`MA_SKIP_SKILLS=1`, and `MA_POSTINSTALL_DRY_RUN=1`.
 
 Debian-family install:
 
@@ -101,7 +106,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.1.13
+8. Delivery plan for v0.14.0
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -160,6 +165,10 @@ Expected effects:
 - local `.ma/skills/`, `.ma/evidence/`, `.ma/context/`, `.ma/specs/`, `.ma/plans/`, and `.ma/runbook.md` are seeded
 - `mcp/`, `docs/`, and `sprint/` surfaces exist
 - `ma` opens Codex with the Meta-Architect helper posture when run with no arguments
+
+`.ma/` is the canonical Meta-Architect project namespace. A legacy `.omx/` directory may
+exist for oh-my-codex orchestration history, but new MA setup and generated guidance never
+use it as runtime state.
 
 Expected output:
 
@@ -242,6 +251,11 @@ Contract split:
 - it runs the same environment checks without changing files
 - it prints the current readiness state and exact next step
 
+Maintainers use `npm run package:doctor` (also available as
+`npm run release:doctor`) for release and package artifact completeness. It
+does not inspect the installed user environment; both commands use the same
+status vocabulary so their scopes remain explicit.
+
 `ma sdk-path` prints the installed packaged support-bundle root for relevant files such as prompts, MCP files, sprint files, scripts, plugin metadata, and templates.
 
 ## 5. Configure MCP / GitMCP
@@ -291,7 +305,7 @@ See [docs/mcp-setup.md](./mcp-setup.md) for endpoint policy and evidence semanti
 ## 6. Secondary helper flow
 
 ```bash
-ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare Meta-Architect v0.14.0 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ```
 
 Expected effects:
@@ -476,7 +490,7 @@ If `$build` fails:
 
 ```bash
 ma setup
-ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare Meta-Architect v0.14.0 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'
@@ -507,6 +521,11 @@ After implementation work is complete:
 ma merge feature/ui development
 ma release development prod
 ```
+
+These commands record approval by default; they do not execute Git. Use
+`--dry-run` to run preflight and print the exact merge command without changing
+state, or `--execute` to run the checked, explicit merge on the target branch.
+Both modes require a clean worktree and a valid source branch.
 
 Expected effects:
 - merge only succeeds for `feature/* -> development`

@@ -1,17 +1,17 @@
-# v0.1.13 Requirements & Rules
+# v0.14.0 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.1.13` is production only when:
+Meta-Architect `v0.14.0` is production only when:
 1. the package/install surface works
 2. the in-session skill workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
-## What `v0.1.13` must have
+## What `v0.14.0` must have
 
 ### 1. Canonical package/runtime path
 
-- recommended POSIX one-line install: `curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh`
+- recommended POSIX install: download the versioned `v0.14.0` installer and checksum from the GitHub release tag, verify with `sha256sum -c`, then run `sh install.sh`
 - install: `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
 - optional helper launch: `ma --madmax --high`
 - uninstall Meta-Architect only: `npm uninstall -g @jstn-sdk/ma`
@@ -34,6 +34,10 @@ Helper commands remain available for setup and scripted validation:
 - `ma merge`
 - `ma release`
 
+`ma merge` and `ma release` are approval-only by default. `--dry-run` performs
+preflight without changing release state; `--execute` is the only mode that
+runs the displayed `git merge --no-ff --no-edit -- <source>` command.
+
 ### 3. State and gate contract
 
 Canonical runtime namespace:
@@ -50,16 +54,16 @@ Canonical state files:
 
 ### 4. Required release evidence
 
-- `package.json` version `0.1.13`
-- git tag `v0.1.13`
+- `package.json` version `0.14.0`
+- git tag `v0.14.0`
 - `RELEASE.md`
 - `CHANGELOG.md`
-- `docs/qa/release-readiness-0.1.13.md`
-- `docs/qa/release-issue-gates-0.1.13.json`
+- `docs/qa/release-readiness-0.14.0.md`
+- `docs/qa/release-issue-gates-0.14.0.json`
 - green `npm run release:check`
-- GitHub release asset `meta-architect_0.1.13_all.deb`
-- GitHub release asset `meta-architect-0.1.13-1-any.pkg.tar.xz`
-- GitHub release asset `meta-architect-0.1.13-1.noarch.rpm`
+- GitHub release asset `meta-architect_0.14.0_all.deb`
+- GitHub release asset `meta-architect-0.14.0-1-any.pkg.tar.xz`
+- GitHub release asset `meta-architect-0.14.0-1.noarch.rpm`
 - green `npm run linux:packages:build`
 - green `npm run linux:packages:smoke`
 - green `npm run release:assets`
@@ -83,7 +87,9 @@ Canonical state files:
 7. Build and smoke-check the Linux native packages on Linux:
    - `npm run linux:packages:build`
    - `npm run linux:packages:smoke`
-   - `npm run release:assets`
+- `npm run release:assets`
+- `npm run release:assets:generate` creates `dist/SHA256SUMS`, `dist/sbom.spdx.json`, and `dist/release-summary.json`; `release:assets` verifies them.
+- `dist/` is CI-generated and ignored by Git. GitHub Releases are the source of truth for downloadable packages; historical binaries are not retained in the repository.
 8. Create and push tag `v<version>`
 9. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
 10. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
@@ -101,11 +107,11 @@ Canonical state files:
 
 ### 6.2 Issue proof gates
 
-Every open next-release issue must be represented in `docs/qa/release-issue-gates-0.1.13.json`.
+Every open next-release issue must be represented in `docs/qa/release-issue-gates-0.14.0.json`.
 
 Production pass rule:
 - issue status must be `passed`
-- issue milestone must match `v0.1.13`
+- issue milestone must match `v0.14.0`
 - implementation evidence must be present
 - verification evidence must be present
 - production evidence must be present
@@ -118,3 +124,10 @@ Production pass rule:
 - `npm publish --provenance` is valid only from a supported cloud CI/CD provider
 - local shell publishes are expected to fail with `Automatic provenance generation not supported for provider: null`
 - use the repository publish workflow when provenance is part of the release bar
+## Package diagnostics
+
+`npm run package:doctor` (or `npm run release:doctor`) checks maintainer-facing
+release and package artifacts. It is distinct from `ma doctor`, which checks
+installed/user environment health.
+It is intentionally separate from `ma doctor`, which checks the installed
+environment, runtime state, MCP readiness, and support bundle health.

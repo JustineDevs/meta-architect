@@ -187,7 +187,7 @@ Rules:
 Here is a realistic example using this repository's current semantic-core release hardening flow.
 
 ```text
-$maestro I want to harden Meta-Architect v0.1.13 so every core capability is real, package-visible, and proof-gated.
+$maestro I want to harden Meta-Architect v0.14.0 so every core capability is real, package-visible, and proof-gated.
 
 Context:
 - Product type: Codex-native architecture and orchestration system

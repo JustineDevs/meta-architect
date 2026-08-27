@@ -55,8 +55,8 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
           HEAD_REF: ${{ github.head_ref }}
         run: |
-          if [ "$BASE_REF" = "development" ]; then
-            echo "Normal integration PR targeting development: allowed."
+          if [ "$BASE_REF" = "dev" ]; then
+            echo "Normal integration PR targeting dev: allowed."
             exit 0
           fi
 
@@ -66,8 +66,8 @@ jobs:
           fi
 
           echo "Invalid PR target policy."
-          echo "Normal PRs must target development."
-          echo "Only curated promotion PRs from development may target main."
+          echo "Normal PRs must target dev."
+          echo "Only curated promotion PRs from dev may target main."
           echo "Current head: $HEAD_REF"
           echo "Current base: $BASE_REF"
           exit 1
@@ -80,3 +80,7 @@ jobs:
             echo "$forbidden"
             exit 1
           fi
+
+      - name: Remove temporary npm auth config
+        if: always()
+        run: rm -f -- "${NPM_CONFIG_USERCONFIG:-}"

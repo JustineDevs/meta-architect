@@ -10,8 +10,37 @@ export const obsidianPluginQueuePath = "Meta-Architect/Plugin Requests/request-q
 export const obsidianPluginActiveContextPath =
   "Meta-Architect/Plugin Context/Active Note Context.md";
 export const obsidianPluginAttachmentDir = "Meta-Architect/Attachments";
+const defaultAttachmentMaxBytes = 1_048_576;
+const defaultAttachmentContentTypes = new Set([
+  "application/octet-stream",
+  "application/json",
+  "text/plain",
+  "text/markdown",
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+]);
 
 const forbiddenMaTargets = [".ma/release.json", ".ma/decisions.json", ".ma/plans/", ".ma/specs/"];
+const protocolMaxPayloadBytes = 64 * 1024;
+const protocolActions = new Set(["queue", "capture", "open"]);
+const protocolFields = new Set([
+  "action",
+  "open",
+  "path",
+  "note_path",
+  "from",
+  "to",
+  "content",
+  "data",
+  "content_type",
+  "overwrite",
+  "id",
+  "authority",
+  "records_as",
+  "protocol_token",
+  "protocol_token_hash",
+]);
 
 const pluginCapabilityNames = [
   "in_app_plugin_surface",
@@ -59,6 +88,13 @@ export async function installObsidianPlugin({
   if (!vaultPath || typeof vaultPath !== "string") {
     throw new Error("Obsidian plugin install requires vaultPath");
   }
+  if (
+    typeof pluginId !== "string" ||
+    !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(pluginId) ||
+    path.isAbsolute(pluginId)
+  ) {
+    throw new Error(`Invalid Obsidian plugin id: ${pluginId}`);
+  }
   const resolvedVaultPath = path.resolve(vaultPath);
   const vaultStat = await fs.stat(resolvedVaultPath);
   if (!vaultStat.isDirectory()) {
@@ -67,28 +103,73 @@ export async function installObsidianPlugin({
 
   const sourceDir = path.join(packageRoot, "plugins", "meta-architect", "obsidian");
   const targetDir = path.join(resolvedVaultPath, ".obsidian", "plugins", pluginId);
-  await fs.mkdir(targetDir, { recursive: true });
-  await fs.cp(sourceDir, targetDir, { recursive: true, force: true });
-
-  const manifest = JSON.parse(await fs.readFile(path.join(targetDir, "manifest.json"), "utf8"));
-  if (manifest.id !== pluginId) {
-    throw new Error(`Installed Obsidian plugin manifest id mismatch: ${manifest.id}`);
+  const relativeTarget = path.relative(resolvedVaultPath, path.resolve(targetDir));
+  if (relativeTarget.startsWith(`..${path.sep}`) || path.isAbsolute(relativeTarget)) {
+    throw new Error("Obsidian plugin target must remain inside the vault");
   }
-  const enabledPlugins = enable
-    ? await enableObsidianCommunityPlugin({ vaultPath: resolvedVaultPath, pluginId })
-    : null;
+  await assertNoSymlinkComponents(resolvedVaultPath, targetDir);
+  await assertNoSymlinkComponents(
+    resolvedVaultPath,
+    path.join(resolvedVaultPath, ".obsidian", "community-plugins.json"),
+  );
+  const sourceMainPath = path.join(sourceDir, "main.js");
+  const sourceManifestPath = path.join(sourceDir, "manifest.json");
+  const configPath = path.join(resolvedVaultPath, ".obsidian", "community-plugins.json");
+  const originalConfig = await readOptionalFile(configPath);
+  if (enable) parseCommunityPlugins(originalConfig);
+  const stagingDir = `${targetDir}.staging-${Date.now()}`;
+  const backupDir = `${targetDir}.backup-${Date.now()}`;
+  let hadTarget = false;
+  let installed = false;
+  try {
+    await fs.mkdir(path.dirname(targetDir), { recursive: true });
+    await fs.cp(sourceDir, stagingDir, { recursive: true, force: true });
 
-  return {
-    record_type: "obsidian_plugin_install",
-    records_as: "vault_context",
-    build_evidence: false,
-    enabled: enable,
-    community_plugins: enabledPlugins,
-    plugin_id: pluginId,
-    vault_path: resolvedVaultPath,
-    plugin_path: targetDir,
-    installed_files: await listPluginFiles(targetDir),
-  };
+    const manifest = JSON.parse(await fs.readFile(path.join(stagingDir, "manifest.json"), "utf8"));
+    if (manifest.id !== pluginId) {
+      throw new Error(`Installed Obsidian plugin manifest id mismatch: ${manifest.id}`);
+    }
+    const sourceHash = await hashFile(sourceMainPath);
+    const installedHash = await hashFile(path.join(stagingDir, "main.js"));
+    const sourceManifestHash = await hashFile(sourceManifestPath);
+    const installedManifestHash = await hashFile(path.join(stagingDir, "manifest.json"));
+    if (sourceHash !== installedHash || sourceManifestHash !== installedManifestHash) {
+      throw new Error("Installed Obsidian plugin integrity mismatch");
+    }
+
+    hadTarget = await pathExists(targetDir);
+    if (hadTarget) await fs.rename(targetDir, backupDir);
+    await fs.rename(stagingDir, targetDir);
+    installed = true;
+    const enabledPlugins = enable
+      ? await enableObsidianCommunityPlugin({ vaultPath: resolvedVaultPath, pluginId })
+      : null;
+
+    const installedFiles = await listPluginFiles(targetDir);
+    await fs.rm(backupDir, { recursive: true, force: true });
+    return {
+      record_type: "obsidian_plugin_install",
+      records_as: "vault_context",
+      build_evidence: false,
+      enabled: enable,
+      community_plugins: enabledPlugins,
+      plugin_id: pluginId,
+      vault_path: resolvedVaultPath,
+      plugin_path: targetDir,
+      source_hash: sourceHash,
+      installed_hash: installedHash,
+      source_manifest_hash: sourceManifestHash,
+      installed_manifest_hash: installedManifestHash,
+      installed_files: installedFiles,
+    };
+  } catch (error) {
+    await fs.rm(stagingDir, { recursive: true, force: true });
+    if (installed) await fs.rm(targetDir, { recursive: true, force: true });
+    if (hadTarget) await fs.rename(backupDir, targetDir);
+    if (originalConfig === null) await fs.rm(configPath, { force: true });
+    else await fs.writeFile(configPath, originalConfig, "utf8");
+    throw error;
+  }
 }
 
 export async function registerMetaArchitectObsidianPluginRuntime({
@@ -261,6 +342,7 @@ export async function applyObsidianFrontmatterAuthority({
 }
 
 export async function renameObsidianFileSafely({ app, file, newPath } = {}) {
+  assertSafeVaultPath(file?.path);
   assertSafeVaultPath(newPath);
   if (!app?.fileManager?.renameFile) {
     throw new Error("Obsidian FileManager.renameFile is required for link-safe rename/move");
@@ -302,17 +384,28 @@ export function registerObsidianProtocolHandlers({
     return { registered: false, handler: "ma", reason: "protocol_handler_unavailable" };
   }
   plugin.registerObsidianProtocolHandler("ma", async (params = {}) => {
-    if (params.action === "queue") {
-      await writeQueueRequestToVault({ app, request: params });
-      return;
+    const request = validateProtocolRequest(params);
+    if (request.action === "queue") {
+      if (!hasProtocolAuthority(params, settings)) {
+        throw new Error("obsidian_protocol_queue_authority_required");
+      }
+      return writeQueueRequestToVault({ app, request, settings });
     }
-    if (params.action === "capture" || params.open === "active") {
+    if (request.action === "capture") {
+      if (!hasProtocolAuthority(request, settings)) {
+        throw new Error("obsidian_protocol_authority_required");
+      }
       await captureActiveNoteToVault({ app, MarkdownView, settings });
-      return;
+      return protocolReceipt("capture", request);
     }
-    const target = params.path ?? "Meta-Architect/Map of Content.md";
+    if (!hasProtocolAuthority(request, settings)) {
+      throw new Error("obsidian_protocol_authority_required");
+    }
+    const target = request.path ?? "Meta-Architect/Map of Content.md";
+    assertSafeVaultPath(target);
     const file = app?.vault?.getAbstractFileByPath?.(target);
     if (file) await app?.workspace?.getLeaf?.(true)?.openFile?.(file);
+    return protocolReceipt("open", request);
   });
   return { registered: true, handler: "ma", supports: ["open", "queue", "capture"] };
 }
@@ -398,18 +491,39 @@ export async function writeObsidianAttachment({
   attachmentPath,
   data,
   contentType = "application/octet-stream",
+  overwrite = false,
+  maxBytes = defaultAttachmentMaxBytes,
+  allowedContentTypes = defaultAttachmentContentTypes,
+  requestId = null,
+  sourceAction = null,
 } = {}) {
   assertSafeVaultPath(attachmentPath);
+  assertMaOwnedPath(attachmentPath, "Meta-Architect/Attachments/");
   if (!attachmentPath) {
     throw new Error("Obsidian attachment write requires attachmentPath");
   }
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) {
+    throw new Error("attachment_max_bytes_invalid");
+  }
   const bytes = toUint8Array(data);
+  if (bytes.byteLength > maxBytes) {
+    throw new Error(`attachment_too_large:${attachmentPath}:${bytes.byteLength}`);
+  }
+  if (!isAllowedAttachmentContentType(contentType, allowedContentTypes)) {
+    throw new Error(`attachment_type_forbidden:${contentType}`);
+  }
   const parent = attachmentPath.includes("/")
     ? attachmentPath.slice(0, attachmentPath.lastIndexOf("/"))
     : "";
   if (parent) await ensureVaultFolder(app, parent);
+  const existing = app?.vault?.getAbstractFileByPath?.(attachmentPath);
+  if (existing && !overwrite) {
+    throw new Error(`attachment_exists:${attachmentPath}`);
+  }
 
-  if (app?.vault?.createBinary) {
+  if (existing && app?.vault?.adapter?.writeBinary) {
+    await app.vault.adapter.writeBinary(attachmentPath, bytes);
+  } else if (app?.vault?.createBinary) {
     await app.vault.createBinary(
       attachmentPath,
       bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
@@ -428,6 +542,8 @@ export async function writeObsidianAttachment({
     content_type: contentType,
     byte_length: bytes.byteLength,
     sha256: createHash("sha256").update(bytes).digest("hex"),
+    request_id: requestId,
+    source_action: sourceAction,
   };
 }
 
@@ -442,11 +558,20 @@ export async function drainObsidianPluginRequestQueue({
   }
   const processed = [];
   const refused = [];
+  const refusedQueueItems = [];
 
   for (const request of queue) {
     try {
       if (!request || typeof request !== "object") {
         throw new Error("invalid_request");
+      }
+      if (
+        ["capture_active_note", "create_note", "rename_note", "write_attachment"].includes(
+          request.action,
+        ) &&
+        !hasProtocolAuthority(request, settings)
+      ) {
+        throw new Error("obsidian_queue_authority_required");
       }
       const target = request.note_path ?? request.path ?? "";
       if (target) assertSafeVaultPath(target);
@@ -496,6 +621,11 @@ export async function drainObsidianPluginRequestQueue({
               attachmentPath: target,
               data: request.data ?? "",
               contentType: request.content_type,
+              overwrite: request.overwrite ?? false,
+              maxBytes: defaultAttachmentMaxBytes,
+              allowedContentTypes: defaultAttachmentContentTypes,
+              requestId: request.id ?? null,
+              sourceAction: request.action,
             }),
           });
           break;
@@ -503,10 +633,19 @@ export async function drainObsidianPluginRequestQueue({
           throw new Error(`unsupported_action:${request.action}`);
       }
     } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      const previousAttempts = Number.isInteger(request?.attempts) ? request.attempts : 0;
+      refusedQueueItems.push({
+        ...safeClone(request),
+        queue_status: "refused",
+        refusal_reason: reason,
+        attempts: previousAttempts + 1,
+        last_attempt_at: new Date().toISOString(),
+      });
       refused.push({
         request_id: request?.id ?? null,
         action: request?.action ?? null,
-        reason: error instanceof Error ? error.message : String(error),
+        reason,
         records_as: "vault_context",
         build_evidence: false,
       });
@@ -520,6 +659,7 @@ export async function drainObsidianPluginRequestQueue({
     drained_at: new Date().toISOString(),
     processed,
     refused,
+    refusedQueueItems,
   };
 }
 
@@ -532,7 +672,7 @@ async function captureActiveNoteToVault({ app, Notice, MarkdownView, settings = 
       file: activeFile,
       project: settings.projectName ?? "Meta-Architect",
       sourceWorkspace: settings.sourceWorkspace ?? null,
-    }).catch(() => {});
+    });
   }
   const content = renderActiveContextNote(context);
   const result = await createVaultContextNote({
@@ -547,7 +687,22 @@ async function captureActiveNoteToVault({ app, Notice, MarkdownView, settings = 
   return { ...result, active_context: context };
 }
 
-async function drainQueueFromVault({ app, MarkdownView, settings = {} }) {
+let obsidianQueueBusy = Promise.resolve();
+
+function withObsidianQueueLock(task) {
+  const previous = obsidianQueueBusy;
+  let release;
+  obsidianQueueBusy = new Promise((resolve) => {
+    release = resolve;
+  });
+  return previous.then(task).finally(release);
+}
+
+async function drainQueueFromVault(args) {
+  return withObsidianQueueLock(() => drainQueueFromVaultUnlocked(args));
+}
+
+async function drainQueueFromVaultUnlocked({ app, MarkdownView, settings = {} }) {
   const queuePath = settings.queuePath ?? obsidianPluginQueuePath;
   const file = app?.vault?.getAbstractFileByPath?.(queuePath);
   if (!file) {
@@ -556,28 +711,42 @@ async function drainQueueFromVault({ app, MarkdownView, settings = {} }) {
   const raw = await app.vault.read(file);
   const queue = JSON.parse(raw);
   const result = await drainObsidianPluginRequestQueue({ app, queue, MarkdownView, settings });
-  await app.vault.modify(file, "[]\n");
+  const nextQueue = `${JSON.stringify(result.refusedQueueItems, null, 2)}\n`;
+  if (raw !== nextQueue) await app.vault.modify(file, nextQueue);
   return result;
 }
 
-async function writeQueueRequestToVault({ app, request }) {
+async function writeQueueRequestToVault(args) {
+  return withObsidianQueueLock(() => writeQueueRequestToVaultUnlocked(args));
+}
+
+async function writeQueueRequestToVaultUnlocked({ app, request, settings = {} }) {
+  if (!hasProtocolAuthority(request, settings)) {
+    throw new Error("obsidian_protocol_queue_authority_required");
+  }
   const queuePath = obsidianPluginQueuePath;
   await ensureVaultFolder(app, path.dirname(queuePath));
   const file = app?.vault?.getAbstractFileByPath?.(queuePath);
   const existing = file ? JSON.parse(await app.vault.read(file)) : [];
+  const queuedRequest = Object.fromEntries(
+    Object.entries(request).filter(([key]) => key !== "protocol_token"),
+  );
   existing.push({
-    ...request,
+    ...queuedRequest,
     id: request.id ?? `ma-${Date.now()}`,
     queued_at: new Date().toISOString(),
     records_as: "vault_context",
+    protocol_token_hash: request.protocol_token_hash ?? tokenHash(request.protocol_token),
   });
   const content = `${JSON.stringify(existing, null, 2)}\n`;
   if (file) await app.vault.modify(file, content);
   else await app.vault.create(queuePath, content);
+  return protocolReceipt("queue", request);
 }
 
 async function createVaultContextNote({ app, notePath, content, overwrite = true }) {
   assertSafeVaultPath(notePath);
+  assertMaOwnedPath(notePath, "Meta-Architect/");
   if (typeof content !== "string" || content.trim().length === 0) {
     throw new Error("vault_context note content required");
   }
@@ -657,10 +826,125 @@ function assertSafeVaultPath(targetPath) {
   if (normalized.includes("../") || normalized === ".." || normalized.startsWith("..")) {
     throw new Error("path_traversal_forbidden");
   }
+  if ([".obsidian/", ".trash/", ".git/"].some((prefix) => normalized.startsWith(prefix))) {
+    throw new Error("vault_control_path_forbidden");
+  }
   for (const forbidden of forbiddenMaTargets) {
     if (normalized === forbidden || normalized.startsWith(forbidden)) {
       throw new Error(`forbidden_authoritative_mutation:${forbidden}`);
     }
+  }
+}
+
+function assertMaOwnedPath(targetPath, prefix) {
+  const normalized = targetPath.replaceAll("\\", "/").replace(/^\/+/, "");
+  if (!normalized.startsWith(prefix)) throw new Error(`ma_owned_path_required:${prefix}`);
+}
+
+function hasVaultContextAuthority(params, settings) {
+  const requiredAuthority = settings.protocolAuthority ?? "vault_context";
+  return params.authority === requiredAuthority;
+}
+
+function hasProtocolAuthority(params, settings) {
+  return (
+    Boolean(settings.protocolToken) &&
+    (params?.protocol_token === settings.protocolToken ||
+      params?.protocol_token_hash === tokenHash(settings.protocolToken)) &&
+    hasVaultContextAuthority(params, settings)
+  );
+}
+
+function validateProtocolRequest(params) {
+  if (!params || typeof params !== "object" || Array.isArray(params)) {
+    throw new Error("obsidian_protocol_request_invalid");
+  }
+  const serialized = JSON.stringify(params);
+  if (Buffer.byteLength(serialized, "utf8") > protocolMaxPayloadBytes) {
+    throw new Error("obsidian_protocol_payload_too_large");
+  }
+  for (const key of Object.keys(params)) {
+    if (!protocolFields.has(key)) throw new Error(`obsidian_protocol_field_forbidden:${key}`);
+  }
+  const action = params.action ?? (params.open === "active" ? "capture" : null);
+  if (!protocolActions.has(action)) throw new Error("obsidian_protocol_action_forbidden");
+  if (action === "open" && params.open === "active") {
+    throw new Error("obsidian_protocol_action_invalid");
+  }
+  const request = { ...params, action };
+  for (const target of [request.path, request.note_path, request.from, request.to]) {
+    if (target !== undefined) assertSafeVaultPath(target);
+  }
+  if (request.content !== undefined && typeof request.content !== "string") {
+    throw new Error("obsidian_protocol_content_invalid");
+  }
+  if (request.data !== undefined && typeof request.data !== "string") {
+    throw new Error("obsidian_protocol_data_invalid");
+  }
+  return request;
+}
+
+function protocolReceipt(action, request) {
+  return {
+    record_type: "obsidian_protocol_action",
+    records_as: "vault_context",
+    build_evidence: false,
+    action,
+    request_id: request.id ?? null,
+    status: "accepted",
+    authority: request.authority,
+  };
+}
+
+function tokenHash(token) {
+  return createHash("sha256")
+    .update(String(token ?? ""))
+    .digest("hex");
+}
+
+async function hashFile(filePath) {
+  return createHash("sha256")
+    .update(await fs.readFile(filePath))
+    .digest("hex");
+}
+
+async function assertNoSymlinkComponents(root, target) {
+  const rootPath = path.resolve(root);
+  const rootStat = await fs.lstat(rootPath);
+  if (rootStat.isSymbolicLink()) throw new Error("Obsidian vault root cannot be a symlink");
+  let current = rootPath;
+  for (const part of path
+    .relative(rootPath, path.resolve(target))
+    .split(path.sep)
+    .filter(Boolean)) {
+    current = path.join(current, part);
+    const stat = await fs.lstat(current).catch((error) => {
+      if (error?.code === "ENOENT") return null;
+      throw error;
+    });
+    if (stat?.isSymbolicLink())
+      throw new Error(`Obsidian plugin path cannot traverse a symlink: ${current}`);
+  }
+}
+
+function isAllowedAttachmentContentType(contentType, allowedContentTypes) {
+  if (!contentType || typeof contentType !== "string") {
+    return false;
+  }
+  if (allowedContentTypes instanceof Set) {
+    return allowedContentTypes.has(contentType);
+  }
+  if (Array.isArray(allowedContentTypes)) {
+    return allowedContentTypes.includes(contentType);
+  }
+  return defaultAttachmentContentTypes.has(contentType);
+}
+
+function safeClone(value) {
+  try {
+    return structuredClone(value);
+  } catch {
+    return JSON.parse(JSON.stringify(value ?? null));
   }
 }
 
@@ -707,16 +991,38 @@ async function listPluginFiles(root) {
 
 async function enableObsidianCommunityPlugin({ vaultPath, pluginId }) {
   const configPath = path.join(vaultPath, ".obsidian", "community-plugins.json");
-  let enabled = [];
-  try {
-    const parsed = JSON.parse(await fs.readFile(configPath, "utf8"));
-    if (Array.isArray(parsed)) enabled = parsed.filter((entry) => typeof entry === "string");
-  } catch {}
+  await assertNoSymlinkComponents(vaultPath, configPath);
+  const enabled = parseCommunityPlugins(await readOptionalFile(configPath));
   if (!enabled.includes(pluginId)) {
     enabled.push(pluginId);
   }
   await fs.writeFile(configPath, `${JSON.stringify(enabled, null, 2)}\n`, "utf8");
   return enabled;
+}
+
+async function readOptionalFile(filePath) {
+  try {
+    return await fs.readFile(filePath, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+async function pathExists(filePath) {
+  try {
+    await fs.lstat(filePath);
+    return true;
+  } catch (error) {
+    if (error?.code === "ENOENT") return false;
+    throw error;
+  }
+}
+
+function parseCommunityPlugins(content) {
+  if (content === null) return [];
+  const parsed = JSON.parse(content);
+  return Array.isArray(parsed) ? parsed.filter((entry) => typeof entry === "string") : [];
 }
 
 function createMetaArchitectSettingTab(app, plugin, PluginSettingTab, Setting) {

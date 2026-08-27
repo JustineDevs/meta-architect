@@ -2,9 +2,9 @@
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { createTestNamespace } from "../src/test-fixtures.js";
 
 const repoRoot = process.cwd();
 const distRoot = path.join(repoRoot, "dist");
@@ -28,7 +28,7 @@ async function copyDir(src, dest) {
 async function main() {
   await fs.mkdir(distRoot, { recursive: true });
   await fs.rm(bundlePath, { force: true });
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-skills-"));
+  const tempRoot = createTestNamespace("meta-architect-skills");
   const frozenSkillsRoot = path.join(tempRoot, "skills");
   await copyDir(skillsRoot, frozenSkillsRoot);
 

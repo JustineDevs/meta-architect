@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-architect.jstn.site/schemas/skill-frontmatter.schema.json",
+  "$comment": "Schema version: 1.0.0",
+  "title": "Meta-Architect skill frontmatter",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "description"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    }
+  }
+}

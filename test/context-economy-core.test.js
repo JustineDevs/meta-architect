@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  createBudgetedContext,
   createContextEconomyPayload,
   createContextEconomyView,
   createDefaultContextEconomyCore,
@@ -72,4 +73,33 @@ test("Context Economy compacts MCP descriptors without mutating schemas", () => 
   assert.equal(descriptor.name, "ma_status");
   assert.equal(descriptor.inputSchema.properties.cwd.type, "string");
   assert.match(descriptor.description, /tool returns current Meta-Architect status summary/);
+});
+
+test("Context Economy loads ordered bounded context and reports skipped items", () => {
+  const result = createBudgetedContext({
+    budgetChars: 40,
+    topic: "package",
+    items: [
+      { id: "brief", tier: 1, text: "short brief" },
+      { id: "package-map", tier: 2, topic: "package", text: "package commands and tests" },
+      { id: "source", tier: 5, topic: "source", text: "large source context that must be skipped" },
+    ],
+  });
+  assert.deepEqual(result.loaded, ["package-map"]);
+  assert.equal(result.fallback_expanded, false);
+  assert.equal(
+    result.skipped.some((item) => item.id === "source"),
+    true,
+  );
+  assert.equal(result.used_chars <= result.budget_chars, true);
+});
+
+test("Context Economy falls back to the standard loading order for unknown topics", () => {
+  const result = createBudgetedContext({
+    budgetChars: 100,
+    topic: "missing-subsystem",
+    items: [{ id: "brief", tier: 1, text: "agent brief" }],
+  });
+  assert.equal(result.fallback_expanded, true);
+  assert.deepEqual(result.loaded, ["brief"]);
 });

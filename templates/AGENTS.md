@@ -63,8 +63,8 @@ If any required field is missing, red, or unverified, the workflow should stop a
 
 ### Merge and release rule
 
-- `feature/*` work merges into `development`
-- release promotion is allowed only from `development` or approved `release/*`
+- `feature/*` work merges into `dev`
+- release promotion is allowed only from `dev` or approved `release/*`
 - no direct `feature/* -> prod`
 
 ## Evidence rule

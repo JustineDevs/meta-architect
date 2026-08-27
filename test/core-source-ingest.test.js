@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import {
@@ -10,6 +9,7 @@ import {
   ingestCoreSources,
   validateCoreSourceIngest,
 } from "../src/runtime/core-source-ingest.js";
+import { createTestNamespace, removeTestNamespace } from "../src/test-fixtures.js";
 
 test("Core source ingest manifest defines semantic cores as local snapshots", () => {
   const manifest = validateCoreSourceIngest(createDefaultCoreSourceIngest());
@@ -29,7 +29,7 @@ test("Core source ingest manifest defines semantic cores as local snapshots", ()
 });
 
 test("Core source ingest records local clone snapshots and MA-owned Ralph core", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "ma-core-ingest-"));
+  const tempRoot = createTestNamespace("ma-core-ingest");
   const previousRoot = process.env.MA_ROOT;
   process.env.MA_ROOT = tempRoot;
 
@@ -78,6 +78,7 @@ test("Core source ingest records local clone snapshots and MA-owned Ralph core",
     } else {
       process.env.MA_ROOT = previousRoot;
     }
+    await removeTestNamespace(tempRoot);
   }
 });
 

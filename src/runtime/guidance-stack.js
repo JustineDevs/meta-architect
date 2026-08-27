@@ -20,8 +20,8 @@ export async function seedGuidanceStackArtifacts() {
     `${JSON.stringify(
       {
         schemaVersion: "0.1.0",
-        sources: [],
-        content: "",
+        sources: [ponytailGuidanceSource],
+        content: ponytailGuidanceSource.content,
       },
       null,
       2,
@@ -40,3 +40,10 @@ export async function seedGuidanceStackArtifacts() {
     )}\n`,
   );
 }
+
+export const ponytailGuidanceSource = {
+  id: "ponytail",
+  label: "Minimal-diff bias",
+  content:
+    "Apply a minimal-diff bias: prefer reuse over new abstractions, the smallest coherent diff, and deletion before addition. Preserve existing behavior and add complexity only when verification proves it is needed.",
+};

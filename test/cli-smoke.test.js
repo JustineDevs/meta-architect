@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { createTestNamespace } from "../src/test-fixtures.js";
 import { spawnPortable } from "./helpers/spawn-portable.js";
+import { copyProjectFixture as copyDir } from "./helpers/temp-repo.js";
 import { listRelativeFiles } from "./helpers/tree-parity.js";
 
 const repoRoot = process.cwd();
@@ -35,32 +36,6 @@ const cleanRelease = {
   waiver: null,
   updatedAt: "2026-04-30T00:00:00.000Z",
 };
-
-async function copyDir(src, dest) {
-  await fs.mkdir(dest, { recursive: true });
-  const entries = await fs.readdir(src, { withFileTypes: true });
-  for (const entry of entries) {
-    if (
-      entry.name === ".git" ||
-      entry.name === "node_modules" ||
-      entry.name === ".ma" ||
-      entry.name === ".omx" ||
-      entry.name === ".claude" ||
-      entry.name === ".agents" ||
-      entry.name === ".husky"
-    ) {
-      continue;
-    }
-
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      await copyDir(srcPath, destPath);
-    } else {
-      await fs.copyFile(srcPath, destPath);
-    }
-  }
-}
 
 async function writeFakeCodex(tempRoot, exitCode = 0) {
   const codexBin = path.join(tempRoot, "fake-codex.mjs");
@@ -111,7 +86,7 @@ function assertStdoutContainsIfAvailable(result, pattern) {
 }
 
 test("ma status succeeds against the default scaffold", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-status-"));
+  const tempRoot = createTestNamespace("meta-architect-status");
   await copyDir(repoRoot, tempRoot);
   await fs.mkdir(path.join(tempRoot, ".ma"), { recursive: true });
   await fs.writeFile(
@@ -134,7 +109,7 @@ test("ma status succeeds against the default scaffold", async () => {
 });
 
 test("ma status --maestro-view shows scratchpad runtime telemetry", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-status-maestro-"));
+  const tempRoot = createTestNamespace("meta-architect-status-maestro");
   await copyDir(repoRoot, tempRoot);
   const outputPath = path.join(tempRoot, "maestro-view.txt");
   const setupResult = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
@@ -143,6 +118,11 @@ test("ma status --maestro-view shows scratchpad runtime telemetry", async () => 
     encoding: "utf8",
   });
   assert.equal(setupResult.status, 0, setupResult.stderr || setupResult.stdout);
+  const projectIndex = JSON.parse(
+    await fs.readFile(path.join(tempRoot, ".ma", "context", "project-index.json"), "utf8"),
+  );
+  assert.equal(projectIndex.authority, "source_truth");
+  assert.equal(projectIndex.record_type, "project_index");
 
   const result = spawnSync(
     "/bin/sh",
@@ -166,7 +146,7 @@ test("ma status --maestro-view shows scratchpad runtime telemetry", async () => 
 });
 
 test("ma run $build fails closed against the default scaffold", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-build-"));
+  const tempRoot = createTestNamespace("meta-architect-build");
   await copyDir(repoRoot, tempRoot);
   await fs.mkdir(path.join(tempRoot, ".ma"), { recursive: true });
   await fs.writeFile(
@@ -195,7 +175,7 @@ test("ma run $build fails closed against the default scaffold", async () => {
 });
 
 test("ma run $build rejects corrupt decisions before rewriting build plan", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-build-corrupt-"));
+  const tempRoot = createTestNamespace("meta-architect-build-corrupt");
   await copyDir(repoRoot, tempRoot);
 
   const setupResult = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
@@ -225,9 +205,7 @@ test("ma run $build rejects corrupt decisions before rewriting build plan", asyn
 });
 
 test("ma run $build rejects corrupt release before rewriting build plan", async () => {
-  const tempRoot = await fs.mkdtemp(
-    path.join(os.tmpdir(), "meta-architect-build-corrupt-release-"),
-  );
+  const tempRoot = createTestNamespace("meta-architect-build-corrupt-release");
   await copyDir(repoRoot, tempRoot);
 
   const setupResult = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
@@ -257,9 +235,7 @@ test("ma run $build rejects corrupt release before rewriting build plan", async 
 });
 
 test("ma run $build rejects invalid runtime authority before rewriting build plan", async () => {
-  const tempRoot = await fs.mkdtemp(
-    path.join(os.tmpdir(), "meta-architect-build-invalid-authority-"),
-  );
+  const tempRoot = createTestNamespace("meta-architect-build-invalid-authority");
   await copyDir(repoRoot, tempRoot);
 
   const setupResult = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
@@ -292,7 +268,7 @@ test("ma run $build rejects invalid runtime authority before rewriting build pla
 });
 
 test("ma run $build points to runtime repair when runtime-only blockers exist", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-build-runtime-block-"));
+  const tempRoot = createTestNamespace("meta-architect-build-runtime-block");
   await copyDir(repoRoot, tempRoot);
 
   const setupResult = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
@@ -341,7 +317,7 @@ test("ma run $build points to runtime repair when runtime-only blockers exist", 
 });
 
 test("ma run $maestro executes the next eligible gated work and persists manager state", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-maestro-"));
+  const tempRoot = createTestNamespace("meta-architect-maestro");
   await copyDir(repoRoot, tempRoot);
   const setupResult = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
     cwd: tempRoot,
@@ -409,7 +385,7 @@ test("ma run $maestro executes the next eligible gated work and persists manager
 });
 
 test("ma setup seeds canonical .ma runtime state", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-setup-"));
+  const tempRoot = createTestNamespace("meta-architect-setup");
   await copyDir(repoRoot, tempRoot);
   const result = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
     cwd: tempRoot,
@@ -431,7 +407,7 @@ test("ma setup seeds canonical .ma runtime state", async () => {
   await fs.access(path.join(tempRoot, ".ma", "plans", "implementation.md"));
   await fs.access(path.join(tempRoot, ".ma", "plans", "build.md"));
   await fs.access(path.join(tempRoot, ".ma", "runbook.md"));
-  await fs.access(path.join(tempRoot, "docs", "qa", "release-issue-gates-0.1.13.json"));
+  await fs.access(path.join(tempRoot, "docs", "qa", "release-issue-gates-0.14.0.json"));
   const runtimeArtifacts = [
     ["guidance", "merged.json"],
     ["memory", "notes.md"],
@@ -443,10 +419,93 @@ test("ma setup seeds canonical .ma runtime state", async () => {
   for (const relativePath of runtimeArtifacts) {
     await fs.access(path.join(tempRoot, ".ma", ...relativePath));
   }
+  await fs.access(path.join(tempRoot, "scripts", "active-autonomy-hook.mjs"));
+});
+
+test("ma init emits the structured scaffold report", async () => {
+  const tempRoot = createTestNamespace("meta-architect-init");
+  await copyDir(repoRoot, tempRoot);
+
+  const result = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "init"], {
+    cwd: tempRoot,
+    env: { ...process.env, MA_ROOT: tempRoot },
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stdout, /meta-architect init/);
+  assert.match(result.stdout, /(created|existing|refreshed): .*scripts\/active-autonomy-hook\.mjs/);
+});
+
+test("ma setup --json reports structured artifact statuses and refreshes drift", async () => {
+  const tempRoot = createTestNamespace("meta-architect-setup-json");
+  await copyDir(repoRoot, tempRoot);
+
+  const firstResult = spawnPortable(
+    process.execPath,
+    [path.join(repoRoot, "bin/ma.js"), "setup", "--json"],
+    {
+      cwd: tempRoot,
+      env: { ...process.env, MA_ROOT: tempRoot },
+      encoding: "utf8",
+    },
+  );
+  assert.equal(firstResult.status, 0, firstResult.stderr || firstResult.stdout);
+
+  const firstReport = JSON.parse(firstResult.stdout);
+  assert.equal(Array.isArray(firstReport.directories), true);
+  assert.equal(Array.isArray(firstReport.files), true);
+  assert.equal(
+    firstReport.files.some((entry) => entry.path === "scripts/active-autonomy-hook.mjs"),
+    true,
+  );
+
+  await fs.writeFile(path.join(tempRoot, ".codex", "hooks.json"), '{"broken":true}\n');
+
+  const protectedResult = spawnPortable(
+    process.execPath,
+    [path.join(repoRoot, "bin/ma.js"), "setup", "--json"],
+    {
+      cwd: tempRoot,
+      env: { ...process.env, MA_ROOT: tempRoot },
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(protectedResult.status, 0, protectedResult.stderr || protectedResult.stdout);
+  const protectedReport = JSON.parse(protectedResult.stdout);
+  assert.equal(
+    protectedReport.files.some(
+      (entry) => entry.path === ".codex/hooks.json" && entry.status === "skipped",
+    ),
+    true,
+  );
+  assert.equal(
+    await fs.readFile(path.join(tempRoot, ".codex", "hooks.json"), "utf8"),
+    '{"broken":true}\n',
+  );
+
+  const secondResult = spawnPortable(
+    process.execPath,
+    [path.join(repoRoot, "bin/ma.js"), "setup", "--json", "--refresh"],
+    {
+      cwd: tempRoot,
+      env: { ...process.env, MA_ROOT: tempRoot },
+      encoding: "utf8",
+    },
+  );
+  assert.equal(secondResult.status, 0, secondResult.stderr || secondResult.stdout);
+  const secondReport = JSON.parse(secondResult.stdout);
+  assert.equal(
+    secondReport.files.some(
+      (entry) => entry.path === ".codex/hooks.json" && entry.status === "refreshed",
+    ),
+    true,
+  );
 });
 
 test("ma bootstrap repairs packaged assets and local scaffold for a new checkout", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-bootstrap-"));
+  const tempRoot = createTestNamespace("meta-architect-bootstrap");
   const codexHome = path.join(tempRoot, "codex-home");
   await copyDir(repoRoot, tempRoot);
   const codexBin = await writeFakeCodexCli(tempRoot);
@@ -484,13 +543,16 @@ test("ma bootstrap repairs packaged assets and local scaffold for a new checkout
   const mirroredPluginSkillFiles = await listRelativeFiles(
     path.join(codexHome, "meta-architect-sdk", "plugins", "meta-architect", "skills"),
   );
-  assert.deepEqual(mirroredPluginSkillFiles, installedSkillFiles);
+  assert.deepEqual(
+    mirroredPluginSkillFiles,
+    installedSkillFiles.filter((relativePath) => relativePath !== "index.json"),
+  );
   await fs.access(path.join(tempRoot, ".ma", "release.json"));
   await fs.access(path.join(tempRoot, ".ma", "context", "project.md"));
 });
 
 test("ma bootstrap --init-mcp seeds starter MCP files when local MCP config is empty", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-bootstrap-mcp-"));
+  const tempRoot = createTestNamespace("meta-architect-bootstrap-mcp");
   const codexHome = path.join(tempRoot, "codex-home");
   await copyDir(repoRoot, tempRoot);
   const codexBin = await writeFakeCodexCli(tempRoot);
@@ -534,13 +596,16 @@ test("ma bootstrap --init-mcp seeds starter MCP files when local MCP config is e
   );
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assertStdoutContainsIfAvailable(result, /GitMCP evidence sources were seeded/i);
+  assertStdoutContainsIfAvailable(
+    result,
+    /package-owned mcp\/local-capabilities\.json is ready for first-party capabilities/i,
+  );
   const servers = JSON.parse(await fs.readFile(path.join(tempRoot, "mcp", "servers.json"), "utf8"));
   assert.equal(servers.servers.length > 0, true);
 });
 
 test("ma doctor reports a ready environment after bootstrap", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-doctor-"));
+  const tempRoot = createTestNamespace("meta-architect-doctor");
   const codexHome = path.join(tempRoot, "codex-home");
   await copyDir(repoRoot, tempRoot);
   const codexBin = await writeFakeCodexCli(tempRoot);
@@ -578,11 +643,47 @@ test("ma doctor reports a ready environment after bootstrap", async () => {
 
   assert.equal(doctorResult.status, 0, doctorResult.stderr || doctorResult.stdout);
   assertStdoutContainsIfAvailable(doctorResult, /Meta-Architect Doctor/);
+  assertStdoutContainsIfAvailable(doctorResult, /MCP client version:/);
   assertStdoutContainsIfAvailable(doctorResult, /Result: READY/);
+  assertStdoutContainsIfAvailable(doctorResult, /project context freshness/);
+  assertStdoutContainsIfAvailable(doctorResult, /MCP context resources/);
+
+  const hooksPath = path.join(tempRoot, ".codex", "hooks.json");
+  const hooks = JSON.parse(await fs.readFile(hooksPath, "utf8"));
+  hooks.hooks.UserPromptSubmit.push({
+    type: "command",
+    command: "node ./scripts/missing-hook.mjs",
+  });
+  await fs.writeFile(hooksPath, `${JSON.stringify(hooks, null, 2)}\n`);
+  const brokenHookDoctor = spawnPortable(
+    process.execPath,
+    [path.join(repoRoot, "bin/ma.js"), "doctor"],
+    {
+      cwd: tempRoot,
+      env: {
+        ...process.env,
+        CODEX_HOME: codexHome,
+        MA_CODEX_BIN: codexBin,
+        MA_ROOT: tempRoot,
+      },
+      encoding: "utf8",
+    },
+  );
+  assert.equal(brokenHookDoctor.status, 0, brokenHookDoctor.stderr || brokenHookDoctor.stdout);
+  assertStdoutContainsIfAvailable(brokenHookDoctor, /hook command portability: missing/);
+});
+
+test("ma welcome prints bounded onboarding next steps", async () => {
+  const result = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "welcome"], {
+    cwd: repoRoot,
+    env: { ...process.env, MA_ROOT: repoRoot },
+    encoding: "utf8",
+  });
+  assertStdoutContainsIfAvailable(result, /Meta-Architect welcome|ma doctor/);
 });
 
 test("ma launcher delegates non-native commands to codex and strips compatibility flags", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-launcher-"));
+  const tempRoot = createTestNamespace("meta-architect-launcher");
   const codexHome = path.join(tempRoot, "codex-home");
   await copyDir(repoRoot, tempRoot);
   const outputPath = path.join(tempRoot, "codex-output.json");
@@ -612,7 +713,7 @@ test("ma launcher delegates non-native commands to codex and strips compatibilit
 });
 
 test("ma sdk-path prints the installed support bundle root", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-sdk-path-"));
+  const tempRoot = createTestNamespace("meta-architect-sdk-path");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "sdk-path.txt");
   const result = spawnSync(
@@ -638,7 +739,7 @@ test("ma sdk-path prints the installed support bundle root", async () => {
 });
 
 test("ma with no args delegates directly to codex", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-launcher-empty-"));
+  const tempRoot = createTestNamespace("meta-architect-launcher-empty");
   const codexHome = path.join(tempRoot, "codex-home");
   await copyDir(repoRoot, tempRoot);
   const outputPath = path.join(tempRoot, "codex-output.json");
@@ -660,7 +761,7 @@ test("ma with no args delegates directly to codex", async () => {
 });
 
 test("ma launcher preserves the delegated codex exit code", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-launcher-exit-"));
+  const tempRoot = createTestNamespace("meta-architect-launcher-exit");
   const codexHome = path.join(tempRoot, "codex-home");
   await copyDir(repoRoot, tempRoot);
   const codexBin = await writeFakeCodex(tempRoot, 7);
@@ -679,7 +780,7 @@ test("ma launcher preserves the delegated codex exit code", async () => {
 });
 
 test("ma verify --architect uses the configured external architect reviewer", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-architect-verify-"));
+  const tempRoot = createTestNamespace("meta-architect-architect-verify");
   const outputPath = path.join(tempRoot, "architect-verify.txt");
   const reviewerScript = path.join(tempRoot, "fake-architect-review.sh");
   await copyDir(repoRoot, tempRoot);
@@ -687,7 +788,7 @@ test("ma verify --architect uses the configured external architect reviewer", as
     reviewerScript,
     `#!/usr/bin/env bash
 set -euo pipefail
-printf '%s' '{"verdict":"APPROVED","reviewer":"fake-architect","summary":"approved by fake reviewer","findings":[]}' > "$MA_ARCHITECT_REVIEW_OUTPUT"
+printf '%s' '{"verdict":"APPROVED","reviewer":"fake-architect","summary":"approved with sk-1234567890123456 for alice@example.com","findings":[]}' > "$MA_ARCHITECT_REVIEW_OUTPUT"
 `,
     { mode: 0o755 },
   );
@@ -699,21 +800,28 @@ printf '%s' '{"verdict":"APPROVED","reviewer":"fake-architect","summary":"approv
   assert.equal(setupResult.status, 0, setupResult.stderr || setupResult.stdout);
 
   const result = spawnSync(
-    "/bin/sh",
-    [
-      "-lc",
-      `MA_ROOT='${tempRoot}' MA_ARCHITECT_REVIEW_CMD='${reviewerScript}' '${process.execPath}' '${path.join(repoRoot, "bin/ma.js")}' verify --architect > '${outputPath}'`,
-    ],
+    process.execPath,
+    [path.join(repoRoot, "bin/ma.js"), "verify", "--architect"],
     {
       cwd: tempRoot,
       env: {
         ...process.env,
+        MA_ROOT: tempRoot,
+        MA_ARCHITECT_REVIEW_CMD: reviewerScript,
+        MA_ARCHITECT_REVIEW_ALLOWLIST: reviewerScript,
       },
       encoding: "utf8",
     },
   );
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
+  await fs.writeFile(outputPath, result.stdout);
   const output = await fs.readFile(outputPath, "utf8");
   assert.match(output, /Architect verdict: APPROVED/);
+  const persistedReview = await fs.readFile(
+    path.join(tempRoot, ".ma", "state", "architect-review.json"),
+    "utf8",
+  );
+  assert.doesNotMatch(persistedReview, /sk-1234567890123456|alice@example\.com/);
+  assert.match(persistedReview, /__MA_SECURE_TOKEN__/);
 });

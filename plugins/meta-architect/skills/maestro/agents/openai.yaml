@@ -1,4 +1,0 @@
-interface:
-  display_name: "$maestro"
-  short_description: "Bounded autonomous manager for the gated workflow and helper handoffs"
-  default_prompt: "Use $maestro as the singular Meta-Architect in-session autonomous manager: inspect workflow state, choose the smallest safe next step, hand work to $align, $diagnose, $tdd, or $cleanup when a publishable non-gating helper is enough, and manage the fixed gated sequence at $arch, $sage, $flow, $vet, $vibe, and $build without inventing new gates."

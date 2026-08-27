@@ -2,14 +2,59 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
-import { validateReleaseIssueGates } from "../src/release-issue-gates.js";
+import {
+  resolveReleaseIssueGates,
+  resolveReleaseReadiness,
+  validateReleaseIssueGates,
+} from "../src/release-issue-gates.js";
+import { createTestNamespace, removeTestNamespace } from "../src/test-fixtures.js";
+
+test("release issue gates resolve the current package version", () => {
+  const resolution = resolveReleaseIssueGates(process.cwd(), "0.14.0");
+  assert.equal(path.basename(resolution.path), "release-issue-gates-0.14.0.json");
+  assert.equal(resolution.fallback, false);
+});
+
+test("release issue gates fall back to the newest historical file", async (t) => {
+  const root = createTestNamespace("release-gate-resolution");
+  t.after(() => removeTestNamespace(root));
+  await fs.mkdir(path.join(root, "docs", "qa"), { recursive: true });
+  await fs.writeFile(path.join(root, "package.json"), '{"version":"0.2.0"}\n');
+  await fs.writeFile(path.join(root, "docs", "qa", "release-issue-gates-0.1.9.json"), "{}\n");
+  await fs.writeFile(path.join(root, "docs", "qa", "release-issue-gates-0.1.10.json"), "{}\n");
+  const resolution = resolveReleaseIssueGates(root);
+  assert.equal(resolution.version, "0.1.10");
+  assert.equal(resolution.fallback, true);
+});
+
+test("release issue gates return no resolution when there is no current or history", async (t) => {
+  const root = createTestNamespace("release-gate-empty");
+  t.after(() => removeTestNamespace(root));
+  await fs.mkdir(path.join(root, "docs", "qa"), { recursive: true });
+  await fs.writeFile(path.join(root, "package.json"), '{"version":"0.2.0"}\n');
+  assert.equal(resolveReleaseIssueGates(root), null);
+});
+
+test("release readiness resolves current and historical versions without source paths", async (t) => {
+  const root = createTestNamespace("release-readiness-resolution");
+  t.after(() => removeTestNamespace(root));
+  await fs.mkdir(path.join(root, "docs", "qa"), { recursive: true });
+  await fs.writeFile(path.join(root, "package.json"), '{"version":"0.2.0"}\n');
+  await fs.writeFile(path.join(root, "docs", "qa", "release-readiness-0.1.9.md"), "old\n");
+  await fs.writeFile(path.join(root, "docs", "qa", "release-readiness-0.1.10.md"), "new\n");
+  const resolution = resolveReleaseReadiness(root);
+  assert.equal(resolution.version, "0.1.10");
+  assert.equal(resolution.fallback, true);
+  await fs.writeFile(path.join(root, "docs", "qa", "release-readiness-0.2.0.md"), "current\n");
+  assert.equal(resolveReleaseReadiness(root).version, "0.2.0");
+});
 
 test("release issue gate matrix is structurally valid", async () => {
-  const gatePath = path.join("docs", "qa", "release-issue-gates-0.1.13.json");
+  const gatePath = path.join("docs", "qa", "release-issue-gates-0.14.0.json");
   const document = JSON.parse(await fs.readFile(gatePath, "utf8"));
 
   const result = validateReleaseIssueGates(document, {
-    version: "0.1.13",
+    version: "0.14.0",
     requirePassed: false,
   });
 
@@ -19,11 +64,11 @@ test("release issue gate matrix is structurally valid", async () => {
 });
 
 test("release issue gate matrix passes production after every issue has proof", async () => {
-  const gatePath = path.join("docs", "qa", "release-issue-gates-0.1.13.json");
+  const gatePath = path.join("docs", "qa", "release-issue-gates-0.14.0.json");
   const document = JSON.parse(await fs.readFile(gatePath, "utf8"));
 
   const result = validateReleaseIssueGates(document, {
-    version: "0.1.13",
+    version: "0.14.0",
     requirePassed: true,
   });
 

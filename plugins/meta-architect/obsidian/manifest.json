@@ -1,7 +1,7 @@
 {
   "id": "meta-architect",
   "name": "Meta-Architect",
-  "version": "0.1.13",
+  "version": "0.14.0",
   "minAppVersion": "1.5.0",
   "description": "Connects active Obsidian notes, selections, graph metadata, canvases, attachments, and request queues to Meta-Architect vault context.",
   "author": "JustineDevs",

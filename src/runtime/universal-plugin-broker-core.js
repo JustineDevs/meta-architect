@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -16,6 +17,14 @@ function asArray(value) {
 
 function quoteTomlString(value) {
   return JSON.stringify(`${value}`);
+}
+
+function quotePosixShell(value) {
+  const text = `${value}`;
+  if (text.includes("\0")) {
+    throw new Error("plugin command and args must not contain NUL bytes");
+  }
+  return `'${text.replaceAll("'", "'\\''")}'`;
 }
 
 function dedupe(values) {
@@ -48,14 +57,97 @@ async function directoryExists(targetPath) {
 async function readJsonOrDefault(filePath, fallback) {
   try {
     return JSON.parse(await fs.readFile(filePath, "utf8"));
-  } catch {
-    return structuredClone(fallback);
+  } catch (error) {
+    if (error?.code === "ENOENT") return structuredClone(fallback);
+    throw new Error(`Invalid JSON configuration: ${filePath}`, { cause: error });
+  }
+}
+
+async function readTextOrEmpty(filePath) {
+  try {
+    return await fs.readFile(filePath, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") return "";
+    throw new Error(`Unable to read vendor configuration: ${filePath}`, { cause: error });
   }
 }
 
 async function writeJsonConfig(filePath, config) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, `${JSON.stringify(config, null, 2)}\n`);
+}
+
+async function fileHash(filePath) {
+  try {
+    if ((await fs.lstat(filePath)).isSymbolicLink()) {
+      throw new Error(`Refusing to hash symlinked vendor path: ${filePath}`);
+    }
+    return crypto
+      .createHash("sha256")
+      .update(await fs.readFile(filePath))
+      .digest("hex");
+  } catch (error) {
+    if (error?.code === "ENOENT") return null;
+    throw new Error(`Unable to read vendor configuration: ${filePath}`, { cause: error });
+  }
+}
+
+async function pathHash(target) {
+  try {
+    const stat = await fs.lstat(target);
+    if (stat.isSymbolicLink()) throw new Error(`Refusing to hash symlinked path: ${target}`);
+    if (stat.isDirectory()) {
+      const entries = (await fs.readdir(target)).sort();
+      const parts = [];
+      for (const entry of entries)
+        parts.push(`${entry}\0${await pathHash(path.join(target, entry))}`);
+      return crypto
+        .createHash("sha256")
+        .update(`dir\0${parts.join("\0")}`)
+        .digest("hex");
+    }
+    return crypto
+      .createHash("sha256")
+      .update(await fs.readFile(target))
+      .digest("hex");
+  } catch (error) {
+    if (error?.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+async function assertNoSymlinkPath(target) {
+  if (!target) return;
+  let current = path.parse(path.resolve(target)).root;
+  for (const part of path.relative(current, path.resolve(target)).split(path.sep).filter(Boolean)) {
+    current = path.join(current, part);
+    const stat = await fs.lstat(current).catch((error) => {
+      if (error?.code === "ENOENT") return null;
+      throw error;
+    });
+    if (stat?.isSymbolicLink()) throw new Error(`Refusing symlinked vendor path: ${current}`);
+  }
+}
+
+function hostConfigPath({ host, home, platform, env }) {
+  if (host === "claude-code") return path.join(home, ".claude.json");
+  if (host === "antigravity") return path.join(home, ".antigravity", "config.toml");
+  if (host === "cursor") return cursorStoragePath({ home, platform, env });
+  if (host === "codex") return path.join(home, ".codex", "config.toml");
+  return null;
+}
+
+async function snapshotHostConfig({ host, home, platform, env, backupRoot }) {
+  const configPath = hostConfigPath({ host, home, platform, env });
+  if (!configPath) return { host, path: null, backupPath: null, beforeHash: null };
+  await assertNoSymlinkPath(configPath);
+  const beforeHash = await fileHash(configPath);
+  const backupPath = path.join(backupRoot, `${host}.bak`);
+  if (beforeHash) {
+    await fs.mkdir(backupRoot, { recursive: true });
+    await fs.copyFile(configPath, backupPath);
+  }
+  return { host, path: configPath, backupPath: beforeHash ? backupPath : null, beforeHash };
 }
 
 function cursorStoragePath({
@@ -102,17 +194,17 @@ function createMcpDefinition({ manifest, pluginDir, wrapperPath, useWrapper = tr
   };
 }
 
-function renderWrapperScript({ manifest, pluginDir }) {
+export function renderWrapperScript({ manifest, pluginDir }) {
   const args = asArray(manifest.mcp?.args).map((arg) =>
     `${arg}`.replaceAll("{{PLUGIN_DIR}}", pluginDir),
   );
   if (manifest.mcp.command === "node" && args.length > 0) {
     const [entrypoint, ...rest] = args;
-    const quotedRest = rest.map((arg) => `"${arg.replaceAll('"', '\\"')}"`).join(" ");
-    return `#!/usr/bin/env sh\nexec node "${entrypoint.replaceAll('"', '\\"')}" ${quotedRest} "$@"\n`;
+    const quotedRest = rest.map(quotePosixShell).join(" ");
+    return `#!/usr/bin/env sh\nexec ${quotePosixShell("node")} ${quotePosixShell(entrypoint)}${quotedRest ? ` ${quotedRest}` : ""} "$@"\n`;
   }
-  const quotedArgs = args.map((arg) => `"${arg.replaceAll('"', '\\"')}"`).join(" ");
-  return `#!/usr/bin/env sh\nexec "${manifest.mcp.command.replaceAll('"', '\\"')}" ${quotedArgs} "$@"\n`;
+  const quotedArgs = args.map(quotePosixShell).join(" ");
+  return `#!/usr/bin/env sh\nexec ${quotePosixShell(manifest.mcp.command)}${quotedArgs ? ` ${quotedArgs}` : ""} "$@"\n`;
 }
 
 export function getUniversalPluginBrokerCorePath() {
@@ -341,6 +433,10 @@ export async function writePluginContextSkill({ manifest, home = os.homedir() })
   const plugin = validateUniversalPluginManifest(manifest);
   const serverName = mcpServerNameForPlugin(plugin.name);
   const skillDir = path.join(home, ".agents", "skills", serverName);
+  await assertNoSymlinkPath(skillDir);
+  for (const fileName of ["SKILL.md", "ma-plugin-manifest.json", "ma-plugin-broker-receipt.json"]) {
+    await assertNoSymlinkPath(path.join(skillDir, fileName));
+  }
   await fs.mkdir(skillDir, { recursive: true });
   await fs.writeFile(path.join(skillDir, "SKILL.md"), renderPluginContextSkillMd(plugin));
   await writeJson(path.join(skillDir, "ma-plugin-manifest.json"), plugin);
@@ -391,6 +487,7 @@ export async function injectClaudeCodeMcpServer({
   args,
 }) {
   const claudeJsonPath = path.join(home, ".claude.json");
+  await assertNoSymlinkPath(claudeJsonPath);
   if (!(await pathExists(claudeJsonPath)) && !(await directoryExists(path.join(home, ".claude")))) {
     return { host: "claude-code", status: "skipped", reason: "Claude Code config not detected" };
   }
@@ -416,7 +513,8 @@ export async function injectAntigravityMcpServer({
     };
   }
   const configPath = path.join(antigravityRoot, "config.toml");
-  const existing = (await fs.readFile(configPath, "utf8").catch(() => "")).trimEnd();
+  await assertNoSymlinkPath(configPath);
+  const existing = (await readTextOrEmpty(configPath)).trimEnd();
   const marker = `name = ${quoteTomlString(serverName)}`;
   if (existing.includes(marker)) {
     return { host: "antigravity", status: "configured", path: configPath, idempotent: true };
@@ -445,6 +543,7 @@ export async function injectCursorMcpServer({
   args,
 }) {
   const settingsPath = cursorStoragePath({ home, platform, env });
+  await assertNoSymlinkPath(settingsPath);
   if (!(await pathExists(settingsPath)) && !(await directoryExists(path.dirname(settingsPath)))) {
     return { host: "cursor", status: "skipped", reason: "Cursor storage not detected" };
   }
@@ -466,7 +565,8 @@ export async function injectCodexMcpServer({ home = os.homedir(), serverName, co
     return { host: "codex", status: "skipped", reason: "Codex config root not detected" };
   }
   const configPath = path.join(codexRoot, "config.toml");
-  const existing = (await fs.readFile(configPath, "utf8").catch(() => "")).trimEnd();
+  await assertNoSymlinkPath(configPath);
+  const existing = (await readTextOrEmpty(configPath)).trimEnd();
   const header = `[mcp_servers.${quoteTomlString(serverName)}]`;
   if (existing.includes(header)) {
     return { host: "codex", status: "configured", path: configPath, idempotent: true };
@@ -489,25 +589,55 @@ export async function injectPluginToVendors({
   platform = process.platform,
   env = process.env,
   useWrapper = true,
+  backupRoot = null,
 } = {}) {
   const plugin = validateUniversalPluginManifest(manifest);
   const selectedTargets = targets ?? (await detectInstalledPluginHosts({ home, platform, env }));
   const serverName = mcpServerNameForPlugin(plugin.name);
   const definition = createMcpDefinition({ manifest: plugin, pluginDir, wrapperPath, useWrapper });
   const receipts = [];
-  for (const target of selectedTargets) {
-    if (target === "claude-code") {
-      receipts.push(await injectClaudeCodeMcpServer({ home, serverName, ...definition }));
-    } else if (target === "antigravity") {
-      receipts.push(await injectAntigravityMcpServer({ home, serverName, ...definition }));
-    } else if (target === "cursor") {
-      receipts.push(
-        await injectCursorMcpServer({ home, platform, env, serverName, ...definition }),
-      );
-    } else if (target === "codex") {
-      receipts.push(await injectCodexMcpServer({ home, serverName, ...definition }));
-    } else {
-      receipts.push({ host: target, status: "skipped", reason: "No MA MCP injector for host" });
+  const snapshots = new Map();
+  try {
+    for (const target of selectedTargets) {
+      const snapshot = backupRoot
+        ? await snapshotHostConfig({ host: target, home, platform, env, backupRoot })
+        : null;
+      if (snapshot) snapshots.set(target, snapshot);
+      if (target === "claude-code") {
+        receipts.push(await injectClaudeCodeMcpServer({ home, serverName, ...definition }));
+      } else if (target === "antigravity") {
+        receipts.push(await injectAntigravityMcpServer({ home, serverName, ...definition }));
+      } else if (target === "cursor") {
+        receipts.push(
+          await injectCursorMcpServer({ home, platform, env, serverName, ...definition }),
+        );
+      } else if (target === "codex") {
+        receipts.push(await injectCodexMcpServer({ home, serverName, ...definition }));
+      } else {
+        receipts.push({ host: target, status: "skipped", reason: "No MA MCP injector for host" });
+      }
+    }
+  } catch (error) {
+    const rollbackErrors = [];
+    for (const snapshot of snapshots.values()) {
+      try {
+        if (snapshot.backupPath) await fs.copyFile(snapshot.backupPath, snapshot.path);
+        else await fs.rm(snapshot.path, { force: true });
+      } catch (rollbackError) {
+        rollbackErrors.push(rollbackError);
+      }
+    }
+    if (rollbackErrors.length > 0) {
+      throw new AggregateError([error, ...rollbackErrors], "Plugin vendor rollback failed");
+    }
+    throw error;
+  }
+  for (const receipt of receipts) {
+    const snapshot = backupRoot ? snapshots.get(receipt.host) : null;
+    if (snapshot) {
+      receipt.backupPath = snapshot.backupPath;
+      receipt.beforeHash = snapshot.beforeHash;
+      receipt.afterHash = await fileHash(snapshot.path);
     }
   }
   return {
@@ -531,6 +661,7 @@ export async function installUniversalPlugin({
   platform = process.platform,
   env = process.env,
   useWrapper = true,
+  dryRun = false,
 } = {}) {
   if (!sourceDir) {
     throw new Error("installUniversalPlugin requires sourceDir");
@@ -540,36 +671,228 @@ export async function installUniversalPlugin({
   if (!(await pathExists(sourceEntrypoint))) {
     throw new Error(`Plugin entrypoint missing: ${manifest.entrypoint}`);
   }
+  const selectedTargets = targets ?? (await detectInstalledPluginHosts({ home, platform, env }));
+  if (dryRun) {
+    return {
+      schemaVersion: universalPluginBrokerSchemaVersion,
+      record_type: "universal_plugin_broker_dry_run",
+      plugin: manifest.name,
+      targets: selectedTargets,
+      files: selectedTargets
+        .map((host) => hostConfigPath({ host, home, platform, env }))
+        .filter(Boolean),
+      records_as: "plugin_compatibility_configuration",
+      build_evidence: false,
+    };
+  }
+  await preflightVendorConfigs({ selectedTargets, home, platform, env });
   const pluginDir = path.join(home, ".ma", "plugins", manifest.name);
   const wrapperPath = path.join(home, ".ma", "bin", mcpServerNameForPlugin(manifest.name));
-  await fs.mkdir(path.dirname(pluginDir), { recursive: true });
-  await fs.rm(pluginDir, { recursive: true, force: true });
-  await fs.cp(sourceDir, pluginDir, { recursive: true });
-  await fs.mkdir(path.dirname(wrapperPath), { recursive: true });
-  await fs.writeFile(wrapperPath, renderWrapperScript({ manifest, pluginDir }));
-  await fs.chmod(wrapperPath, 0o755);
-  const contextSkillReceipt = await writePluginContextSkill({ manifest, home });
-  const vendorInjection = await injectPluginToVendors({
-    manifest,
-    pluginDir,
-    wrapperPath,
-    home,
-    targets,
-    platform,
-    env,
-    useWrapper,
-  });
+  const backupRoot = path.join(home, ".ma", "backups", "plugins", manifest.name, `${Date.now()}`);
+  let previousPaths;
+  let contextSkillReceipt;
+  let vendorInjection;
+  let installedPaths;
+  try {
+    const contextSkillPath = path.join(
+      home,
+      ".agents",
+      "skills",
+      mcpServerNameForPlugin(manifest.name),
+    );
+    await assertNoSymlinkPath(backupRoot);
+    await assertNoSymlinkPath(pluginDir);
+    await assertNoSymlinkPath(wrapperPath);
+    await assertNoSymlinkPath(contextSkillPath);
+    await fs.mkdir(backupRoot, { recursive: true });
+    previousPaths = {
+      pluginDir: await backupPathIfPresent(pluginDir, path.join(backupRoot, "previous-plugin")),
+      wrapperPath: await backupPathIfPresent(
+        wrapperPath,
+        path.join(backupRoot, "previous-wrapper"),
+      ),
+      contextSkill: await backupPathIfPresent(
+        contextSkillPath,
+        path.join(backupRoot, "previous-skill"),
+      ),
+    };
+    await fs.mkdir(path.dirname(pluginDir), { recursive: true });
+    await fs.cp(sourceDir, pluginDir, { recursive: true });
+    await fs.mkdir(path.dirname(wrapperPath), { recursive: true });
+    await fs.writeFile(wrapperPath, renderWrapperScript({ manifest, pluginDir }));
+    await fs.chmod(wrapperPath, 0o755);
+    contextSkillReceipt = await writePluginContextSkill({ manifest, home });
+    vendorInjection = await injectPluginToVendors({
+      manifest,
+      pluginDir,
+      wrapperPath,
+      home,
+      targets: selectedTargets,
+      platform,
+      env,
+      useWrapper,
+      backupRoot,
+    });
+    installedPaths = {
+      pluginDir: await pathHash(pluginDir),
+      wrapperPath: await pathHash(wrapperPath),
+      contextSkill: await pathHash(contextSkillReceipt.path),
+    };
+    const receipt = {
+      schemaVersion: universalPluginBrokerSchemaVersion,
+      record_type: "universal_plugin_broker_install_receipt",
+      plugin: manifest.name,
+      pluginDir,
+      wrapperPath,
+      contextSkillReceipt,
+      previousPaths,
+      installedPaths,
+      vendorInjection,
+      backupRoot,
+      activation_notice:
+        "Plugin configured. Run /reload-mcp where supported or restart active agent sessions to activate newly injected MCP servers.",
+      records_as: "plugin_compatibility_configuration",
+      build_evidence: false,
+    };
+    await writeJson(path.join(backupRoot, "receipt.json"), receipt);
+    return receipt;
+  } catch (error) {
+    if (vendorInjection && previousPaths) {
+      try {
+        await rollbackUniversalPluginInstall({
+          pluginDir,
+          wrapperPath,
+          contextSkillReceipt,
+          previousPaths,
+          installedPaths,
+          vendorInjection,
+          backupRoot,
+        });
+      } catch (rollbackError) {
+        const failure = error instanceof Error ? error : new Error(String(error));
+        failure.cause = rollbackError;
+        throw failure;
+      }
+    } else {
+      if (previousPaths) {
+        await restorePath(pluginDir, previousPaths.pluginDir);
+        await restorePath(wrapperPath, previousPaths.wrapperPath);
+        await restorePath(
+          path.join(home, ".agents", "skills", mcpServerNameForPlugin(manifest.name)),
+          previousPaths.contextSkill,
+        );
+      }
+      await fs.rm(backupRoot, { recursive: true, force: true });
+    }
+    throw error;
+  }
+}
+
+async function preflightVendorConfigs({ selectedTargets, home, platform, env }) {
+  for (const target of selectedTargets) {
+    if (target === "claude-code") {
+      const configPath = path.join(home, ".claude.json");
+      if (await pathExists(configPath)) await readJsonOrDefault(configPath, {});
+    }
+    if (target === "cursor") {
+      const configPath = cursorStoragePath({ home, platform, env });
+      if (await pathExists(configPath)) await readJsonOrDefault(configPath, {});
+    }
+    if (target === "antigravity" || target === "codex") {
+      const configPath = hostConfigPath({ host: target, home, platform, env });
+      if (configPath) await readTextOrEmpty(configPath);
+    }
+  }
+}
+
+async function backupPathIfPresent(source, backup) {
+  if (!(await pathExists(source))) return null;
+  await fs.cp(source, backup, { recursive: true, force: true });
+  return backup;
+}
+
+async function restorePath(target, backup) {
+  if (!target) return;
+  await fs.rm(target, { recursive: true, force: true });
+  if (backup) await fs.cp(backup, target, { recursive: true, force: true });
+}
+
+export async function rollbackUniversalPluginInstall(receipt) {
+  if (receipt?.installedPaths) {
+    for (const [label, expectedHash] of Object.entries(receipt.installedPaths)) {
+      const target =
+        label === "pluginDir"
+          ? receipt.pluginDir
+          : label === "wrapperPath"
+            ? receipt.wrapperPath
+            : receipt.contextSkillReceipt?.path;
+      if ((await pathHash(target)) !== expectedHash) {
+        throw new Error(`Refusing rollback: installed ${label} changed after installation`);
+      }
+    }
+  }
+  const entries = receipt?.vendorInjection?.receipts ?? [];
+  const validated = [];
+  for (const entry of entries) {
+    if (!entry.path) continue;
+    const currentHash = await fileHash(entry.path);
+    const expectedHash = entry.afterHash ?? null;
+    if (currentHash !== expectedHash) {
+      throw new Error(`Refusing rollback for ${entry.host}: vendor config changed after injection`);
+    }
+    const backupExists = entry.backupPath && (await pathExists(entry.backupPath));
+    if (entry.status === "configured" && entry.beforeHash && !backupExists) {
+      throw new Error(`Refusing rollback for ${entry.host}: rollback source is missing`);
+    }
+    validated.push({
+      entry,
+      current: currentHash === null ? null : await fs.readFile(entry.path),
+      desired: backupExists ? await fs.readFile(entry.backupPath) : null,
+    });
+  }
+  try {
+    for (const { entry, desired } of validated) {
+      if (desired) await fs.writeFile(entry.path, desired);
+      else if (entry.status === "configured") await fs.rm(entry.path, { force: true });
+    }
+  } catch (error) {
+    const restoreErrors = [];
+    for (const { entry, current } of validated) {
+      try {
+        await assertNoSymlinkPath(entry.path);
+        if (current) await fs.writeFile(entry.path, current);
+        else await fs.rm(entry.path, { force: true });
+      } catch (restoreError) {
+        restoreErrors.push(restoreError);
+      }
+    }
+    if (restoreErrors.length > 0) {
+      throw new AggregateError(restoreErrors, "Plugin vendor rollback recovery failed");
+    }
+    throw new Error("Plugin rollback failed; prior vendor state was restored where possible", {
+      cause: error,
+    });
+  }
+  const pathRestoreErrors = [];
+  for (const [target, backup] of [
+    [receipt.pluginDir, receipt.previousPaths?.pluginDir],
+    [receipt.wrapperPath, receipt.previousPaths?.wrapperPath],
+    [receipt.contextSkillReceipt?.path, receipt.previousPaths?.contextSkill],
+  ]) {
+    try {
+      await assertNoSymlinkPath(target);
+      await restorePath(target, backup);
+    } catch (restoreError) {
+      pathRestoreErrors.push(restoreError);
+    }
+  }
+  if (pathRestoreErrors.length > 0) {
+    throw new AggregateError(pathRestoreErrors, "Plugin rollback recovery failed");
+  }
+  if (receipt.backupRoot) await fs.rm(receipt.backupRoot, { recursive: true, force: true });
   return {
-    schemaVersion: universalPluginBrokerSchemaVersion,
-    record_type: "universal_plugin_broker_install_receipt",
-    plugin: manifest.name,
-    pluginDir,
-    wrapperPath,
-    contextSkillReceipt,
-    vendorInjection,
-    activation_notice:
-      "Plugin configured. Run /reload-mcp where supported or restart active agent sessions to activate newly injected MCP servers.",
-    records_as: "plugin_compatibility_configuration",
-    build_evidence: false,
+    rolledBack: validated
+      .filter(({ entry }) => entry.status === "configured")
+      .map(({ entry }) => entry.host),
   };
 }

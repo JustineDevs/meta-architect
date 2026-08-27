@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-architect.dev/schemas/support-bundle.schema.json",
+  "type": "object",
+  "required": ["schemaVersion", "bundleVersion", "assets", "compatibility"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "bundleVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "compatibility": {
+      "type": "object",
+      "required": ["node", "managedBy"],
+      "properties": {
+        "node": { "type": "string", "minLength": 1 },
+        "managedBy": { "const": "@jstn-sdk/ma" }
+      },
+      "additionalProperties": false
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "class", "source", "destination", "type", "required"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "class": { "enum": ["runtime", "guidance", "plugin", "documentation"] },
+          "source": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+" },
+          "destination": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+" },
+          "type": { "enum": ["file", "directory"] },
+          "required": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

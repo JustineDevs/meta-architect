@@ -26,6 +26,18 @@ Purpose:
 
 Do not confuse these two layers. The repo publishes `skills/`, not `.ma/`.
 
+## Agent surface registry
+
+The launcher defaults to `codex` and accepts `MA_AGENT=claude-code` or
+`MA_AGENT=cursor` for those explicit host surfaces. The registry in
+`src/agents.js` reports each surface's project/global skill directories,
+command, universal status, and installation detection. The runtime compatibility
+registry remains the source for the complete 55-target fanout matrix.
+
+Plugin skill folders are linked to the canonical source when the filesystem
+allows it. Set `MA_PLUGIN_SYNC_MODE=copy` for a portable copied mirror; both
+modes are verified for file-set, content, and permission drift.
+
 ## Published surface types
 
 The publishable `skills/` surface contains:
