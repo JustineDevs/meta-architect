@@ -60,8 +60,8 @@ jobs:
             exit 0
           fi
 
-          if [ "$BASE_REF" = "main" ] && [ "$HEAD_REF" = "development" ]; then
-            echo "Curated promotion PR from development to main: allowed."
+          if [ "$BASE_REF" = "main" ] && [ "$HEAD_REF" = "dev" ]; then
+            echo "Curated promotion PR from dev to main: allowed."
             exit 0
           fi
 

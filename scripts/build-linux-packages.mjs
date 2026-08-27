@@ -87,6 +87,10 @@ async function createCommonRoot(root, packArtifactPath) {
   run("tar", ["-xzf", packArtifactPath, "-C", libRoot, "--strip-components=1", "package"], {
     cwd: repoRoot,
   });
+  const agentCompatSource = path.join(repoRoot, "node_modules", "@jstn-sdk", "agents");
+  const agentCompatTarget = path.join(libRoot, "node_modules", "@jstn-sdk", "agents");
+  await fsp.access(agentCompatSource);
+  await copyDir(agentCompatSource, agentCompatTarget);
 
   const wrapper = `#!/bin/sh
 PREFIX="\${META_ARCHITECT_PREFIX:-}"
