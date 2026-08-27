@@ -1,0 +1,37 @@
+rules:
+  - id: ai-missing-fetch-timeout
+    languages: [javascript, typescript]
+    message: Network calls require an AbortController or timeout boundary.
+    severity: ERROR
+    patterns:
+      - pattern: fetch($URL)
+      - pattern-not: fetch($URL, {...})
+  - id: ai-dynamic-code-execution
+    languages: [javascript, typescript]
+    message: Dynamic code execution is forbidden.
+    severity: ERROR
+    patterns:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+  - id: ai-log-injection
+    languages: [javascript, typescript]
+    message: User-controlled values must be sanitized before logging.
+    severity: WARNING
+    pattern: console.log(...)
+  - id: ai-raw-database-payload
+    languages: [javascript, typescript]
+    message: Database writes must use an allowlisted payload.
+    severity: ERROR
+    patterns:
+      - pattern: $DB.updateOne(...)
+      - pattern: $DB.create(...)
+  - id: ai-no-any-types
+    languages: [typescript]
+    message: Generated TypeScript must not use any.
+    severity: ERROR
+    pattern: $TYPE: any
+  - id: ai-unbounded-timer
+    languages: [javascript, typescript]
+    message: Timers require lifecycle cleanup.
+    severity: WARNING
+    pattern: setTimeout(...)

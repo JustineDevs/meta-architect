@@ -141,7 +141,10 @@ test("maestro advances one bounded manager action per call until review gates bl
   assert.match(implementationPlan, /Validate evidence through approved GitMCP sources/);
   assert.match(architectureSpec, /## Runtime Context/);
   assert.match(maestroPlan, /## Runtime Context/);
-  assert.deepEqual(guidanceIndex.sources, []);
+  assert.equal(guidanceIndex.sources.length, 1);
+  assert.equal(guidanceIndex.sources[0].id, "ponytail");
+  assert.match(guidanceIndex.content, /minimal-diff/);
+  assert.match(architectureSpec, /Minimal-diff bias/);
   assert.deepEqual(taskRegistry.tasks, []);
   assert.equal(typeof maestroState.runtime_tracks.track_arch_sync, "object");
   assert.equal(

@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -6,7 +7,11 @@ const __dirname = path.dirname(__filename);
 
 export const packageRoot = path.resolve(__dirname, "..");
 export function getRepoRoot() {
-  return process.env.MA_ROOT ? path.resolve(process.env.MA_ROOT) : process.cwd();
+  const root = process.env.MA_ROOT ? path.resolve(process.env.MA_ROOT) : process.cwd();
+  if (fs.realpathSync(root) !== root) {
+    throw new Error(`Repository root cannot traverse symlinks: ${root}`);
+  }
+  return root;
 }
 
 export function getRuntimeRoot() {

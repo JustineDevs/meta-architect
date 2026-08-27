@@ -16,7 +16,7 @@ Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
 
 ```bash
 # One-line install (POSIX shells only; use WSL/Git-Bash on Windows)
-curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh
 ```
 
 The installer uses jsDelivr to fetch this repo's POSIX install script and runs the canonical npm install path.
@@ -36,6 +36,17 @@ npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 ## First runtime action
+
+After setup, `ma welcome` reprints the bounded project summary, active integration
+states, context locations, and safe next commands. It never includes vault paths,
+tokens, or machine-specific runtime receipts.
+
+Npm authentication is also temporary by design. Setup and release helpers use
+`NODE_AUTH_TOKEN` or a generated owner-only npm config outside the repository;
+they must not create a workspace `.npmrc` containing credentials. `ma doctor`
+warns when a token-bearing workspace `.npmrc` is found. Callers that create a
+temporary config must remove it with `cleanupTemporaryNpmConfig` after the npm
+operation completes.
 
 Start with `$maestro` when you want MA to choose and drive the next safe lane:
 
@@ -63,7 +74,7 @@ Only use this when you need local repo scaffolding or scripted validation:
 ```bash
 ma setup
 ma
-ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare Meta-Architect v0.14.0 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ma run '$maestro'
 ma run '$arch'
 ma run '$sage'

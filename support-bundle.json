@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "1.0.0",
+  "bundleVersion": "0.14.0",
+  "compatibility": {
+    "node": ">=20",
+    "managedBy": "@jstn-sdk/ma"
+  },
+  "assets": [
+    {
+      "name": "mcp",
+      "class": "runtime",
+      "source": "mcp",
+      "destination": "mcp",
+      "type": "directory",
+      "required": true
+    },
+    {
+      "name": "sprint-release",
+      "class": "guidance",
+      "source": "sprint/07-release.md",
+      "destination": "sprint/07-release.md",
+      "type": "file",
+      "required": true
+    },
+    {
+      "name": "prompts",
+      "class": "guidance",
+      "source": ".codex/prompts",
+      "destination": "prompts",
+      "type": "directory",
+      "required": true
+    },
+    {
+      "name": "active-autonomy-hook",
+      "class": "runtime",
+      "source": "scripts/active-autonomy-hook.mjs",
+      "destination": "scripts/active-autonomy-hook.mjs",
+      "type": "file",
+      "required": true
+    },
+    {
+      "name": "skills-install",
+      "class": "runtime",
+      "source": "scripts/skills-install.js",
+      "destination": "scripts/skills-install.js",
+      "type": "file",
+      "required": true
+    },
+    {
+      "name": "plugin-skills",
+      "class": "plugin",
+      "source": "skills",
+      "destination": "plugins/meta-architect/skills",
+      "type": "directory",
+      "required": true
+    },
+    {
+      "name": "plugin-manifest",
+      "class": "plugin",
+      "source": "plugins/meta-architect/.codex-plugin/plugin.json",
+      "destination": "plugins/meta-architect/.codex-plugin/plugin.json",
+      "type": "file",
+      "required": true
+    },
+    {
+      "name": "plugin-app",
+      "class": "plugin",
+      "source": "plugins/meta-architect/.app.json",
+      "destination": "plugins/meta-architect/.app.json",
+      "type": "file",
+      "required": true
+    },
+    {
+      "name": "plugin-mcp",
+      "class": "plugin",
+      "source": "plugins/meta-architect/.mcp.json",
+      "destination": "plugins/meta-architect/.mcp.json",
+      "type": "file",
+      "required": true
+    },
+    {
+      "name": "plugin-obsidian",
+      "class": "plugin",
+      "source": "plugins/meta-architect/obsidian",
+      "destination": "plugins/meta-architect/obsidian",
+      "type": "directory",
+      "required": true
+    },
+    {
+      "name": "templates",
+      "class": "guidance",
+      "source": "templates/AGENTS.md",
+      "destination": "templates/AGENTS.md",
+      "type": "file",
+      "required": true
+    },
+    {
+      "name": "docs-readme",
+      "class": "documentation",
+      "source": "docs/README.md",
+      "destination": "docs/README.md",
+      "type": "file",
+      "required": true
+    },
+    {
+      "name": "docs-reference",
+      "class": "documentation",
+      "source": "docs/reference",
+      "destination": "docs/reference",
+      "type": "directory",
+      "required": false
+    }
+  ]
+}

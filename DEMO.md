@@ -1,7 +1,7 @@
 # Meta-Architect Demo Guide
 
 Last verified: 2026-06-03
-Release line: `v0.1.13`
+Release line: `v0.14.0`
 Package: `@jstn-sdk/ma`
 
 This demo uses a real existing project: this Meta-Architect repository.
@@ -30,7 +30,7 @@ It highlights how MA helps a workspace move from idea and context to gated archi
 Recommended POSIX install:
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh
 ```
 
 Canonical npm fallback:
@@ -96,7 +96,7 @@ Scenario: make this repository release-ready without bypassing architecture, evi
 Terminal helper path:
 
 ```bash
-ma idea "Prepare Meta-Architect v0.1.13 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare Meta-Architect v0.14.0 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ma run '$maestro'
 ma status --maestro-view
 ```
@@ -217,13 +217,13 @@ npm pack --dry-run --ignore-scripts --cache ./.npm-cache
 Expected package proof:
 
 - package name is `@jstn-sdk/ma`
-- version line is `0.1.13`
+- version line is `0.14.0`
 - `npm run demo:smoke` creates a realistic Northstar Logistics workspace and Obsidian vault under `/tmp/ma-real-demo-*`
 - the smoke writes `.ma/evidence/real-demo-smoke-proof.json` in that temporary workspace
 - `DEMO.md` is included
 - `COVERAGE.md` is included
 - `data/clone-data.proof.json`, `data/clone-data.ledger.json`, and `data/clone-data.rvf` are included
-- runtime state such as `.ma/`, `.omx/`, `node_modules/`, `test/`, and local caches are excluded
+- runtime state such as canonical `.ma/` (plus legacy `.omx/` orchestration state), `node_modules/`, `test/`, and local caches are excluded
 
 ## 10. Full release demo
 
@@ -252,7 +252,7 @@ What it proves:
 
 | Surface | Current reality |
 | --- | --- |
-| Release line | `v0.1.13` |
+| Release line | `v0.14.0` |
 | Package | `@jstn-sdk/ma` |
 | Public skills | 11 (`maestro`, `arch`, `sage`, `flow`, `vet`, `vibe`, `build`, `align`, `diagnose`, `tdd`, `cleanup`) |
 | Runtime namespace | `.ma/` |

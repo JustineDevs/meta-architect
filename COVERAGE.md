@@ -1,8 +1,8 @@
 # Meta-Architect Coverage Matrix
 
-Target release: `v0.1.13`
+Target release: `v0.14.0`
 Last verified: 2026-06-03
-Package: `@jstn-sdk/ma@0.1.13`
+Package: `@jstn-sdk/ma@0.14.0`
 
 This file is the canonical operator-facing coverage map for the current release line.
 It records what MA can prove today through repository tests, runtime artifacts, package dry-runs, and release gates.
@@ -21,7 +21,7 @@ It records what MA can prove today through repository tests, runtime artifacts, 
 | Core skill surface | DONE | `skills/`, `skills/index.json`, `npm run skills:validate` |
 | Helper skill surface | DONE | `$align`, `$diagnose`, `$tdd`, `$cleanup` contracts in `skills/`, plugin mirror, and Helper Orchestration Core |
 | Build gate enforcement | DONE | `src/build-gate.js`, `test/build-gate.test.js`, `test/cli-smoke.test.js` |
-| Release issue gates | DONE | `src/release-issue-gates.js`, `docs/qa/release-issue-gates-0.1.13.json`, `test/release-issue-gates.test.js` |
+| Release issue gates | DONE | `src/release-issue-gates.js`, `docs/qa/release-issue-gates-0.14.0.json`, `test/release-issue-gates.test.js` |
 | Live GitMCP probe support | DONE | `src/mcp-live-client.js`, `src/skills.js`, `test/mcp-config.test.js` |
 | MCP policy and exposure control | DONE | `src/runtime/mcp-policy.js`, `src/runtime/exposure-catalog.js`, `test/mcp-policy.test.js`, `test/exposure-catalog.test.js` |
 | Plugin mirror discipline | DONE | `scripts/plugin-sync.js`, `npm run plugin:verify`, package dry-run |
@@ -154,7 +154,7 @@ Current automated verification count:
 
 | Surface | Status | Mechanism |
 | --- | --- | --- |
-| npm package identity | DONE | `@jstn-sdk/ma@0.1.13` |
+| npm package identity | DONE | `@jstn-sdk/ma@0.14.0` |
 | public scoped package config | DONE | `publishConfig.access = public` |
 | package files allowlist | DONE | `package.json > files` |
 | production ignore policy | DONE | `.npmignore` plus `npm pack --dry-run` |
@@ -176,8 +176,8 @@ Current automated verification count:
 | `docs/getting-started.md` onboarding | DONE | source checkout, helper path, gates, runtime artifacts |
 | `docs/skills.md` skill reference | DONE | trigger-by-trigger contract guide |
 | `docs/mcp-setup.md` evidence policy | DONE | GitMCP endpoint semantics and bridge guidance |
-| `docs/release-spec.md` release policy | DONE | `v0.1.13` aligned |
-| `docs/qa/release-readiness-0.1.13.md` | DONE | current QA evidence |
+| `docs/release-spec.md` release policy | DONE | `v0.14.0` aligned |
+| `docs/qa/release-readiness-0.14.0.md` | DONE | current QA evidence |
 | `scripts/release-verify.js` | DONE | checks install docs, demo doc, issue gates, package metadata, `.npmignore` |
 
 ## Known limits
@@ -192,7 +192,7 @@ These are explicit operating limits, not stale gaps:
 
 ## Current truth statement
 
-Meta-Architect currently covers the `v0.1.13` release bar for:
+Meta-Architect currently covers the `v0.14.0` release bar for:
 
 - canonical install and launch
 - Codex-hosted runtime entry

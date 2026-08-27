@@ -1,0 +1,15 @@
+---
+description: Agent compatibility rules
+alwaysApply: true
+---
+
+<!-- agents:begin -->
+<!-- Generated from agents.yaml. Edit the source, then run agents sync. -->
+
+# Agent Compatibility Rules
+
+Target: Cursor IDE
+
+## Targets
+
+<!-- agents:end -->

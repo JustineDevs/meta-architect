@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import {
@@ -12,6 +11,7 @@ import {
   createObsidianVaultContext,
   createObsidianVaultSnapshotExport,
   deleteObsidianNote,
+  embedProjectContext,
   ensureObsidianGraphLinks,
   indexObsidianVault,
   listObsidianNotes,
@@ -21,6 +21,7 @@ import {
   validateObsidianVaultOperations,
   writeObsidianVaultIndex,
 } from "../src/runtime/obsidian-integration-core.js";
+import { createTestNamespace } from "../src/test-fixtures.js";
 
 test("Obsidian bridge preserves vault context authority boundaries", () => {
   const bridge = validateObsidianBridge(createDefaultObsidianBridge());
@@ -90,7 +91,7 @@ test("Obsidian snapshot export and intake records are read-only vault_context", 
 });
 
 test("Obsidian vault index crawls real markdown notes as vault_context", async () => {
-  const vaultRoot = await fs.mkdtemp(path.join(os.tmpdir(), "ma-obsidian-vault-"));
+  const vaultRoot = createTestNamespace("ma-obsidian-vault");
   await fs.mkdir(path.join(vaultRoot, ".obsidian"));
   await fs.mkdir(path.join(vaultRoot, "Architecture"), { recursive: true });
   await fs.writeFile(path.join(vaultRoot, ".obsidian", "workspace.json"), "{}\n");
@@ -152,8 +153,66 @@ Build in small slices. See [[Architecture/ADR-001|the ADR]].
   );
 });
 
+test("Obsidian project context embeds into the MA graph namespace", async (t) => {
+  const vaultRoot = createTestNamespace("ma-obsidian-project-context");
+  const runtimeRoot = createTestNamespace("ma-obsidian-project-runtime");
+  t.after(async () => {
+    await fs.rm(vaultRoot, { recursive: true, force: true });
+    await fs.rm(runtimeRoot, { recursive: true, force: true });
+  });
+  process.env.MA_ROOT = runtimeRoot;
+  try {
+    await fs.mkdir(path.join(runtimeRoot, ".ma", "context"), { recursive: true });
+    await fs.writeFile(
+      path.join(runtimeRoot, ".ma", "context", "obsidian-vault-operations.json"),
+      JSON.stringify(createDefaultObsidianVaultOperations(), null, 2),
+    );
+    const result = await embedProjectContext({
+      vaultPath: vaultRoot,
+      projectIndex: {
+        project: { name: "demo-app" },
+        authority: "source_truth",
+        freshness: { status: "fresh" },
+        quality: { coverage: { sourceFiles: 3 } },
+        languages: ["typescript"],
+        frameworks: ["nextjs"],
+        packageManager: "pnpm",
+        commands: { test: "pnpm test" },
+        entrypoints: ["src/index.ts"],
+        importantDocs: ["README.md"],
+        vendorIntegrations: ["codex-cli"],
+      },
+    });
+    const note = await fs.readFile(
+      path.join(vaultRoot, "Meta-Architect", "Projects", "demo-app", "Project Context.md"),
+      "utf8",
+    );
+    const map = await fs.readFile(
+      path.join(vaultRoot, "Meta-Architect", "Map of Content.md"),
+      "utf8",
+    );
+    assert.equal(result.notePath, "Meta-Architect/Projects/demo-app/Project Context.md");
+    assert.match(note, /\[\[Meta-Architect\/Map of Content\|MA Map of Content\]\]/);
+    assert.match(map, /\[\[Meta-Architect\/Projects\/demo-app\/Project Context\]\]/);
+    assert.equal(result.index.records_as, "vault_context");
+    assert.equal(result.index.build_evidence, false);
+    const operations = JSON.parse(
+      await fs.readFile(
+        path.join(runtimeRoot, ".ma", "context", "obsidian-vault-operations.json"),
+        "utf8",
+      ),
+    );
+    assert.equal(
+      operations.operations.some((entry) => entry.relative_path === result.notePath),
+      true,
+    );
+  } finally {
+    delete process.env.MA_ROOT;
+  }
+});
+
 test("Obsidian vault CRUD creates, reads, updates, deletes real markdown notes safely", async () => {
-  const vaultRoot = await fs.mkdtemp(path.join(os.tmpdir(), "ma-obsidian-crud-"));
+  const vaultRoot = createTestNamespace("ma-obsidian-crud");
   const content = `# MA Core CRUD
 
 This note proves Obsidian CRUD writes real non-empty vault context. #ma/crud
@@ -198,8 +257,8 @@ Updated through MA core at test time.
 
 test("Obsidian vault indexing auto-links MA notes through the canonical graph hub", async () => {
   const previousRoot = process.env.MA_ROOT;
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "ma-obsidian-graph-root-"));
-  const vaultRoot = await fs.mkdtemp(path.join(os.tmpdir(), "ma-obsidian-graph-vault-"));
+  const tempRoot = createTestNamespace("ma-obsidian-graph-root");
+  const vaultRoot = createTestNamespace("ma-obsidian-graph-vault");
   process.env.MA_ROOT = tempRoot;
   await fs.mkdir(path.join(vaultRoot, "Meta-Architect", "Stress Smokes"), { recursive: true });
   await fs.writeFile(
@@ -274,7 +333,7 @@ test("Obsidian operation log validates lane-owned CRUD receipts", () => {
 });
 
 test("Obsidian CRUD rejects traversal and vault control directories", async () => {
-  const vaultRoot = await fs.mkdtemp(path.join(os.tmpdir(), "ma-obsidian-safe-"));
+  const vaultRoot = createTestNamespace("ma-obsidian-safe");
 
   await assert.rejects(
     () =>
@@ -293,5 +352,50 @@ test("Obsidian CRUD rejects traversal and vault control directories", async () =
         content: "Nope.",
       }),
     /control directories/,
+  );
+  await assert.rejects(
+    () =>
+      createObsidianNote({
+        vaultPath: vaultRoot,
+        notePath: "./.obsidian/workspace",
+        content: "Nope.",
+      }),
+    /control directories/,
+  );
+});
+
+test("Obsidian CRUD rejects symlink escapes", async () => {
+  if (process.platform === "win32") return;
+  const vaultRoot = createTestNamespace("ma-obsidian-symlink-vault");
+  const outsideRoot = createTestNamespace("ma-obsidian-symlink-outside");
+  const outsideNote = path.join(outsideRoot, "secret.md");
+  await fs.writeFile(outsideNote, "secret", "utf8");
+  await fs.symlink(outsideNote, path.join(vaultRoot, "Escaped.md"));
+
+  await assert.rejects(
+    () => readObsidianNote({ vaultPath: vaultRoot, notePath: "Escaped.md" }),
+    /symlink/,
+  );
+  await assert.rejects(
+    () =>
+      updateObsidianNote({ vaultPath: vaultRoot, notePath: "Escaped.md", content: "overwrite" }),
+    /symlink/,
+  );
+  assert.equal(await fs.readFile(outsideNote, "utf8"), "secret");
+});
+
+test("Obsidian CRUD rejects dangling symlink components", async () => {
+  if (process.platform === "win32") return;
+  const vaultRoot = createTestNamespace("ma-obsidian-dangling-vault");
+  await fs.symlink("/definitely-missing-target", path.join(vaultRoot, "Escape"));
+
+  await assert.rejects(
+    () =>
+      createObsidianNote({
+        vaultPath: vaultRoot,
+        notePath: "Escape/new-note",
+        content: "Nope.",
+      }),
+    /symlink/,
   );
 });

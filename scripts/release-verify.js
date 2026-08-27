@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { execFileSync } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -7,8 +9,6 @@ import { validateReleaseIssueGates } from "../src/release-issue-gates.js";
 
 const CANONICAL_PACKAGE = "@jstn-sdk/ma";
 const CANONICAL_INSTALL = "npm i -g @openai/codex@latest @jstn-sdk/ma@latest";
-const CDN_INSTALL =
-  "curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh";
 const CANONICAL_LAUNCH = "ma --madmax --high";
 const UNINSTALL_MA = "npm uninstall -g @jstn-sdk/ma";
 const UNINSTALL_BOTH = "npm uninstall -g @jstn-sdk/ma @openai/codex";
@@ -41,13 +41,18 @@ function parseVersion(version) {
   return match.groups;
 }
 
-function verifyInstallBlock(file) {
+function versionedCdnInstall(gitTag) {
+  return `curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh`;
+}
+
+function verifyInstallBlock(file, gitTag) {
   const content = readText(file);
-  if (!content.includes(CANONICAL_INSTALL) && !content.includes(CDN_INSTALL)) {
+  const cdnInstall = versionedCdnInstall(gitTag);
+  if (!content.includes(CANONICAL_INSTALL) && !content.includes(cdnInstall)) {
     return;
   }
 
-  assert(content.includes(CDN_INSTALL), `${file}: missing jsDelivr POSIX installer command`);
+  assert(content.includes(cdnInstall), `${file}: missing versioned POSIX installer command`);
   assert(content.includes(CANONICAL_INSTALL), `${file}: missing canonical npm install command`);
   assert(content.includes(CANONICAL_LAUNCH), `${file}: missing canonical launch command`);
   assert(content.includes(UNINSTALL_MA), `${file}: missing uninstall Meta-Architect command`);
@@ -77,12 +82,29 @@ function verifyNpmIgnore() {
   }
 }
 
+function verifyDistPolicy() {
+  const tracked = execFileSync("git", ["ls-files", "dist/"], { encoding: "utf8" }).trim();
+  assert(!tracked, `dist/: generated release artifacts must not be tracked:\n${tracked}`);
+}
+
+function verifyInstallerIntegrity() {
+  const installer = readText("scripts/install.sh");
+  const checksum = readText("scripts/install.sh.sha256").trim().split(/\s+/)[0];
+  const actual = crypto.createHash("sha256").update(installer).digest("hex");
+  assert(checksum === actual, "scripts/install.sh.sha256: checksum does not match installer");
+  assert(
+    !installer.includes("raw.githubusercontent.com") && !installer.includes("jsdelivr"),
+    "scripts/install.sh: must not fetch mutable installer sources at runtime",
+  );
+}
+
 function verifyDemoDoc({ version, gitTag }) {
+  const cdnInstall = versionedCdnInstall(gitTag);
   assert(fs.existsSync("DEMO.md"), "DEMO.md: missing demo guide");
   const content = readText("DEMO.md");
   assert(content.includes(`Release line: \`${gitTag}\``), "DEMO.md: wrong release line");
   assert(content.includes("Package: `@jstn-sdk/ma`"), "DEMO.md: missing package name");
-  assert(content.includes(CDN_INSTALL), "DEMO.md: missing jsDelivr installer");
+  assert(content.includes(cdnInstall), "DEMO.md: missing versioned installer");
   assert(content.includes(CANONICAL_INSTALL), "DEMO.md: missing canonical npm install");
   assert(content.includes(CANONICAL_LAUNCH), "DEMO.md: missing canonical launch");
   assert(content.includes(UNINSTALL_MA), "DEMO.md: missing MA uninstall command");
@@ -133,6 +155,8 @@ function verifyCoverageDoc({ version, gitTag }) {
 
 function verifyReadmeReleaseSurface({ gitTag }) {
   const content = readText("README.md");
+  const demoImage = `<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">`;
+  const logoImage = `<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/docs/assets/meta-architect-logo.svg" alt="Meta-Architect: quality gates and evidence verification for AI coding agents" width="1024" height="240">`;
   assert(content.includes("> [!NOTE]"), "README.md: missing product-positioning note admonition");
   assert(
     content.includes(
@@ -150,12 +174,7 @@ function verifyReadmeReleaseSurface({ gitTag }) {
     ),
     "README.md: missing runtime-wrapper behavior note",
   );
-  assert(
-    content.includes(
-      '<img src="./docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">',
-    ),
-    "README.md: missing requested 800px demo GIF",
-  );
+  assert(content.includes(demoImage), "README.md: missing requested 800px demo GIF");
   assert(
     content.includes("<summary><strong>🔌 All 33 plugins & features</strong></summary>"),
     "README.md: missing all 33 plugins/features toggle",
@@ -163,6 +182,11 @@ function verifyReadmeReleaseSurface({ gitTag }) {
   assert(
     content.includes(`<td><code>${gitTag}</code></td>`),
     "README.md: stale release line table version",
+  );
+  assert(content.includes(logoImage), "README.md: release-pinned logo missing");
+  assert(
+    !content.includes("raw.githubusercontent.com/JustineDevs/meta-architect/main/"),
+    "README.md: stable docs must not reference mutable main",
   );
 }
 
@@ -280,6 +304,8 @@ function main() {
   assert(pkg.files?.includes("COVERAGE.md"), "package.json: files must include COVERAGE.md");
 
   verifyNpmIgnore();
+  verifyDistPolicy();
+  verifyInstallerIntegrity();
   verifyDemoDoc({ version, gitTag });
   verifyCoverageDoc({ version, gitTag });
   verifyReadmeReleaseSurface({ gitTag });
@@ -344,7 +370,7 @@ function main() {
     path.join("docs", "skills.md"),
     path.join("plugins", "meta-architect", "README.md"),
   ]) {
-    verifyInstallBlock(file);
+    verifyInstallBlock(file, gitTag);
   }
 
   const envTag =

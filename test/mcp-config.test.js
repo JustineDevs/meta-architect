@@ -14,9 +14,12 @@ import {
 } from "../src/mcp-config.js";
 import {
   createMcpLiveClient,
+  getMcpBridgeConfiguration,
   McpRemoteTransportRequiredError,
   McpStdioBridgeClient,
+  mcpClientVersion,
   parseSseEvent,
+  resolveMcpClientVersion,
 } from "../src/mcp-live-client.js";
 import { createTempRepo } from "./helpers/temp-repo.js";
 
@@ -42,6 +45,15 @@ test("validates exact GitMCP repo endpoints and docs fallback", () => {
   assert.equal(isValidGitMcpEndpoint("https://gitmcp.io/sindresorhus/awesome"), true);
   assert.equal(isValidGitMcpEndpoint("https://gitmcp.io/docs"), false);
   assert.equal(isValidGitMcpEndpoint("https://example.com/not-gitmcp"), false);
+});
+
+test("MCP client version comes from package metadata with a development fallback", async () => {
+  assert.equal(resolveMcpClientVersion({ version: "9.8.7" }), "9.8.7");
+  assert.equal(resolveMcpClientVersion({}), "0.0.0-dev");
+  const packageMetadata = JSON.parse(
+    await fs.readFile(path.join(repoRoot, "package.json"), "utf8"),
+  );
+  assert.equal(mcpClientVersion, packageMetadata.version);
 });
 
 test("bundled local capabilities load only the supported first-party set", async () => {
@@ -90,8 +102,10 @@ test("reports GitMCP direct SSE 405 as bridge-required instead of generic verifi
 
 test("uses configured remote bridge command for live MCP request flow", async () => {
   const spawned = [];
-  const fakeSpawn = (command, args) => {
-    spawned.push({ command, args });
+  const messages = [];
+  const fakeSpawn = (command, args, options = {}) => {
+    const entry = { command, args, env: options.env ?? null };
+    spawned.push(entry);
     const child = new EventEmitter();
     child.stdout = new EventEmitter();
     child.stderr = new EventEmitter();
@@ -102,6 +116,7 @@ test("uses configured remote bridge command for live MCP request flow", async ()
       end: () => {},
       write: (line) => {
         const message = JSON.parse(line);
+        messages.push(message);
         if (!message.id) return;
 
         const results = {
@@ -130,7 +145,10 @@ test("uses configured remote bridge command for live MCP request flow", async ()
     "https://gitmcp.io/obsidianmd/obsidian-api",
     "trusted-bridge --endpoint {url}",
     fakeSpawn,
+    { allowedCommands: ["trusted-bridge"] },
   );
+  const previousSecret = process.env.MA_TEST_SECRET;
+  process.env.MA_TEST_SECRET = "should-not-leak";
   const init = await client.connect();
   const tools = await client.request("tools/list", {});
   const evidence = await client.request("tools/call", {
@@ -138,14 +156,54 @@ test("uses configured remote bridge command for live MCP request flow", async ()
     arguments: { query: "obsidian plugin" },
   });
   await client.close();
+  if (previousSecret === undefined) {
+    delete process.env.MA_TEST_SECRET;
+  } else {
+    process.env.MA_TEST_SECRET = previousSecret;
+  }
 
-  assert.deepEqual(spawned[0], {
-    command: "trusted-bridge",
-    args: ["--endpoint", "https://gitmcp.io/obsidianmd/obsidian-api"],
-  });
+  assert.deepEqual(spawned[0].command, "trusted-bridge");
+  assert.deepEqual(spawned[0].args, ["--endpoint", "https://gitmcp.io/obsidianmd/obsidian-api"]);
+  assert.equal(spawned[0].env.MA_TEST_SECRET, undefined);
+  assert.equal(typeof spawned[0].env.PATH, "string");
+  assert.equal(
+    messages.find((message) => message.method === "initialize").params.clientInfo.version,
+    mcpClientVersion,
+  );
   assert.equal(init.serverInfo.name, "mock-gitmcp");
   assert.equal(tools.tools[0].name, "search_obsidian_documentation");
   assert.equal(evidence.content[0].text, "Obsidian Plugin API evidence");
+});
+
+test("remote bridge commands fail closed unless explicitly allowlisted", async () => {
+  const client = new McpStdioBridgeClient(
+    "https://gitmcp.io/obsidianmd/obsidian-api",
+    "untrusted-bridge {url}",
+    () => {
+      throw new Error("spawn must not run");
+    },
+    { allowedCommands: ["trusted-bridge"] },
+  );
+  await assert.rejects(() => client.connect(), /command is not allowlisted/);
+});
+
+test("project bridge policy contributes allowlisted commands", async () => {
+  await withTempMcpRepo(async (tempRoot) => {
+    await fs.writeFile(
+      path.join(tempRoot, "mcp", "bridge.json"),
+      JSON.stringify({ allowedCommands: ["project-bridge"] }),
+    );
+    const previous = process.env.MA_MCP_REMOTE_BRIDGE_ALLOWLIST;
+    delete process.env.MA_MCP_REMOTE_BRIDGE_ALLOWLIST;
+    try {
+      const policy = getMcpBridgeConfiguration(tempRoot);
+      assert.deepEqual(policy.allowedCommands, ["project-bridge"]);
+      assert.equal(policy.source, "environment+project");
+    } finally {
+      if (previous === undefined) delete process.env.MA_MCP_REMOTE_BRIDGE_ALLOWLIST;
+      else process.env.MA_MCP_REMOTE_BRIDGE_ALLOWLIST = previous;
+    }
+  });
 });
 
 test("remote bridge request timeout is configurable for bounded smoke runs", async () => {
@@ -174,6 +232,7 @@ test("remote bridge request timeout is configurable for bounded smoke runs", asy
       "https://gitmcp.io/obsidianmd/obsidian-api",
       "trusted-bridge {url}",
       fakeSpawn,
+      { allowedCommands: ["trusted-bridge"] },
     );
 
     await assert.rejects(

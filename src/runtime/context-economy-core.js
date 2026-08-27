@@ -184,6 +184,46 @@ export function createMcpDescriptorEconomy({ name, description, inputSchema = {}
   };
 }
 
+export function createBudgetedContext({ items = [], budgetChars = 12000, topic } = {}) {
+  const candidates = items
+    .filter((item) => item && typeof item.id === "string" && typeof item.text === "string")
+    .map((item, index) => ({ ...item, tier: item.tier ?? index }));
+  const topical = topic
+    ? candidates.filter((item) =>
+        `${item.topic ?? ""} ${item.id}`.toLowerCase().includes(topic.toLowerCase()),
+      )
+    : candidates;
+  const pool = topical.length > 0 ? topical : candidates;
+  let remaining = Math.max(0, budgetChars);
+  const loaded = [];
+  const skipped = candidates
+    .filter((item) => !pool.includes(item))
+    .map((item) => ({ id: item.id, reason: "topic_mismatch" }));
+  const context = {};
+
+  for (const item of [...pool].sort((left, right) => left.tier - right.tier)) {
+    const view = createContextEconomyView({ text: item.text, level: "budgeted_context" });
+    if (view.output_chars <= remaining) {
+      context[item.id] = view.output;
+      remaining -= view.output_chars;
+      loaded.push(item.id);
+    } else {
+      skipped.push({ id: item.id, reason: "budget_exhausted" });
+    }
+  }
+
+  return {
+    record_type: "budgeted_context",
+    budget_chars: budgetChars,
+    used_chars: budgetChars - remaining,
+    topic: topic ?? null,
+    loaded,
+    skipped,
+    fallback_expanded: Boolean(topic && topical.length === 0),
+    context,
+  };
+}
+
 export function validateContextEconomyCore(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error("Context Economy core must be an object");

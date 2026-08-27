@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - development
+      - dev
   pull_request:
 
 jobs:
@@ -23,6 +23,13 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Check temporary disk capacity
+        run: |
+          usage=$(df -P /tmp | awk 'NR == 2 {gsub("%", "", $5); print $5}')
+          echo "/tmp usage: ${usage}%"
+          if [ "$usage" -gt 80 ]; then echo "::warning::/tmp is ${usage}% full"; fi
+          if [ "$usage" -gt 95 ]; then echo "::error::/tmp is ${usage}% full"; exit 1; fi
 
       - name: Install RPM tooling
         run: sudo apt-get update && sudo apt-get install -y rpm
@@ -53,6 +60,12 @@ jobs:
 
       - name: Run test suite
         run: npm test
+
+      - name: Report and prune temporary fixtures
+        if: always()
+        run: |
+          du -sh /tmp/ma-tests/* 2>/dev/null | sort -hr | head -10 || true
+          bash ./scripts/cleanup-test-fixtures.sh
 
       - name: Upload packaged artifact
         if: always()
@@ -94,7 +107,7 @@ jobs:
         run: npm run linux:packages:smoke
 
       - name: Validate release asset set
-        run: npm run release:assets
+        run: npm run release:assets:generate && npm run release:assets
 
       - name: Upload Linux release assets
         if: always()
@@ -107,4 +120,7 @@ jobs:
             dist/*.pkg.tar.xz
             dist/*.rpm
             dist/linux-package-manifest.json
+            dist/SHA256SUMS
+            dist/sbom.spdx.json
+            dist/release-summary.json
           if-no-files-found: ignore

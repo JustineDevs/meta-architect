@@ -10,6 +10,7 @@ node_modules/
 !.agents/plugins/marketplace.json
 .claude/
 skills-lock.json
+.internal
 
 # Logs
 logs
@@ -45,7 +46,7 @@ coverage/
 .nyc_output/
 
 # Build / packaging artifacts
-dist/*.tgz
+dist/
 *.tsbuildinfo
 
 # Optional local installs for smoke tests

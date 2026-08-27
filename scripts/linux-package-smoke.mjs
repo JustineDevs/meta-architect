@@ -3,9 +3,9 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { createTestNamespace } from "../src/test-fixtures.js";
 import {
   getDebArtifactPath,
   getPacmanArtifactPath,
@@ -61,7 +61,7 @@ async function main() {
     throw new Error("Native Linux package smoke validation is supported only on Linux hosts");
   }
 
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-linux-smoke-"));
+  const tempRoot = createTestNamespace("meta-architect-linux-smoke");
   const debExtractRoot = path.join(tempRoot, "deb");
   const pacmanExtractRoot = path.join(tempRoot, "pacman");
   const rpmExtractRoot = path.join(tempRoot, "rpm");

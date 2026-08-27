@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-architect.dev/schemas/handoff-packet.schema.json",
+  "title": "Meta-Architect Handoff Packet",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "record_type",
+    "goal",
+    "current_state",
+    "context_used",
+    "decisions",
+    "blockers",
+    "risks",
+    "changed_files",
+    "verification",
+    "next_action",
+    "status"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "0.1.0" },
+    "record_type": { "const": "handoff_packet" },
+    "goal": { "type": "string", "minLength": 1 },
+    "current_state": { "type": "string", "minLength": 1 },
+    "context_used": { "type": "array", "items": { "type": "string" } },
+    "decisions": { "type": "array", "items": { "type": "string" } },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "changed_files": { "type": "array", "items": { "type": "string" } },
+    "verification": { "type": "array", "items": { "type": "string" } },
+    "next_action": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["active", "blocked", "verified"] },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

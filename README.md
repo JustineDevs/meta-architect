@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./docs/assets/meta-architect-logo.svg" alt="Meta-Architect: quality gates and evidence verification for AI coding agents" width="1024" height="240">
+  <img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/docs/assets/meta-architect-logo.svg" alt="Meta-Architect: quality gates and evidence verification for AI coding agents" width="1024" height="240">
   <h1>Meta-Architect</h1>
   <p><strong>Quality gates and evidence verification for AI coding agents.</strong></p>
   <p>Your agent writes code fast. Meta-Architect makes it prove each stage first. Design, evidence, logic, security, experience, build. Each gate stays locked until the one before it passes.</p>
@@ -15,6 +15,26 @@
   </p>
   <p><a href="#quick-start">Quick Start</a> · <a href="./DEMO.md">Demo</a> · <a href="./COVERAGE.md">Verified Coverage</a> · <a href="#how-do-i-contribute">Contributing</a> · <a href="https://github.com/JustineDevs/meta-architect/issues">Issues</a></p>
 </div>
+
+> [!NOTE]
+> Meta-Architect is a workflow layer for teams that want architecture, evidence, review, and release discipline before build execution.
+> Meta-Architect does not replace your coding runtime.
+> It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
+
+<table>
+  <tr>
+    <td><strong>Release line</strong></td>
+    <td><code>v0.14.0</code></td>
+  </tr>
+</table>
+
+<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">
+
+<details>
+<summary><strong>🔌 All 33 plugins & features</strong></summary>
+
+The plugin and feature inventory is maintained in the package manifests and coverage documentation.
+</details>
 
 ## Why do AI coding agents need gates?
 
@@ -99,7 +119,7 @@ Already using a spec tool? Keep it. Their specs become inputs. MA's gates verify
 
 ```bash
 # 1. Install (macOS, Linux, WSL, Git-Bash)
-curl -fsSL https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@main/scripts/install.sh | sh
+curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh
 
 # 2. Launch Codex
 ma --madmax --high
@@ -110,6 +130,9 @@ $maestro I want to build: [your project idea]
 
 Windows PowerShell: `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
 More install options: [docs/getting-started.md](./docs/getting-started.md)
+
+Uninstall Meta-Architect: `npm uninstall -g @jstn-sdk/ma`
+Uninstall Meta-Architect and Codex: `npm uninstall -g @jstn-sdk/ma @openai/codex`
 
 ## Who is it for?
 
@@ -132,6 +155,7 @@ More install options: [docs/getting-started.md](./docs/getting-started.md)
 - [Demo](./DEMO.md)
 - [Coverage Matrix](./COVERAGE.md): the proof behind every claim on this page
 - [Release Spec](./docs/release-spec.md)
+- [Disk-Bounded Test and Review Runs](./docs/disk-optimization.md)
 - [MCP Setup](./docs/mcp-setup.md)
 
 ## License

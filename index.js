@@ -1,8 +1,27 @@
+export { qualityResources, queryQualityStatus, readQualityResource } from "./mcp/local/quality.js";
+export {
+  agentRegistry as agentSurfaceRegistry,
+  detectInstalled,
+  getAgent,
+  getNonUniversalAgents,
+  isUniversalAgent as isUniversalAgentSurface,
+  listAgents,
+  resolveAgentCommand,
+} from "./src/agents.js";
 export {
   evaluateBuildGate,
   formatBuildBlockers,
   formatNextAllowedTriggers,
 } from "./src/build-gate.js";
+export {
+  CodexAppServerClient,
+  CodexRpcError,
+  createStdioTransport,
+  generateCodexBindings,
+  parseCodexJsonl,
+  runCodexExec,
+  validateStructuredResult,
+} from "./src/codex-app-server.js";
 export {
   appendDecision,
   loadDecisionLog,
@@ -22,6 +41,11 @@ export {
   validateMergeTarget,
   validateReleaseOrigin,
 } from "./src/policy.js";
+export {
+  AIQualityOrchestrator,
+  calculateQualityScore,
+  staticViolations,
+} from "./src/quality/ai-quality-orchestrator.js";
 export { loadReleaseState, saveReleaseState, validateReleaseState } from "./src/release-state.js";
 export {
   classifyAutonomyBranch,
@@ -30,6 +54,14 @@ export {
   loadActiveAutonomyCore,
   validateActiveAutonomyCore,
 } from "./src/runtime/active-autonomy-core.js";
+export {
+  agentCompatPackage,
+  agentCompatVersion,
+  compileAgentIntegrations,
+  detectAgentEnvironments,
+  listAgentCompatAdapters,
+  validateAgentIntegrations,
+} from "./src/runtime/agent-compat.js";
 export {
   createAlignmentRecoveryPlan,
   createDefaultAlignmentSentinelReport,
@@ -55,6 +87,15 @@ export {
   shouldBypassContextEconomy,
   validateContextEconomyCore,
 } from "./src/runtime/context-economy-core.js";
+export {
+  continuityGraphSchemaVersion,
+  createDefaultContinuityGraph,
+  getContinuityGraphPath,
+  loadContinuityGraph,
+  mergeContinuityGraph,
+  queryContinuityGraph,
+  validateContinuityGraph,
+} from "./src/runtime/continuity-graph.js";
 export {
   coreSourceDefinitions,
   createDefaultCoreSourceIngest,

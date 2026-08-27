@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import { ensureDir, readJson, writeFileIfMissing } from "../fs-utils.js";
 import { getRuntimeSubsystemPath } from "../paths.js";
 
@@ -64,4 +65,16 @@ export async function loadRuntimeHooksConfig() {
 
 export async function loadRuntimeHooksAuditLog() {
   return fs.readFile(getRuntimeHooksAuditPath(), "utf8");
+}
+
+export async function loadRuntimeHookReceipts() {
+  const root = path.join(getRuntimeHooksRoot(), "receipts");
+  const entries = await fs.readdir(root, { withFileTypes: true }).catch(() => []);
+  return Promise.all(
+    entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+      .sort((left, right) => right.name.localeCompare(left.name))
+      .slice(0, 20)
+      .map((entry) => readJson(path.join(root, entry.name))),
+  );
 }

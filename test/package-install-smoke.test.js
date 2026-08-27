@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { createTestNamespace } from "../src/test-fixtures.js";
 import { spawnPortable } from "./helpers/spawn-portable.js";
 import { listRelativeFiles } from "./helpers/tree-parity.js";
 
@@ -33,12 +33,12 @@ function assertStdoutContainsIfAvailable(result, pattern) {
 }
 
 test("packed package installs and supports the documented runtime/helper flow", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-packaged-"));
+  const tempRoot = createTestNamespace("meta-architect-packaged");
   const installRoot = path.join(tempRoot, "global");
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.13.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.14.0.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });
@@ -112,11 +112,29 @@ test("packed package installs and supports the documented runtime/helper flow", 
   for (const relativePath of installedBundleFiles) {
     await fs.access(path.join(codexHome, ...relativePath));
   }
+  const supportManifest = JSON.parse(
+    await fs.readFile(path.join(codexHome, "meta-architect-sdk", "asset-manifest.json"), "utf8"),
+  );
+  assert.equal(supportManifest.schemaVersion, "1.0.0");
+  assert.equal(supportManifest.bundleVersion, "0.14.0");
+  for (const maintainerOnly of [
+    "release-sync.js",
+    "release-verify.js",
+    "build-linux-packages.mjs",
+    "cleanup-test-fixtures.sh",
+  ]) {
+    await assert.rejects(
+      fs.access(path.join(codexHome, "meta-architect-sdk", "scripts", maintainerOnly)),
+    );
+  }
   const bundledSkillFiles = await listRelativeFiles(path.join(codexHome, "skills"));
   const bundledPluginSkillFiles = await listRelativeFiles(
     path.join(codexHome, "meta-architect-sdk", "plugins", "meta-architect", "skills"),
   );
-  assert.deepEqual(bundledPluginSkillFiles, bundledSkillFiles);
+  assert.deepEqual(
+    bundledPluginSkillFiles,
+    bundledSkillFiles.filter((relativePath) => relativePath !== "index.json"),
+  );
   await fs.rm(path.join(codexHome, "skills", "arch"), { recursive: true, force: true });
   await fs.rm(path.join(codexHome, "meta-architect-sdk", "templates"), {
     recursive: true,
@@ -158,6 +176,10 @@ test("packed package installs and supports the documented runtime/helper flow", 
     encoding: "utf8",
   });
   assert.equal(setupResult.status, 0, setupResult.stderr || setupResult.stdout);
+  assert.match(
+    setupResult.stdout,
+    /(created|existing|refreshed): .*scripts\/active-autonomy-hook\.mjs/,
+  );
 
   await fs.access(path.join(workRoot, ".ma", "release.json"));
   await fs.access(path.join(workRoot, ".ma", "decisions.json"));
@@ -172,6 +194,19 @@ test("packed package installs and supports the documented runtime/helper flow", 
   await fs.access(path.join(workRoot, ".ma", "hooks", "config.json"));
   await fs.access(path.join(workRoot, ".ma", "tasks", "registry.json"));
   await fs.access(path.join(workRoot, ".ma", "workspaces", "index.json"));
+  await fs.access(path.join(workRoot, "scripts", "active-autonomy-hook.mjs"));
+  await fs.access(path.join(workRoot, "scripts", "context-hydration-hook.mjs"));
+  const hookResult = spawnPortable(maBin, ["hook", "context-hydration"], {
+    cwd: workRoot,
+    env: {
+      ...process.env,
+      MA_ROOT: workRoot,
+      PATH: `${path.join(installRoot, "bin")}:${process.env.PATH}`,
+    },
+    encoding: "utf8",
+  });
+  assert.equal(hookResult.status, 0, hookResult.stderr || hookResult.stdout);
+  assert.match(hookResult.stdout, /context_hydration/);
   await fs.access(path.join(codexHome, "meta-architect-sdk", "docs", "reference"));
 
   await fs.writeFile(
@@ -260,12 +295,12 @@ test("packed package installs and supports the documented runtime/helper flow", 
 });
 
 test("packed package supports the golden-path onboarding flow", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "meta-architect-onboarding-"));
+  const tempRoot = createTestNamespace("meta-architect-onboarding");
   const installRoot = path.join(tempRoot, "global");
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.1.13.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.14.0.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });

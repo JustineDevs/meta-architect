@@ -2,7 +2,6 @@
 
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import {
   createContextEconomyView,
@@ -23,6 +22,7 @@ import {
 } from "../index.js";
 import { loadRuntimeSnapshot } from "../src/runtime/runtime-state.js";
 import { runMaestro } from "../src/skills.js";
+import { createTestNamespace } from "../src/test-fixtures.js";
 
 const demoIdea =
   "Northstar Logistics wants to harden an existing dispatch analytics workspace for a production release. MA must inspect current runtime context, use Obsidian vault notes as brain context, route through relevant roles, preserve security gates, and produce a release-safe next action instead of asking for permission.";
@@ -137,7 +137,7 @@ function assertNoDemoBranding(value) {
 
 async function main() {
   const originalCwd = process.cwd();
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "ma-real-demo-"));
+  const workspace = createTestNamespace("ma-real-demo");
   const vaultPath = path.join(workspace, "Northstar Vault");
   await seedWorkspace(workspace);
   await seedVault(vaultPath);

@@ -1,5 +1,5 @@
 export function validateReleaseOrigin(originBranch) {
-  if (originBranch === "development") {
+  if (originBranch === "dev") {
     return true;
   }
 
@@ -15,7 +15,7 @@ export function rejectsDirectProdPromotion(originBranch) {
 }
 
 export function validateMergeTarget(sourceBranch, targetBranch) {
-  return sourceBranch.startsWith("feature/") && targetBranch === "development";
+  return sourceBranch.startsWith("feature/") && targetBranch === "dev";
 }
 
 export function canMarkBuildDone(releaseState) {

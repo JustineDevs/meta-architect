@@ -2,9 +2,9 @@
 
 import { spawnSync } from "node:child_process";
 import fsp from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { createTestNamespace } from "../src/test-fixtures.js";
 import {
   getDebArtifactPath,
   getLinuxPackageManifestPath,
@@ -87,6 +87,10 @@ async function createCommonRoot(root, packArtifactPath) {
   run("tar", ["-xzf", packArtifactPath, "-C", libRoot, "--strip-components=1", "package"], {
     cwd: repoRoot,
   });
+  const agentCompatSource = path.join(repoRoot, "node_modules", "@jstn-sdk", "agents");
+  const agentCompatTarget = path.join(libRoot, "node_modules", "@jstn-sdk", "agents");
+  await fsp.access(agentCompatSource);
+  await copyDir(agentCompatSource, agentCompatTarget);
 
   const wrapper = `#!/bin/sh
 PREFIX="\${META_ARCHITECT_PREFIX:-}"
@@ -267,6 +271,7 @@ async function main() {
 
   await fsp.mkdir(distRoot, { recursive: true });
   const packArtifactPath = getPackArtifactPath(distRoot, packageName, version);
+  const workRoot = createTestNamespace("meta-architect-linux-packages");
   await fsp.rm(packArtifactPath, { force: true });
   run(
     "npm",
@@ -275,14 +280,13 @@ async function main() {
       ".",
       "--ignore-scripts",
       "--cache",
-      path.join(distRoot, ".npm-cache"),
+      path.join(workRoot, "npm-cache"),
       "--pack-destination",
       distRoot,
     ],
     { cwd: repoRoot },
   );
 
-  const workRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "meta-architect-linux-packages-"));
   const commonRoot = path.join(workRoot, "root");
   await createCommonRoot(commonRoot, packArtifactPath);
 

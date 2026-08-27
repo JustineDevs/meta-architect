@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { withMcpWriteGate } from "../../src/runtime/mcp-authority.js";
 import {
   controlTask,
   getTask,
@@ -50,9 +51,11 @@ export async function readTeamRunResource(uri) {
 }
 
 export async function callTeamRunTool(name, args = {}, options = {}) {
-  const localOptions = { ...options, actor: "local-capability:team_run" };
   if (name === "team_run.submit_task") {
-    return submitTask(args.task ?? args, localOptions);
+    const task = args.task ?? args;
+    return withMcpWriteGate({ tool: name, options, payload: task }, (metadata) =>
+      submitTask(task, metadata),
+    );
   }
   if (name === "team_run.get_status") {
     return getTask(args.taskId);
@@ -64,7 +67,9 @@ export async function callTeamRunTool(name, args = {}, options = {}) {
     return waitForTask(args.taskId, args);
   }
   if (name === "team_run.control_task") {
-    return controlTask(args.taskId, args.action, localOptions);
+    return withMcpWriteGate({ tool: name, options, payload: args }, (metadata) =>
+      controlTask(args.taskId, args.action, metadata),
+    );
   }
 
   throw new Error(`Unknown team_run tool: ${name}`);

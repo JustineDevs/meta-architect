@@ -38,6 +38,9 @@ jobs:
       - name: Smoke test Linux native packages
         run: npm run linux:packages:smoke
 
+      - name: Generate release checksums and SBOM
+        run: npm run release:assets:generate
+
       - name: Validate release assets
         run: npm run release:assets
 
@@ -49,4 +52,7 @@ jobs:
             dist/*.deb
             dist/*.pkg.tar.xz
             dist/*.rpm
+            dist/SHA256SUMS
+            dist/sbom.spdx.json
+            dist/release-summary.json
           body_path: RELEASE.md

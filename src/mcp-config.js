@@ -4,7 +4,15 @@ import { pathToFileURL } from "node:url";
 import { getBundledMcpPath, getMcpLocalCapabilitiesPath, getMcpServersPath } from "./paths.js";
 
 const gitMcpRepoPattern = /^https:\/\/gitmcp\.io\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
-const localCapabilityNames = ["_state", "memory", "trace", "team_run", "code_intel", "playbooks"];
+const localCapabilityNames = [
+  "_state",
+  "memory",
+  "trace",
+  "team_run",
+  "code_intel",
+  "playbooks",
+  "context",
+];
 const localCapabilityNameSet = new Set(localCapabilityNames);
 
 function validateObjectWithArray(parsed, arrayField, label) {

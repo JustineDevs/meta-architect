@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schemaVersion", "record_type", "generatedAt", "managedBy", "artifacts"],
+  "properties": {
+    "schemaVersion": { "const": "0.1.0" },
+    "record_type": { "const": "setup_receipt" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "managedBy": { "const": "@jstn-sdk/ma" },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind", "status", "created"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["file", "directory"] },
+          "status": {
+            "enum": ["created", "existing", "refreshed", "skipped", "warning", "failed"]
+          },
+          "created": { "type": "boolean" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,5 +1,6 @@
 import { appendDecision } from "../../src/decision-log.js";
 import { loadManagerRunRegistryOrDefault } from "../../src/runtime/maestro-manager.js";
+import { withMcpWriteGate } from "../../src/runtime/mcp-authority.js";
 import { createRuntimeSummary, loadRuntimeSnapshot } from "../../src/runtime/runtime-state.js";
 import { loadCombinedState, syncStatusUpdates } from "../../src/state-sync.js";
 
@@ -45,15 +46,18 @@ export async function readStateResource(uri) {
 }
 
 export async function callStateTool(name, args = {}, options = {}) {
-  const localOptions = { ...options, actor: "local-capability:_state" };
   if (name === "state.sync_release_status") {
     const statusUpdates = args.statusUpdates ?? args;
-    return syncStatusUpdates(statusUpdates, localOptions);
+    return withMcpWriteGate({ tool: name, options, payload: statusUpdates }, (metadata) =>
+      syncStatusUpdates(statusUpdates, metadata),
+    );
   }
 
   if (name === "state.append_decision") {
     const entry = args.entry ?? args;
-    return appendDecision(entry, localOptions);
+    return withMcpWriteGate({ tool: name, options, payload: entry }, (metadata) =>
+      appendDecision(entry, metadata),
+    );
   }
 
   throw new Error(`Unknown _state tool: ${name}`);

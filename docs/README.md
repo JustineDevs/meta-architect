@@ -14,6 +14,8 @@ Meta-Architect documentation is organized by operator task.
 - [Skills Reference](./skills.md)
 - umbrella, gated lanes, and helper skill distinctions live in the Skills Reference
 - [Installed Support Bundle](./installed-sdk.md)
+- [Runtime retention](./runtime-retention.md)
+- [External architect review](./architect-review.md)
 
 ## Packaging and installation
 
@@ -25,8 +27,8 @@ Meta-Architect documentation is organized by operator task.
 
 ## QA and readiness
 
-- [Release Readiness 0.1.13](./qa/release-readiness-0.1.13.md)
-- [Release Issue Gates 0.1.13](./qa/release-issue-gates-0.1.13.json)
+- [Release Readiness 0.14.0](./qa/release-readiness-0.14.0.md)
+- [Release Issue Gates 0.14.0](./qa/release-issue-gates-0.14.0.json)
 
 ## Repo structure references
 

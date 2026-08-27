@@ -22,7 +22,9 @@ pnpm-debug.log*
 .goose/
 
 # Generated outputs and local reports
+docs/assets/
 dist/
+skills/index.json
 coverage/
 *.tgz
 *.tmp

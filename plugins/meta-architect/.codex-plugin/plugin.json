@@ -1,6 +1,6 @@
 {
   "name": "meta-architect",
-  "version": "0.1.13",
+  "version": "0.14.0",
   "description": "Skills-first workflow layer for Codex with a bounded autonomous manager, architecture, evidence, review, and gated build guidance.",
   "author": {
     "name": "JustineDevs",

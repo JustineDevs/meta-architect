@@ -4,7 +4,7 @@ Describe what changed and why.
 
 ## Base branch
 
-- [ ] This PR targets `development`.
+- [ ] This PR targets `dev`.
 - [ ] This PR targets `main` only as a curated promotion or maintainer exception.
 
 If targeting `main`, explain why:
@@ -44,6 +44,22 @@ npm test
 ```
 
 Add any additional commands or manual verification notes below.
+
+## Context, privacy, and integration impact
+
+- Linked issues / task contract:
+- Context freshness (`.ma` context, fingerprint, or learning memory):
+- Obsidian impact: none / read / write
+- MCP impact: none / read / write
+- Hook impact: none / changed / added
+- Public-output sanitizer / secret and local-path exposure check: pass / not applicable
+- Generated artifact or package-size impact:
+
+## Verification evidence
+
+- [ ] I included focused test output or a reproducible verification command.
+- [ ] I checked generated artifacts and receipts for secrets and unnecessary local paths.
+- [ ] I documented remaining gaps or unsupported environments.
 
 ## Release sensitivity
 

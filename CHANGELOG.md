@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.14.0
+
+- Release line prepared automatically for v0.14.0.
+
 ## v0.1.13
 
 - Adds a release issue-gate matrix so every next-release GitHub issue must carry labels plus implementation, verification, and production evidence before `v0.1.13` can be considered production-passed.

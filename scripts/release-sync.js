@@ -31,6 +31,8 @@ const WATCHED_FILES = new Set([
 function parseArgs(argv) {
   const args = {
     bump: "",
+    version: "",
+    refreshFrom: "",
     fromRef: "",
     toRef: "",
     githubOutput: "",
@@ -41,6 +43,16 @@ function parseArgs(argv) {
     const token = argv[index];
     if (token === "--bump") {
       args.bump = argv[index + 1] ?? "";
+      index += 1;
+      continue;
+    }
+    if (token === "--version") {
+      args.version = argv[index + 1] ?? "";
+      index += 1;
+      continue;
+    }
+    if (token === "--refresh-from") {
+      args.refreshFrom = argv[index + 1] ?? "";
       index += 1;
       continue;
     }
@@ -209,6 +221,14 @@ function syncPackageVersion(nextVersion) {
   writeJson("package-lock.json", lock);
 }
 
+function syncSupportBundleVersion(nextVersion) {
+  const manifestPath = "support-bundle.json";
+  if (!fs.existsSync(manifestPath)) return;
+  const manifest = readJson(manifestPath);
+  manifest.bundleVersion = nextVersion;
+  writeJson(manifestPath, manifest);
+}
+
 function syncPluginVersions(nextVersion) {
   for (const file of [
     path.join("plugins", "meta-architect", ".app.json"),
@@ -228,9 +248,13 @@ function syncPluginVersions(nextVersion) {
 function syncCurrentReleaseFiles(oldVersion, nextVersion) {
   for (const file of [
     "README.md",
+    "DEMO.md",
+    "COVERAGE.md",
     "RELEASE.md",
     path.join("docs", "README.md"),
     path.join("docs", "getting-started.md"),
+    path.join("docs", "onboarding.md"),
+    path.join("docs", "skills.md"),
     path.join("docs", "release-spec.md"),
     path.join("plugins", "meta-architect", "README.md"),
   ]) {
@@ -241,16 +265,17 @@ function syncCurrentReleaseFiles(oldVersion, nextVersion) {
   const nextQa = path.join("docs", "qa", `release-readiness-${nextVersion}.md`);
   fs.renameSync(oldQa, nextQa);
   updateCurrentSurfaceFile(nextQa, oldVersion, nextVersion);
+
+  const oldIssueGates = path.join("docs", "qa", `release-issue-gates-${oldVersion}.json`);
+  const nextIssueGates = path.join("docs", "qa", `release-issue-gates-${nextVersion}.json`);
+  if (fs.existsSync(oldIssueGates)) {
+    fs.renameSync(oldIssueGates, nextIssueGates);
+    updateCurrentSurfaceFile(nextIssueGates, oldVersion, nextVersion);
+  }
 }
 
 function syncSupportingCode(oldVersion, nextVersion) {
   const replacements = [
-    {
-      file: path.join("src", "skills.js"),
-      search: `release-readiness-${oldVersion}.md`,
-      replacement: `release-readiness-${nextVersion}.md`,
-      label: "skills QA path",
-    },
     {
       file: path.join("test", "package-install-smoke.test.js"),
       search: `jstn-sdk-ma-${oldVersion}.tgz`,
@@ -272,6 +297,9 @@ function syncSupportingCode(oldVersion, nextVersion) {
 
   const mcpLiveClientFile = path.join("src", "mcp-live-client.js");
   const mcpLiveClient = readText(mcpLiveClientFile);
+  if (/resolveMcpClientVersion\(packageMetadata\)/.test(mcpLiveClient)) {
+    return;
+  }
   if (!/version: "[0-9]+\.[0-9]+\.[0-9]+(?:-dev)?"/.test(mcpLiveClient)) {
     throw new Error("Expected to find mcp live client version declaration");
   }
@@ -282,6 +310,27 @@ function syncSupportingCode(oldVersion, nextVersion) {
       `version: "${nextVersion}-dev"`,
     ),
   );
+}
+
+function refreshCurrentReleaseFiles(oldVersion, currentVersion) {
+  for (const file of [
+    "README.md",
+    "DEMO.md",
+    "COVERAGE.md",
+    "RELEASE.md",
+    path.join("docs", "README.md"),
+    path.join("docs", "getting-started.md"),
+    path.join("docs", "onboarding.md"),
+    path.join("docs", "skills.md"),
+    path.join("docs", "release-spec.md"),
+    path.join("plugins", "meta-architect", "README.md"),
+    path.join("docs", "qa", `release-readiness-${currentVersion}.md`),
+    path.join("docs", "qa", `release-issue-gates-${currentVersion}.json`),
+    path.join("scripts", "install.sh"),
+    path.join("plugins", "meta-architect", "obsidian", "manifest.json"),
+  ]) {
+    if (fs.existsSync(file)) updateCurrentSurfaceFile(file, oldVersion, currentVersion);
+  }
 }
 
 function rewriteReleaseState(nextVersion, previousVersion) {
@@ -332,6 +381,13 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const pkg = readJson("package.json");
   const currentVersion = pkg.version;
+  if (args.refreshFrom) {
+    refreshCurrentReleaseFiles(args.refreshFrom, currentVersion);
+    console.log(
+      JSON.stringify({ updated: true, refreshed: true, version: currentVersion }, null, 2),
+    );
+    return;
+  }
   const changedFiles = getChangedFiles(args);
   const relevantChanges = args.force ? ["<forced>"] : changedFiles.filter(isWatchedPath);
 
@@ -355,9 +411,11 @@ function main() {
   }
 
   const bumpKind = args.bump || "patch";
-  const nextVersion = bumpVersion(currentVersion, bumpKind);
+  const nextVersion = args.version || bumpVersion(currentVersion, bumpKind);
+  parseVersion(nextVersion);
 
   syncPackageVersion(nextVersion);
+  syncSupportBundleVersion(nextVersion);
   syncPluginVersions(nextVersion);
   prependChangelog(nextVersion);
   syncCurrentReleaseFiles(currentVersion, nextVersion);

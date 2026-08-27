@@ -197,7 +197,8 @@ test("runInit seeds manager-run persistence for autonomous maestro state", async
   await withTempRepo(async (tempRoot) => {
     const { skills } = await loadModules();
 
-    await skills.runInit();
+    const setupReport = await skills.runInit();
+    assert.equal(JSON.stringify(setupReport).includes(".omx"), false);
 
     const managerRuns = await loadManagerRuns(tempRoot);
     const maestroState = JSON.parse(await fs.readFile(getMaestroStatePath(tempRoot), "utf8"));
@@ -1151,6 +1152,7 @@ test("local capability mutation tools do not inherit leader authority", async ()
     });
     const memoryResult = await memoryCapability.callMemoryTool("memory.store_note", {
       content: "runtime note",
+      scope: "session-only",
     });
 
     assert.equal(stateResult.proposed, true);
@@ -1351,6 +1353,7 @@ test("runtime-aware build readiness points to repair and maestro mirrors that ro
     await fs.writeFile(path.join(tempRoot, ".ma", "guidance", "merged.json"), "{}\n");
 
     const runtimeSnapshot = await runtimeState.loadRuntimeSnapshot();
+    assert.equal(runtimeSnapshot.releaseIssueGatesSource.fallback, false);
     const runtimeSummary = runtimeState.createRuntimeSummary(runtimeSnapshot);
     const readiness = buildReadiness.evaluateRuntimeBuildReadiness(
       await release.loadReleaseState(),
@@ -1429,10 +1432,10 @@ test("runtime-aware build readiness blocks on pending release issue gates only i
       experience_status: "GREEN",
     });
     await fs.mkdir(path.join(tempRoot, "docs", "qa"), { recursive: true });
-    await fsUtils.writeJson(path.join(tempRoot, "docs", "qa", "release-issue-gates-0.1.13.json"), {
+    await fsUtils.writeJson(path.join(tempRoot, "docs", "qa", "release-issue-gates-0.14.0.json"), {
       schemaVersion: "1.0.0",
-      releaseVersion: "0.1.13",
-      releaseTag: "v0.1.13",
+      releaseVersion: "0.14.0",
+      releaseTag: "v0.14.0",
       passContract: {
         allIssuesMustPassProduction: true,
       },
@@ -1441,9 +1444,9 @@ test("runtime-aware build readiness blocks on pending release issue gates only i
           number: 14,
           title: "Pending issue gate",
           url: "https://github.com/JustineDevs/meta-architect/issues/14",
-          releaseVersion: "0.1.13",
-          releaseTag: "v0.1.13",
-          milestone: "v0.1.13",
+          releaseVersion: "0.14.0",
+          releaseTag: "v0.14.0",
+          milestone: "v0.14.0",
           status: "pending",
           requiredProof: ["implementation", "verification", "production"],
           loopAction: "Implement missing issue work.",
@@ -1456,7 +1459,23 @@ test("runtime-aware build readiness blocks on pending release issue gates only i
       ],
     });
 
+    const currentGatePath = path.join(tempRoot, "docs", "qa", "release-issue-gates-0.14.0.json");
+    const historicalGatePath = path.join(tempRoot, "docs", "qa", "release-issue-gates-0.1.12.json");
+    const historicalGate = JSON.parse(await fs.readFile(currentGatePath, "utf8"));
+    historicalGate.releaseVersion = "0.1.12";
+    historicalGate.releaseTag = "v0.1.12";
+    historicalGate.issues = historicalGate.issues.map((issue) => ({
+      ...issue,
+      releaseVersion: "0.1.12",
+      releaseTag: "v0.1.12",
+      milestone: "v0.1.12",
+    }));
+    await fs.rm(currentGatePath);
+    await fs.writeFile(historicalGatePath, `${JSON.stringify(historicalGate, null, 2)}\n`);
+
     const runtimeSnapshot = await runtimeState.loadRuntimeSnapshot();
+    assert.equal(runtimeSnapshot.releaseIssueGatesSource.fallback, true);
+    assert.equal(runtimeSnapshot.releaseIssueGatesSource.version, "0.1.12");
     const runtimeSummary = runtimeState.createRuntimeSummary(runtimeSnapshot);
     const defaultReadiness = buildReadiness.evaluateRuntimeBuildReadiness(
       await release.loadReleaseState(),
