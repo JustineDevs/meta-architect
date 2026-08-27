@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   getDebArtifactName,
+  getPackArtifactName,
   getPacmanArtifactName,
   getRpmArtifactName,
 } from "../../scripts/linux-package-lib.mjs";
@@ -12,6 +13,7 @@ import {
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const version = pkg.version;
 const artifacts = [
+  path.join("dist", getPackArtifactName(pkg.name, version)),
   "dist/meta-architect-skills.tgz",
   path.join("dist", getDebArtifactName(version)),
   path.join("dist", getPacmanArtifactName(version)),
