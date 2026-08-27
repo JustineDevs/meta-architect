@@ -31,6 +31,10 @@ test("release asset validation requires the Linux package artifact set", async (
       path.join(tempRoot, "package.json"),
       `${JSON.stringify({ name: "@jstn-sdk/ma", version }, null, 2)}\n`,
     );
+    await fs.writeFile(
+      path.join(distRoot, getPackArtifactName("@jstn-sdk/ma", version)),
+      "npm package",
+    );
     await fs.writeFile(path.join(distRoot, "meta-architect-skills.tgz"), "bundle");
     await fs.writeFile(path.join(distRoot, getDebArtifactName(version)), "deb");
     await fs.writeFile(path.join(distRoot, getPacmanArtifactName(version)), "pacman");
