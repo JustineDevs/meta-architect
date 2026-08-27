@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import test from "node:test";
 import { createTestNamespace, removeTestNamespace } from "../src/test-fixtures.js";
+import { Agents } from "@jstn-sdk/agents";
 
 const require = createRequire(import.meta.url);
 const installedAgentCompat = require("@jstn-sdk/agents/package.json");
@@ -59,5 +60,60 @@ test("Meta-Architect consumes the standalone Agent Compat SDK contract", async (
     assert.equal(validation.results.generic.status, "valid");
   } finally {
     await removeTestNamespace(root);
+  }
+});
+
+test("Agent Compat compiles and validates the supported core surfaces", async (t) => {
+  const root = createTestNamespace("meta-agent-compat-surfaces");
+  t.after(() => removeTestNamespace(root));
+  for (const directory of [".cursor", ".claude", ".openclaw", ".pi"]) {
+    await fs.mkdir(path.join(root, directory), { recursive: true });
+  }
+
+  const result = await Agents.compile(
+    {
+      version: 1,
+      project: { name: "surface-conformance", stack: ["typescript"] },
+      instructions: ["Run tests before completion"],
+      skills: {
+        "architecture-review": {
+          description: "Review architecture boundaries",
+          instructions: ["Inspect the relevant architecture before editing"],
+        },
+      },
+    },
+    {
+      targets: [
+        "cursor",
+        "codex-cli",
+        "codex-app",
+        "claude-code",
+        "claude-desktop",
+        "openclaw",
+        "hermes",
+        "pi",
+      ],
+      output: root,
+      overwrite: true,
+    },
+  );
+
+  assert.equal(result.success, true);
+  assert.deepEqual(result.errors, []);
+  for (const expected of [
+    ".cursor/rules/agents.mdc",
+    "AGENTS.md",
+    ".agents/skills/architecture-review/SKILL.md",
+    "CLAUDE.md",
+    ".claude/skills/architecture-review/SKILL.md",
+    "skills/architecture-review/SKILL.md",
+    ".pi/skills/architecture-review/SKILL.md",
+  ]) {
+    await fs.access(path.join(root, expected));
+  }
+
+  const report = await Agents.validate(root);
+  for (const id of ["cursor", "codex-cli", "claude-code", "openclaw", "pi"]) {
+    assert.equal(report.results[id]?.status, "valid", id);
   }
 });
