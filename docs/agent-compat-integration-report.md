@@ -1,6 +1,6 @@
 # Agent-Compat Integration Report
 
-Date: 2026-08-24
+Date: 2026-08-27
 
 ## Verdict
 
@@ -20,7 +20,7 @@ Do not claim all vendor runtimes or all 78 issues are complete. This report sepa
 | Package shape | PASS, 51 files | `pnpm package:check` |
 | Package install | PASS | clean temporary npm install |
 | Meta consumer wrapper | PASS | `test/agent-compat-integration.test.js` |
-| Runtime startup smoke | PASS, 4/4 installed hosts; OpenClaw and Pi explicitly skipped when binaries are absent; Claude Desktop contract validated without CLI startup | `pnpm live-smoke` |
+| Runtime startup smoke | PASS for locally installed Codex CLI, Claude Code, Cursor, and Hermes; OpenClaw/Pi package version probes pass through temporary `npx`, but authenticated runtime-task evidence is still pending; Claude Desktop remains contract-only | `codex app-server`, `codex exec --json --output-schema`, temporary OpenClaw/Pi probes |
 | Published artifact freshness | BLOCKED | npm `0.1.0` points at old `src` files |
 | Exact unscoped init command | BLOCKED | npm cannot resolve `jstn-sdk/ma` |
 
@@ -28,8 +28,8 @@ Do not claim all vendor runtimes or all 78 issues are complete. This report sepa
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| Full repository tests | PASS, 165/165 | `npm test` |
-| Disk fixture tests | PASS, 9/9 | `npm run test:disk` |
+| Full repository tests | PASS, 264/264 | `npm test` |
+| Disk fixture tests | PASS, including 100-fixture budget run | `npm run test:disk` |
 | Static checks | PASS | `npm run check` (one non-failing Biome schema-version notice) |
 | Release metadata | PASS | `npm run release:verify` |
 | Fixture cleanup | PASS | `npm run fixtures:cleanup`; no fixture files remain under `/tmp/ma-tests` |
@@ -48,7 +48,7 @@ Disk lifecycle behavior is implemented in [`src/test-fixtures.js`](../src/test-f
 
 ## Vendor Evidence
 
-The SDK has **41 registered adapter surfaces across 26 vendor labels**. All 41 pass filesystem conformance. The live harness covers `codex-cli`, `claude-code`, `claude-desktop`, `cursor`, `openclaw`, `hermes`, and `pi`; current local runtime startup evidence is available for `codex-cli`, `claude-code`, `cursor`, and `hermes`. OpenClaw and Pi are reported as skipped when their binaries are not installed, while Claude Desktop is validated at the filesystem contract layer. Other surfaces remain native/portable contract evidence only; cloud, IDE, and SDK adapters require their real host/API environment before runtime claims.
+The SDK has **41 registered adapter surfaces across 26 vendor labels**. All 41 pass filesystem conformance. The Meta-Architect consumer test now compiles and validates the core surfaces `codex-cli`, `codex-app`, `claude-code`, `claude-desktop`, `cursor`, `openclaw`, `hermes`, and `pi`. Local runtime startup evidence is available for `codex-cli`, `claude-code`, `cursor`, and `hermes`; temporary package version probes are available for OpenClaw and Pi, but no authenticated runtime-task claim is made. Claude Desktop is validated at the filesystem contract layer. Other surfaces remain native/portable contract evidence only; cloud, IDE, and SDK adapters require their real host/API environment before runtime claims.
 
 ## All Open Issue State
 
@@ -72,7 +72,7 @@ The counts intentionally overlap: narrowly evidenced issues remain open until th
 
 Repository-backed evidence:
 
-- [`test/agent-compat-integration.test.js`](../test/agent-compat-integration.test.js)
+- [`test/agent-compat-integration.test.js`](../test/agent-compat-integration.test.js) (standalone SDK compile/validate conformance)
 - [`test/test-fixtures.test.js`](../test/test-fixtures.test.js)
 - [`src/test-fixtures.js`](../src/test-fixtures.js)
 - [`docs/disk-optimization.md`](./disk-optimization.md)
