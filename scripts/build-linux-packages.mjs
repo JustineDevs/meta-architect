@@ -271,6 +271,7 @@ async function main() {
 
   await fsp.mkdir(distRoot, { recursive: true });
   const packArtifactPath = getPackArtifactPath(distRoot, packageName, version);
+  const workRoot = createTestNamespace("meta-architect-linux-packages");
   await fsp.rm(packArtifactPath, { force: true });
   run(
     "npm",
@@ -279,14 +280,13 @@ async function main() {
       ".",
       "--ignore-scripts",
       "--cache",
-      path.join(distRoot, ".npm-cache"),
+      path.join(workRoot, "npm-cache"),
       "--pack-destination",
       distRoot,
     ],
     { cwd: repoRoot },
   );
 
-  const workRoot = createTestNamespace("meta-architect-linux-packages");
   const commonRoot = path.join(workRoot, "root");
   await createCommonRoot(commonRoot, packArtifactPath);
 
