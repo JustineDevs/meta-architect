@@ -3,8 +3,8 @@ import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import test from "node:test";
-import { createTestNamespace, removeTestNamespace } from "../src/test-fixtures.js";
 import { Agents } from "@jstn-sdk/agents";
+import { createTestNamespace, removeTestNamespace } from "../src/test-fixtures.js";
 
 const require = createRequire(import.meta.url);
 const installedAgentCompat = require("@jstn-sdk/agents/package.json");
