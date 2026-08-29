@@ -764,6 +764,31 @@ test("ma launcher delegates non-native commands to the selected MA_AGENT host", 
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.deepEqual(JSON.parse(await fs.readFile(outputPath, "utf8")).argv, ["hello"]);
+  assert.deepEqual(
+    JSON.parse(await fs.readFile(path.join(tempRoot, ".ma", "prelaunch.json"), "utf8")),
+    { schemaVersion: "0.1.0", scope: "project", targets: ["claude-code"] },
+  );
+  await fs.access(path.join(tempRoot, ".agents", "skills", "meta-architect", "SKILL.md"));
+});
+
+test("ma installs but does not launch an installation-only IDE target", async () => {
+  const tempRoot = createTestNamespace("meta-architect-install-only-agent");
+  const result = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "hello"], {
+    cwd: tempRoot,
+    env: {
+      ...process.env,
+      MA_AGENT: "antigravity",
+      MA_SKIP_AUTO_INSTALL: "1",
+    },
+  });
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stdout.toString(), /delegation was skipped/);
+  assert.deepEqual(
+    JSON.parse(await fs.readFile(path.join(tempRoot, ".ma", "prelaunch.json"), "utf8")),
+    { schemaVersion: "0.1.0", scope: "project", targets: ["antigravity"] },
+  );
+  await fs.access(path.join(tempRoot, ".agents", "skills", "meta-architect", "SKILL.md"));
 });
 
 test("ma sdk-path prints the installed support bundle root", async () => {

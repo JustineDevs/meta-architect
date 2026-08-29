@@ -3,6 +3,7 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { resolveAgentCommand } from "../src/agents.js";
 import { runBootstrap, runDoctor } from "../src/bootstrap.js";
 import { appendDecision } from "../src/decision-log.js";
 import { runAgent, shouldDelegateToCodex } from "../src/launcher.js";
@@ -556,9 +557,24 @@ async function main() {
 
   if (shouldDelegateToCodex(args)) {
     const selection = await choosePrelaunchInstall();
-    if (selection) await installPrelaunchSelection(selection);
-    else await Promise.all([ensureSkillsInstalled(), ensureSupportBundleInstalled()]);
     const agentType = process.env.MA_AGENT || selection?.targets?.[0] || "codex";
+    if (selection) {
+      await installPrelaunchSelection(selection);
+    } else if (process.env.MA_AGENT) {
+      await installPrelaunchSelection({
+        schemaVersion: "0.1.0",
+        scope: "project",
+        targets: [agentType],
+      });
+    } else {
+      await Promise.all([ensureSkillsInstalled(), ensureSupportBundleInstalled()]);
+    }
+    if (!resolveAgentCommand(agentType)) {
+      console.log(
+        `Installed ${agentType} compatibility files; no executable host command is registered, so delegation was skipped.`,
+      );
+      return;
+    }
     process.exitCode = runAgent(args, agentType);
     return;
   }
