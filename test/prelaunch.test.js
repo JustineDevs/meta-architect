@@ -56,3 +56,18 @@ test("pre-launch selection installs a project compatibility entrypoint and persi
     await fs.rm(root, { recursive: true, force: true });
   }
 });
+
+test("project Codex selection installs the complete lane skill and support bundle", async () => {
+  const root = createTestNamespace("prelaunch-codex-project");
+  try {
+    await installPrelaunchSelection(
+      { schemaVersion: "0.1.0", scope: "project", targets: ["codex"] },
+      root,
+    );
+    await fs.access(path.join(root, ".agents", "skills", "maestro", "SKILL.md"));
+    await fs.access(path.join(root, ".agents", "skills", "arch", "SKILL.md"));
+    await fs.access(path.join(root, ".ma", "support-bundle", "mcp", "servers.json"));
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});

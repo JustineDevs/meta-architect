@@ -48,7 +48,7 @@
           "blocker": { "type": ["string", "null"] },
           "evidence": { "type": "array", "items": {} },
           "selectedCapabilities": { "type": "array", "items": { "type": "object" } },
-          "invocation": { "type": ["object", "null"] }
+          "invocation": { "type": ["string", "null"] }
         }
       }
     }

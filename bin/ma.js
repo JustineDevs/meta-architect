@@ -5,7 +5,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { runBootstrap, runDoctor } from "../src/bootstrap.js";
 import { appendDecision } from "../src/decision-log.js";
-import { runCodex, shouldDelegateToCodex } from "../src/launcher.js";
+import { runAgent, shouldDelegateToCodex } from "../src/launcher.js";
 import { getRepoRoot, packageRoot } from "../src/paths.js";
 import {
   canMarkBuildDone,
@@ -558,7 +558,8 @@ async function main() {
     const selection = await choosePrelaunchInstall();
     if (selection) await installPrelaunchSelection(selection);
     else await Promise.all([ensureSkillsInstalled(), ensureSupportBundleInstalled()]);
-    process.exitCode = runCodex(args);
+    const agentType = process.env.MA_AGENT || selection?.targets?.[0] || "codex";
+    process.exitCode = runAgent(args, agentType);
     return;
   }
 

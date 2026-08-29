@@ -147,8 +147,15 @@ export async function installPrelaunchSelection(selection, cwd = process.cwd()) 
     capabilities: ["maestro", "agent-compatibility"],
   });
   const results = [];
-  if (selection.scope === "global" && selection.targets.includes("codex")) {
-    results.push(await ensureSkillsInstalled(), await ensureSupportBundleInstalled());
+  if (selection.targets.includes("codex")) {
+    const skillsRoot =
+      selection.scope === "global" ? undefined : path.join(cwd, ".agents", "skills");
+    const supportRoot =
+      selection.scope === "global" ? undefined : path.join(cwd, ".ma", "support-bundle");
+    results.push(
+      await ensureSkillsInstalled({ targetRoot: skillsRoot }),
+      await ensureSupportBundleInstalled({ targetRoot: supportRoot }),
+    );
   }
   for (const target of selection.targets) {
     if (selection.scope === "global" && target === "codex") continue;

@@ -137,7 +137,17 @@ function byId(tasks) {
 
 export async function loadTaskQueue() {
   try {
-    return validateTaskQueue(await readJson(getAutonomousTaskQueuePath()));
+    const queue = validateTaskQueue(await readJson(getAutonomousTaskQueuePath()));
+    const interrupted = queue.tasks.filter((task) => task.status === "running");
+    if (interrupted.length === 0) return queue;
+    const recoveredAt = new Date().toISOString();
+    for (const task of interrupted) {
+      task.status = "queued";
+      task.error = "Recovered after the previous process exited while the task was running";
+      task.updatedAt = recoveredAt;
+    }
+    await saveTaskQueue(queue);
+    return queue;
   } catch (error) {
     if (error?.code === "ENOENT") return createTaskQueue();
     throw error;

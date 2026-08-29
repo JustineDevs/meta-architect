@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
+import path from "node:path";
 import test from "node:test";
 import {
   cancelAutonomousTask,
@@ -25,7 +26,13 @@ async function withRoot(t) {
 test("accepts durable tasks and runs dependency order with retry", async (t) => {
   await withRoot(t);
   await enqueueAutonomousTasks([
-    { id: "build", goal: "Build the project", priority: "high", dependencies: ["test"] },
+    {
+      id: "build",
+      goal: "Build the project",
+      priority: "high",
+      dependencies: ["test"],
+      vendor: "codex",
+    },
     { id: "test", goal: "Run tests", labels: ["verification"] },
   ]);
   const calls = [];
@@ -40,6 +47,7 @@ test("accepts durable tasks and runs dependency order with retry", async (t) => 
   assert.deepEqual(calls, ["test", "test", "build"]);
   assert.equal(result.summary.completed, 2);
   assert.ok(result.tasks.every((task) => task.status === "completed"));
+  assert.equal(result.tasks.find((task) => task.id === "build").invocation, "$maestro");
 });
 
 test("blocks unsafe work, supports cancellation, and resumes queued work", async (t) => {
@@ -126,4 +134,19 @@ test("rejects cyclic queues", () => {
     },
   ];
   assert.throws(() => validateTaskQueue(queue), /cyclic/);
+});
+
+test("requeues persisted running tasks after an interrupted process", async (t) => {
+  await withRoot(t);
+  await enqueueAutonomousTasks({ id: "interrupted", goal: "Resume interrupted work" });
+  const queuePath = path.join(process.env.MA_ROOT, ".ma", "tasks", "autonomous-queue.json");
+  const queue = JSON.parse(await fs.readFile(queuePath, "utf8"));
+  queue.tasks[0].status = "running";
+  await fs.writeFile(queuePath, `${JSON.stringify(queue, null, 2)}\n`);
+
+  const result = await runAutonomousTasks({
+    execute: async (task) => ({ status: "completed", evidence: [`resumed:${task.id}`] }),
+  });
+  assert.equal(result.tasks[0].status, "completed");
+  assert.match(result.tasks[0].evidence.at(-1), /resumed:interrupted/);
 });

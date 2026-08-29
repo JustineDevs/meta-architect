@@ -746,6 +746,26 @@ test("ma launcher delegates non-native commands to codex and strips compatibilit
   assert.deepEqual(output.argv, ["--model", "gpt-5.4", "hello"]);
 });
 
+test("ma launcher delegates non-native commands to the selected MA_AGENT host", async () => {
+  const tempRoot = createTestNamespace("meta-architect-selected-agent");
+  await copyDir(repoRoot, tempRoot);
+  const outputPath = path.join(tempRoot, "agent-output.json");
+  const agentBin = await writeFakeCodex(tempRoot);
+  const result = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "hello"], {
+    cwd: tempRoot,
+    env: {
+      ...process.env,
+      MA_AGENT: "claude-code",
+      MA_CLAUDE_CODE_BIN: agentBin,
+      MA_TEST_OUTPUT: outputPath,
+      MA_SKIP_AUTO_INSTALL: "1",
+    },
+  });
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.deepEqual(JSON.parse(await fs.readFile(outputPath, "utf8")).argv, ["hello"]);
+});
+
 test("ma sdk-path prints the installed support bundle root", async () => {
   const tempRoot = createTestNamespace("meta-architect-sdk-path");
   const codexHome = path.join(tempRoot, "codex-home");

@@ -53,7 +53,7 @@ export function runAgent(args, agentType = process.env.MA_AGENT || "codex") {
       throw new Error(`${agent.displayName} not found. Install the selected agent and retry.`);
     }
 
-    throw new Error(`Failed to start Codex: ${result.error.message}`);
+    throw new Error(`Failed to start ${agent.displayName}: ${result.error.message}`);
   }
 
   return typeof result.status === "number" ? result.status : 1;
