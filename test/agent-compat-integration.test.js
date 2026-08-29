@@ -70,6 +70,17 @@ test("Agent Compat compiles and validates the supported core surfaces", async (t
     await fs.mkdir(path.join(root, directory), { recursive: true });
   }
 
+  const targets = [
+    "cursor",
+    "codex-cli",
+    "codex-app",
+    "claude-code",
+    "claude-desktop",
+    "openclaw",
+    "hermes",
+    "pi",
+  ];
+
   const result = await Agents.compile(
     {
       version: 1,
@@ -83,16 +94,7 @@ test("Agent Compat compiles and validates the supported core surfaces", async (t
       },
     },
     {
-      targets: [
-        "cursor",
-        "codex-cli",
-        "codex-app",
-        "claude-code",
-        "claude-desktop",
-        "openclaw",
-        "hermes",
-        "pi",
-      ],
+      targets,
       output: root,
       overwrite: true,
     },
@@ -112,8 +114,11 @@ test("Agent Compat compiles and validates the supported core surfaces", async (t
     await fs.access(path.join(root, expected));
   }
 
-  const report = await Agents.validate(root);
-  for (const id of ["cursor", "codex-cli", "claude-code", "openclaw", "pi"]) {
-    assert.equal(report.results[id]?.status, "valid", id);
+  const report = await Agents.validate(root, { targets });
+  assert.equal(report.valid, true);
+  assert.deepEqual(report.targets, targets);
+  for (const id of targets) {
+    assert.ok(report.results[id], `${id} validation result is missing`);
+    assert.equal(report.results[id].status, "valid", id);
   }
 });
