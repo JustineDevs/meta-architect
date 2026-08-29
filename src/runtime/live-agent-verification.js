@@ -11,9 +11,9 @@ import {
 
 const defaultTimeoutMs = 5000;
 
-function runVersionProbe(command, timeoutMs) {
+function runVersionProbe(command, timeoutMs, args = ["--version"]) {
   return new Promise((resolve) => {
-    const child = spawn(command, ["--version"], {
+    const child = spawn(command, args, {
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -45,6 +45,12 @@ function runVersionProbe(command, timeoutMs) {
       }),
     );
   });
+}
+
+function normalizeProbeCommand(command) {
+  return [".js", ".mjs", ".cjs"].includes(path.extname(command))
+    ? { command: process.execPath, args: [command, "--version"] }
+    : { command, args: ["--version"] };
 }
 
 export async function verifyLiveAgentMatrix({
@@ -80,7 +86,8 @@ export async function verifyLiveAgentMatrix({
         });
         continue;
       }
-      const probe = await runVersionProbe(command, timeoutMs);
+      const normalized = normalizeProbeCommand(command);
+      const probe = await runVersionProbe(normalized.command, timeoutMs, normalized.args);
       results.push({
         target,
         status: probe.ok && distributionResult?.ok ? "runtime-verified" : "blocked",

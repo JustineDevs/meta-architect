@@ -14,6 +14,12 @@ test("grid renderer aligns cells and ignores ANSI width", () => {
   assert.match(output, /\+[-+]+\+/);
 });
 
+test("grid renderer truncates ANSI cells without cutting escape sequences", () => {
+  const value = "\u001b[32mOKAY\u001b[0m";
+  assert.equal(padCell(value, 2), "\u001b[32mOK\u001b[0m");
+  assert.equal(padCell("\u001b[32mOK\u001b[0m", 2), "\u001b[32mOK\u001b[0m");
+});
+
 test("release grid renders all Maestro gates and next triggers", () => {
   const output = renderReleaseGrid(
     {

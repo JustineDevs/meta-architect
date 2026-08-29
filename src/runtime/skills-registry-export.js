@@ -358,7 +358,7 @@ export function resolveSkillInstallPlan({
     };
   }
 
-  if (global && agent.universal) {
+  if (global && agent.universal && targetDir === canonicalDir) {
     return {
       action: "canonical-only",
       canonicalDir,
@@ -379,9 +379,9 @@ export function resolveSkillInstallPlan({
   }
 
   return {
-    action: agent.universal ? "canonical-only" : "symlink",
+    action: agent.universal && targetDir === canonicalDir ? "canonical-only" : "symlink",
     canonicalDir,
-    targetDir: agent.universal ? canonicalDir : targetDir,
+    targetDir,
     skipped: false,
     reason: agent.universal
       ? "universal agent reads canonical directory directly"

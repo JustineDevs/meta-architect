@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { stdin as input, stdout as output } from "node:process";
 import readline from "node:readline/promises";
-import { agentRegistry, listAgents } from "./agents.js";
+import { agentRegistry, detectInstalled, listAgents } from "./agents.js";
 import {
   createSkillCompatibilityPayload,
   writeSkillCompatibilityExport,
@@ -12,6 +12,10 @@ import { ensureSkillsInstalled, ensureSupportBundleInstalled } from "./skill-ins
 
 const selectionFile = ".ma/prelaunch.json";
 const projectSignals = {
+  codex: [".codex", "AGENTS.md"],
+  opencode: [".opencode"],
+  "gemini-cli": [".gemini", "GEMINI.md"],
+  amp: [".amp"],
   cursor: [".cursor"],
   windsurf: [".windsurf"],
   cline: [".cline"],
@@ -21,6 +25,10 @@ const projectSignals = {
   junie: [".junie"],
 };
 const globalSignals = {
+  codex: ["~/.codex"],
+  opencode: ["~/.config/opencode"],
+  "gemini-cli": ["~/.gemini"],
+  amp: ["~/.config/agents"],
   cursor: ["~/.cursor"],
   windsurf: ["~/.codeium/windsurf"],
   cline: ["~/.cline"],
@@ -46,9 +54,10 @@ async function exists(target) {
 export async function detectPrelaunchTargets(cwd = process.cwd()) {
   const targets = listAgents().map((agent) => {
     const definition = agentRegistry[agent.id];
-    const projectPath = definition?.universal
-      ? path.join(cwd, ".agents")
-      : path.join(cwd, agent.skillsDir);
+    const projectPath =
+      definition?.isUniversal && agent.id === "universal"
+        ? path.join(cwd, ".agents")
+        : path.join(cwd, agent.skillsDir);
     const globalPath = expandHome(agent.globalSkillsDir);
     return {
       id: agent.id,
@@ -58,18 +67,21 @@ export async function detectPrelaunchTargets(cwd = process.cwd()) {
       global: globalPath,
       projectSignals: (projectSignals[agent.id] ?? []).map((signal) => path.join(cwd, signal)),
       globalSignals: (globalSignals[agent.id] ?? []).map(expandHome),
-      projectDetected: Boolean(definition?.universal) || false,
+      projectDetected: false,
       globalDetected: false,
     };
   });
 
   for (const target of targets) {
+    const installed = target.surface === "cli" && detectInstalled(target.id).installed;
     target.projectDetected =
-      (await exists(target.project)) ||
+      (target.id === "universal" && (await exists(target.project))) ||
       (await Promise.all(target.projectSignals.map(exists))).some(Boolean);
-    target.globalDetected = await exists(target.global);
+    target.globalDetected =
+      installed ||
+      (target.id === "universal" && (await exists(target.global))) ||
+      (await Promise.all(target.globalSignals.map(exists))).some(Boolean);
     delete target.projectSignals;
-    target.globalDetected ||= (await Promise.all(target.globalSignals.map(exists))).some(Boolean);
     delete target.globalSignals;
   }
   return targets;

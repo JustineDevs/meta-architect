@@ -17,6 +17,10 @@ The primary trigger surfaces are:
 
 No implementation should proceed as if it were approved unless the required architecture, evidence, logic, and security gates are satisfied.
 
+## External review findings rule
+
+Every finding reported by the `chatgpt-codex-connector` must be reviewed, implemented or explicitly resolved with evidence, and re-checked before the change is considered complete. Do not dismiss, skip, or claim resolution for a finding until the affected behavior is verified by the smallest appropriate test, check, or reproduction. A pull request remains unresolved while any connector finding lacks a recorded resolution and fresh verification evidence.
+
 ## Kernel vs extension model
 
 Meta-Architect should be treated as a core system plus extension surfaces:

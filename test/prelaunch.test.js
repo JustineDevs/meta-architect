@@ -23,6 +23,19 @@ test("pre-launch detection exposes project and user installation paths", async (
   }
 });
 
+test("pre-launch does not claim every universal host from a shared .agents directory", async () => {
+  const root = createTestNamespace("prelaunch-universal-detection");
+  try {
+    await fs.mkdir(path.join(root, ".agents"), { recursive: true });
+    const targets = await detectPrelaunchTargets(root);
+    assert.equal(targets.find((target) => target.id === "universal")?.projectDetected, true);
+    assert.equal(targets.find((target) => target.id === "cursor")?.projectDetected, false);
+    assert.equal(targets.find((target) => target.id === "opencode")?.projectDetected, false);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
 test("non-interactive pre-launch does not write or prompt", async () => {
   const root = createTestNamespace("prelaunch-noninteractive");
   try {

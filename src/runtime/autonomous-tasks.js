@@ -2,8 +2,9 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { getAgentInvocation } from "../agents.js";
-import { readJson, writeFileIfMissing, writeJson } from "../fs-utils.js";
+import { readJson, withRuntimeStateLock, writeFileIfMissing, writeJson } from "../fs-utils.js";
 import { getRuntimeSubsystemPath } from "../paths.js";
+import { writeJsonAtomically } from "../setup-lifecycle.js";
 import {
   createDefaultEnvironmentAwarenessCore,
   discoverEnvironmentCapabilities,
@@ -135,7 +136,7 @@ function byId(tasks) {
   return new Map(tasks.map((task) => [task.id, task]));
 }
 
-export async function loadTaskQueue() {
+async function loadTaskQueueUnlocked() {
   try {
     const queue = validateTaskQueue(await readJson(getAutonomousTaskQueuePath()));
     const interrupted = queue.tasks.filter((task) => task.status === "running");
@@ -146,12 +147,16 @@ export async function loadTaskQueue() {
       task.error = "Recovered after the previous process exited while the task was running";
       task.updatedAt = recoveredAt;
     }
-    await saveTaskQueue(queue);
+    await writeJsonAtomically(getAutonomousTaskQueuePath(), queue);
     return queue;
   } catch (error) {
     if (error?.code === "ENOENT") return createTaskQueue();
     throw error;
   }
+}
+
+export async function loadTaskQueue() {
+  return withRuntimeStateLock(getAutonomousTaskQueuePath(), loadTaskQueueUnlocked, { wait: true });
 }
 
 export async function saveTaskQueue(queue) {
@@ -160,29 +165,41 @@ export async function saveTaskQueue(queue) {
 }
 
 export async function enqueueAutonomousTasks(inputs) {
-  const queue = await loadTaskQueue();
-  const tasks = Array.isArray(inputs) ? inputs : [inputs];
-  const added = tasks.map(normalizeTask);
-  const existing = new Set(queue.tasks.map((task) => task.id));
-  for (const task of added) {
-    if (existing.has(task.id)) throw new Error(`task already exists: ${task.id}`);
-    existing.add(task.id);
-    queue.tasks.push(task);
-  }
-  await saveTaskQueue(queue);
-  return added;
+  return withRuntimeStateLock(
+    getAutonomousTaskQueuePath(),
+    async () => {
+      const queue = await loadTaskQueueUnlocked();
+      const tasks = Array.isArray(inputs) ? inputs : [inputs];
+      const added = tasks.map(normalizeTask);
+      const existing = new Set(queue.tasks.map((task) => task.id));
+      for (const task of added) {
+        if (existing.has(task.id)) throw new Error(`task already exists: ${task.id}`);
+        existing.add(task.id);
+        queue.tasks.push(task);
+      }
+      await writeJsonAtomically(getAutonomousTaskQueuePath(), validateTaskQueue(queue));
+      return added;
+    },
+    { wait: true },
+  );
 }
 
 export async function cancelAutonomousTask(id, reason = "Cancelled by operator") {
-  const queue = await loadTaskQueue();
-  const task = queue.tasks.find((entry) => entry.id === normalizeTaskId(id));
-  if (!task) throw new Error(`unknown autonomous task: ${id}`);
-  if (["completed", "cancelled"].includes(task.status)) return task;
-  task.status = "cancelled";
-  task.blocker = reason;
-  task.updatedAt = new Date().toISOString();
-  await saveTaskQueue(queue);
-  return task;
+  return withRuntimeStateLock(
+    getAutonomousTaskQueuePath(),
+    async () => {
+      const queue = await loadTaskQueueUnlocked();
+      const task = queue.tasks.find((entry) => entry.id === normalizeTaskId(id));
+      if (!task) throw new Error(`unknown autonomous task: ${id}`);
+      if (["completed", "cancelled"].includes(task.status)) return task;
+      task.status = "cancelled";
+      task.blocker = reason;
+      task.updatedAt = new Date().toISOString();
+      await writeJsonAtomically(getAutonomousTaskQueuePath(), validateTaskQueue(queue));
+      return task;
+    },
+    { wait: true },
+  );
 }
 
 function hasUnsafeAction(task) {
@@ -219,6 +236,25 @@ export async function runAutonomousTasks({
     (async (task) => {
       const { runMaestro } = await import("../skills.js");
       await runMaestro({ taskContract: task.contract, handoff: { nextAction: task.goal } });
+      const [{ loadManagerRunRegistryOrDefault }, { loadAlignmentSentinelReport }] =
+        await Promise.all([import("./maestro-manager.js"), import("./alignment-sentinel.js")]);
+      const [managerRegistry, alignment] = await Promise.all([
+        loadManagerRunRegistryOrDefault(),
+        loadAlignmentSentinelReport(),
+      ]);
+      const latestRun = managerRegistry.runs.at(-1);
+      if (alignment?.driftStatus === "DRIFTED") {
+        return {
+          status: "blocked",
+          reason: "Maestro blocked dispatch because alignment drift must be resolved",
+        };
+      }
+      if (latestRun && ["waiting-review", "blocked"].includes(latestRun.state)) {
+        return {
+          status: "blocked",
+          reason: `Maestro ${latestRun.state}: ${latestRun.retry?.lastReason ?? "review or blocker remains"}`,
+        };
+      }
       return { status: "completed", evidence: ["Maestro manager run completed"] };
     });
   const events = [];
@@ -229,7 +265,7 @@ export async function runAutonomousTasks({
   };
   const running = new Set();
   let processed = 0;
-  while (processed < maxTasks) {
+  while (processed + running.size < maxTasks) {
     const now = Date.now();
     const eligible = queue.tasks
       .filter((task) => task.status === "queued" && !running.has(task.id))
@@ -245,7 +281,8 @@ export async function runAutonomousTasks({
       await Promise.race(running);
       continue;
     }
-    for (const task of eligible.slice(0, concurrency - running.size)) {
+    const remaining = maxTasks - processed - running.size;
+    for (const task of eligible.slice(0, Math.min(concurrency - running.size, remaining))) {
       task.selectedCapabilities = selectEnvironmentCapabilitiesForTask(
         capabilities,
         task.goal,

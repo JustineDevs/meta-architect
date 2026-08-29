@@ -208,6 +208,16 @@ test("skills registry fans out to non-universal host roots and supports copy mod
   assert.match(copiedSkill, /context_economy_core/);
 });
 
+test("global universal targets use their declared host skill directories", () => {
+  const plan = resolveSkillInstallPlan({
+    skillName: "Meta Architect",
+    agentType: "opencode",
+    global: true,
+  });
+  assert.equal(plan.action, "symlink");
+  assert.match(plan.targetDir, /opencode[\\/]skills[\\/]meta-architect$/);
+});
+
 test("skills registry verifies symlink, copy fallback, and skipped missing-root fanout", async (t) => {
   const tempRoot = createTestNamespace("ma-skills-verify");
   t.after(async () => {

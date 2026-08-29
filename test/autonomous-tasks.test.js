@@ -150,3 +150,33 @@ test("requeues persisted running tasks after an interrupted process", async (t) 
   assert.equal(result.tasks[0].status, "completed");
   assert.match(result.tasks[0].evidence.at(-1), /resumed:interrupted/);
 });
+
+test("caps concurrent dispatches by the remaining max-tasks budget", async (t) => {
+  await withRoot(t);
+  await enqueueAutonomousTasks([
+    { id: "one", goal: "First task" },
+    { id: "two", goal: "Second task" },
+    { id: "three", goal: "Third task" },
+  ]);
+  const calls = [];
+  const result = await runAutonomousTasks({
+    concurrency: 3,
+    maxTasks: 1,
+    execute: async (task) => {
+      calls.push(task.id);
+      return { status: "completed" };
+    },
+  });
+  assert.equal(calls.length, 1);
+  assert.equal(result.summary.completed, 1);
+});
+
+test("serializes concurrent queue enqueues without dropping tasks", async (t) => {
+  await withRoot(t);
+  await Promise.all([
+    enqueueAutonomousTasks({ id: "first", goal: "First task" }),
+    enqueueAutonomousTasks({ id: "second", goal: "Second task" }),
+  ]);
+  const result = await runAutonomousTasks({ execute: async () => ({ status: "completed" }) });
+  assert.deepEqual(result.tasks.map((task) => task.id).sort(), ["first", "second"]);
+});
