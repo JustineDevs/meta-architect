@@ -43,5 +43,5 @@ test("release grid renders all Maestro gates and next triggers", () => {
     "Build",
     "$build",
   ])
-    assert.match(output, new RegExp(gate.replace("$", "\\$")));
+    assert.match(output, new RegExp(gate.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
