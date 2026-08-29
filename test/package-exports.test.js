@@ -53,6 +53,7 @@ import {
   validateUniversalPluginBrokerCore,
   validateUniversalPluginManifest,
   verifyCrossAgentInstallMatrix,
+  verifyLiveAgentMatrix,
   writeObsidianAttachment,
   writeObsidianVaultIndex,
   writeSkillCompatibilityExport,
@@ -108,6 +109,7 @@ test("package entrypoint exposes MA core runtime capabilities", () => {
     validateUniversalPluginBrokerCore,
     validateUniversalPluginManifest,
     verifyCrossAgentInstallMatrix,
+    verifyLiveAgentMatrix,
     writeObsidianVaultIndex,
     writeObsidianAttachment,
     writeSkillCompatibilityExport,
@@ -121,4 +123,17 @@ test("package entrypoint exposes MA core runtime capabilities", () => {
   assert.deepEqual(helperSkillNames, ["$align", "$diagnose", "$tdd", "$cleanup"]);
   assert.equal(Array.isArray(learningLoopDomains), true);
   assert.equal(typeof quorumDecisions, "object");
+});
+
+test("live agent verification separates runtime evidence from distribution evidence", async () => {
+  const report = await verifyLiveAgentMatrix({ targets: Object.keys(agentRegistry) });
+  assert.equal(report.target_count, 55);
+  assert.equal(report.results.length, 55);
+  assert.equal(
+    report.results.every((result) =>
+      ["runtime-verified", "distribution-only", "blocked"].includes(result.status),
+    ),
+    true,
+  );
+  assert.equal(report.production_evidence, false);
 });

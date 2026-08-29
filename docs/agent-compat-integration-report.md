@@ -81,6 +81,27 @@ Repository-backed evidence:
 
 The earlier `/tmp/agent-compat-evidence/*` paths were ephemeral session artifacts and are not treated as durable proof. Re-run the commands in the tables above to regenerate current evidence.
 
+## Live host verification
+
+Run `ma verify --agents-live --json` to execute safe `--version` probes for
+registered hosts and combine them with the 55-target skill-distribution check.
+Results are intentionally separated into `runtime-verified`,
+`distribution-only`, and `blocked`; distribution artifacts never become
+production evidence by themselves.
+
+### CLI and IDE first slice
+
+Meta-Architect now has explicit surface records for the first CLI/IDE group:
+`codex`, `opencode`, `gemini-cli`, `amp`, `claude-code`, `goose`,
+`hermes-agent`, `pi`, `cursor`, `windsurf`, `cline`, `continue`, `roo`,
+`kiro-cli`, `junie`, `github-copilot`, and `antigravity`.
+
+Only non-interactive commands marked `probeable` are started by the live
+verifier. IDE extensions and desktop products without a safe project-local
+CLI remain distribution-only until their host exposes a documented runtime
+probe. This prevents an installed folder or generated skill from being
+misreported as live execution evidence.
+
 ## Release Gate
 
 Before public integration, publish a new SDK patch from `packages/agents`, verify the installed tarball with `pnpm package:check` and a clean consumer install, update the Meta lockfile to that published version, and rerun the integration smoke. Do not publish or push as part of this report.

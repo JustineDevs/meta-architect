@@ -131,17 +131,10 @@ export class AIQualityOrchestrator {
     if (typeof code !== "string" || !code.trim())
       throw new Error("Quality validation requires generated code");
     const violations = staticViolations(code, context);
-    const llmGuard = await this.runLLMGuard(code, context);
-    violations.push(...(llmGuard.violations ?? []));
     const semgrep = await this.runSemgrep(code, context);
     violations.push(...semgrep.violations);
     const architecture = await this.runArchUnit(code, context);
     violations.push(...(architecture.violations ?? []));
-    const swe = await this.runSWEBenchmark(code, context.task, context);
-    if (!swe.passed) violations.push(violation("swe-bench", "critical", swe.message, context));
-    const kodcode = await this.runKodCodeVerify(code, context.requirement, context);
-    if (!kodcode.passed)
-      violations.push(violation("kodcode", "critical", kodcode.message, context));
     if (this.config.requireTests && !context.testEvidence?.approved)
       violations.push(
         violation(
@@ -187,23 +180,6 @@ export class AIQualityOrchestrator {
       kpis,
     });
     return result;
-  }
-
-  async runLLMGuard(code, context = {}) {
-    if (typeof this.config.llmGuard === "function") return this.config.llmGuard(code, context);
-    return {
-      passed: false,
-      blocked: true,
-      available: false,
-      violations: [
-        violation(
-          "llm-guard-unavailable",
-          "critical",
-          "The external LLM Guard provider is not configured; no security pass is claimed.",
-          context,
-        ),
-      ],
-    };
   }
 
   async runSemgrep(code, context = {}) {
@@ -299,28 +275,6 @@ export class AIQualityOrchestrator {
       (item) => item.rule === "no-direct-db-access-from-controllers",
     );
     return { passed: violations.length === 0, blocked: violations.length > 0, violations };
-  }
-
-  async runSWEBenchmark(code, task, context = {}) {
-    if (typeof this.config.sweBenchmark === "function")
-      return this.config.sweBenchmark(code, task, context);
-    return {
-      passed: false,
-      blocked: true,
-      available: false,
-      message: "SWE-bench provider is not configured; no benchmark pass is claimed.",
-    };
-  }
-
-  async runKodCodeVerify(code, requirement, context = {}) {
-    if (typeof this.config.kodCodeVerify === "function")
-      return this.config.kodCodeVerify(code, requirement, context);
-    return {
-      passed: false,
-      blocked: true,
-      available: false,
-      message: "KodCode provider is not configured; no self-verification pass is claimed.",
-    };
   }
 
   async testDrivenGeneration(

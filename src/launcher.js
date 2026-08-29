@@ -20,6 +20,7 @@ const nativeCommands = new Set([
   "merge",
   "release",
   "run",
+  "task",
   "hook",
 ]);
 

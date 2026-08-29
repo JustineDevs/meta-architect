@@ -11,7 +11,7 @@ Meta-Architect `v0.14.0` is production only when:
 
 ### 1. Canonical package/runtime path
 
-- recommended POSIX install: download the versioned `v0.14.0` installer and checksum from the GitHub release tag, verify with `sha256sum -c`, then run `sh install.sh`
+- recommended POSIX install: download the latest installer and checksum through jsDelivr, verify the downloaded installer with `sha256sum -c`, then run `sh install.sh`
 - install: `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
 - optional helper launch: `ma --madmax --high`
 - uninstall Meta-Architect only: `npm uninstall -g @jstn-sdk/ma`

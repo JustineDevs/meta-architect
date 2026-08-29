@@ -22,6 +22,15 @@ test("skills registry export defines MA authority boundaries", () => {
   const registry = validateSkillsRegistryExport(createDefaultSkillsRegistryExport());
 
   assert.equal(registry.canonical_dir, ".agents/skills");
+  assert.equal(registry.target_count, 55);
+  assert.equal(
+    Object.values(registry.targets).every((target) => target.support === "native"),
+    true,
+  );
+  assert.equal(
+    Object.values(registry.targets).every((target) => target.native_artifacts.length > 0),
+    true,
+  );
   assert.equal(registry.universal_targets.includes("codex"), true);
   assert.equal(registry.non_universal_targets.includes("claude-code"), true);
   assert.equal(registry.authority_boundary.exported_payloads_may_mutate_release_state, false);
@@ -87,6 +96,7 @@ test("skills registry renders MA-owned compatibility payloads and install receip
   assert.equal(payload.name, "meta-architect");
   assert.equal(payload.authority_boundary.may_mutate_release_state, false);
   assert.match(skillMd, /Route execution through `\$maestro` or the owning MA lane/);
+  assert.match(skillMd, /Start the umbrella lane with `\$maestro`/);
   assert.match(skillMd, /vault_context/);
   assert.equal(receipt.record_type, "host_install_receipt");
   assert.equal(receipt.records_as, "host_compatibility_payload");
@@ -109,6 +119,18 @@ test("skills registry renders MA-owned compatibility payloads and install receip
   assert.equal(lockEntry.selectedAgentTargets.includes("claude-code"), true);
   assert.equal(lockEntry.authority_boundary.may_mutate_release_state, false);
   assert.equal(typeof lockEntry.skillFolderHash, "string");
+});
+
+test("skills registry renders host-native invocation aliases", () => {
+  const payload = createSkillCompatibilityPayload({ name: "Meta Architect" });
+  assert.match(
+    renderSkillCompatibilitySkillMd(payload, { agentType: "cursor" }),
+    /Start the umbrella lane with `\/meta-architect`/,
+  );
+  assert.match(
+    renderSkillCompatibilitySkillMd(payload, { agentType: "pi" }),
+    /Start the umbrella lane with `meta-architect`/,
+  );
 });
 
 test("skills registry writes canonical compatibility export files", async (t) => {

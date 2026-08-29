@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   assertPiMaestroToolAllowed,
+  createPiMaestroCapabilityMapping,
   createPiMaestroToolSurface,
   isPiMaestroEnabled,
   runPiMaestroExperimental,
@@ -9,7 +10,7 @@ import {
 
 test("pi-maestro stays opt-in and hard-blocks before tool dispatch", async () => {
   assert.equal(isPiMaestroEnabled({}), false);
-  assert.equal(isPiMaestroEnabled({ MA_PI_AGENT_CORE: "1" }), true);
+  assert.equal(isPiMaestroEnabled({ MA_MAESTRO_PI: "1" }), true);
   assert.throws(
     () =>
       assertPiMaestroToolAllowed("$build", {
@@ -46,4 +47,44 @@ test("pi-maestro preserves waiting-review termination and after-tool receipts", 
   assert.deepEqual(handled, { handled: true, result: ["$arch"] });
   const fallback = await runPiMaestroExperimental({ tools: surface.tools });
   assert.equal(fallback.handled, false);
+});
+
+test("pi-maestro maps Maestro gate lanes without changing the default control model", async () => {
+  const calls = [];
+  const mapping = createPiMaestroCapabilityMapping({
+    enabled: true,
+    runners: Object.fromEntries(
+      ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"].map((lane) => [
+        lane,
+        async () => {
+          calls.push(lane);
+          return { status: "DONE" };
+        },
+      ]),
+    ),
+  });
+  assert.equal(mapping.controlModel, "maestro-pi");
+  assert.deepEqual(
+    mapping.lanes.map((lane) => lane.id),
+    ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"],
+  );
+  assert.deepEqual(await mapping.surface.dispatch("$arch"), {
+    terminate: false,
+    result: { status: "DONE" },
+  });
+  assert.deepEqual(calls, ["$arch"]);
+});
+
+test("pi-maestro tool execution uses the same guarded dispatch path", async () => {
+  const calls = [];
+  const surface = createPiMaestroToolSurface({
+    runners: { $arch: async () => "done" },
+    beforeToolCall: async (name) => calls.push(`before:${name}`),
+    afterToolCall: async (name) => calls.push(`after:${name}`),
+  });
+  assert.deepEqual(await surface.tools.$arch.execute({}), {
+    terminate: false,
+    result: "done",
+  });
+  assert.deepEqual(calls, ["before:$arch", "after:$arch"]);
 });

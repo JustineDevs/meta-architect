@@ -1,7 +1,9 @@
 import { createHash } from "node:crypto";
+import { existsSync as pathExistsSync } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { getAgentInvocation } from "../agents.js";
 import { ensureDir, readJson, writeFileIfMissing } from "../fs-utils.js";
 import { getRepoRoot, getRuntimeSubsystemPath } from "../paths.js";
 
@@ -12,6 +14,13 @@ const home = os.homedir();
 const configHome = process.env.XDG_CONFIG_HOME || path.join(home, ".config");
 const codexHome = process.env.CODEX_HOME?.trim() || path.join(home, ".codex");
 const claudeHome = process.env.CLAUDE_CONFIG_DIR?.trim() || path.join(home, ".claude");
+
+function getOpenClawGlobalSkillsDir() {
+  if (pathExistsSync(path.join(home, ".openclaw"))) return path.join(home, ".openclaw/skills");
+  if (pathExistsSync(path.join(home, ".clawdbot"))) return path.join(home, ".clawdbot/skills");
+  if (pathExistsSync(path.join(home, ".moltbot"))) return path.join(home, ".moltbot/skills");
+  return path.join(home, ".openclaw/skills");
+}
 
 const universalTargets = [
   "codex",
@@ -105,7 +114,7 @@ const nonUniversalDirs = {
   mux: ".mux/skills",
   neovate: ".neovate/skills",
   openclaw: "skills",
-  pi: ".pi/agent/skills",
+  pi: ".pi/skills",
   pochi: ".pochi/skills",
   adal: ".adal/skills",
   qoder: ".qoder/skills",
@@ -120,10 +129,56 @@ const nonUniversalDirs = {
 const globalDirOverrides = {
   codex: path.join(codexHome, "skills"),
   opencode: path.join(configHome, "opencode", "skills"),
-  cursor: path.join(home, ".cursor", "skills"),
+  cursor: path.join(home, ".agents", "skills"),
   amp: path.join(configHome, "agents", "skills"),
   "claude-code": path.join(claudeHome, "skills"),
+  "gemini-cli": path.join(home, ".gemini", "skills"),
+  "github-copilot": path.join(home, ".copilot", "skills"),
+  antigravity: path.join(home, ".gemini", "antigravity", "skills"),
+  openclaw: getOpenClawGlobalSkillsDir(),
+  pi: path.join(home, ".pi", "agent", "skills"),
+  windsurf: path.join(home, ".codeium", "windsurf", "skills"),
+  goose: path.join(configHome, "goose", "skills"),
 };
+
+const universalNativeContract = {
+  artifact: "skill",
+  path: `${canonicalSkillsDir}/{name}/SKILL.md`,
+  format: "markdown",
+  activation: "host-loads-canonical-agent-skills",
+};
+
+function surfaceForAgent(name) {
+  if (
+    [
+      "cursor",
+      "antigravity",
+      "windsurf",
+      "continue",
+      "roo",
+      "kiro-cli",
+      "junie",
+      "tabnine-cli",
+      "github-copilot",
+    ].includes(name)
+  )
+    return "ide";
+  if (["devin", "openhands", "replit"].includes(name)) return "cloud";
+  return "cli";
+}
+
+function vendorForAgent(name) {
+  if (["codex", "deepagents"].includes(name)) return "openai";
+  if (["claude-code"].includes(name)) return "anthropic";
+  if (["gemini-cli", "antigravity", "dexto", "firebender", "kimi-cli"].includes(name))
+    return "google";
+  if (["github-copilot"].includes(name)) return "github";
+  if (["cursor", "windsurf", "continue", "roo", "kiro-cli", "junie", "tabnine-cli"].includes(name))
+    return "ide";
+  if (["openclaw", "pi", "hermes-agent"].includes(name))
+    return name === "pi" ? "pi" : name === "openclaw" ? "openclaw" : "nous-research";
+  return "community";
+}
 
 export const agentRegistry = Object.fromEntries([
   ...universalTargets.map((name) => [
@@ -134,6 +189,12 @@ export const agentRegistry = Object.fromEntries([
       skillsDir: canonicalSkillsDir,
       globalSkillsDir: globalDirOverrides[name] ?? path.join(home, ".agents", "skills"),
       universal: true,
+      vendor: vendorForAgent(name),
+      product: name,
+      surface: surfaceForAgent(name),
+      support: "native",
+      native_artifacts: [universalNativeContract],
+      verification: "distribution-contract",
     },
   ]),
   ...nonUniversalTargets.map((name) => [
@@ -144,6 +205,19 @@ export const agentRegistry = Object.fromEntries([
       skillsDir: nonUniversalDirs[name],
       globalSkillsDir: globalDirOverrides[name] ?? path.join(home, nonUniversalDirs[name]),
       universal: false,
+      vendor: vendorForAgent(name),
+      product: name,
+      surface: surfaceForAgent(name),
+      support: "native",
+      native_artifacts: [
+        {
+          artifact: "skill",
+          path: `${nonUniversalDirs[name]}/{name}/SKILL.md`,
+          format: "markdown",
+          activation: "host-loads-project-skill-directory",
+        },
+      ],
+      verification: "distribution-contract",
     },
   ]),
 ]);
@@ -161,6 +235,8 @@ export function createDefaultSkillsRegistryExport() {
     canonical_dir: canonicalSkillsDir,
     universal_targets: universalTargets,
     non_universal_targets: nonUniversalTargets,
+    target_count: Object.keys(agentRegistry).length,
+    targets: agentRegistry,
     authority_boundary: {
       exported_payloads_may_mutate_release_state: false,
       exported_payloads_are_managed_workers: false,
@@ -347,7 +423,7 @@ export function createSkillCompatibilityPayload({
   };
 }
 
-export function renderSkillCompatibilitySkillMd(payload) {
+export function renderSkillCompatibilitySkillMd(payload, { agentType = "codex" } = {}) {
   if (payload?.record_type !== "skill_compatibility_payload") {
     throw new Error("Expected skill compatibility payload");
   }
@@ -361,6 +437,12 @@ export function renderSkillCompatibilitySkillMd(payload) {
     `# ${payload.name}`,
     "",
     "This exported host payload is a compatibility entrypoint for Meta-Architect.",
+    "",
+    "## Invocation",
+    "",
+    `- Start the umbrella lane with \`${getAgentInvocation(agentType, agentType === "codex" ? "maestro" : payload.name)}\` in this host.`,
+    "- Dispatch to the canonical MA runtime as `ma run '$maestro'`.",
+    "- Lane aliases: `arch`, `sage`, `flow`, `vet`, `vibe`, and `build`.",
     "",
     "## Authority",
     "",
@@ -402,6 +484,7 @@ export function createHostInstallReceipt({ payload, installPlan }) {
 
 export function createSkillLockEntry({
   payload,
+  agentType = "codex",
   source = "meta-architect",
   sourceType = "local",
   sourceUrl = "skills/",
@@ -416,7 +499,7 @@ export function createSkillLockEntry({
     throw new Error("Skill lock entry requires a compatibility payload");
   }
 
-  const renderedPayload = renderSkillCompatibilitySkillMd(payload);
+  const renderedPayload = renderSkillCompatibilitySkillMd(payload, { agentType });
   const folderHash =
     skillFolderHash ??
     createHash("sha256")
@@ -490,10 +573,11 @@ export async function writeSkillCompatibilityExport({
     mode,
     agentRootExists: effectiveAgentRootExists,
   });
-  const skillMd = renderSkillCompatibilitySkillMd(payload);
+  const skillMd = renderSkillCompatibilitySkillMd(payload, { agentType });
   const lockEntry = validateSkillLockEntry(
     createSkillLockEntry({
       payload,
+      agentType,
       selectedAgentTargets: [agentType],
       ...lockMetadata,
     }),

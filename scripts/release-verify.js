@@ -41,18 +41,18 @@ function parseVersion(version) {
   return match.groups;
 }
 
-function versionedCdnInstall(gitTag) {
-  return `curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh`;
+function latestCdnInstall() {
+  return "curl -fsSLo install.sh https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh && curl -fsSLo install.sh.sha256 https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh.sha256 && sed 's#scripts/install.sh#install.sh#' install.sh.sha256 | sha256sum -c - && sh install.sh";
 }
 
-function verifyInstallBlock(file, gitTag) {
+function verifyInstallBlock(file) {
   const content = readText(file);
-  const cdnInstall = versionedCdnInstall(gitTag);
+  const cdnInstall = latestCdnInstall();
   if (!content.includes(CANONICAL_INSTALL) && !content.includes(cdnInstall)) {
     return;
   }
 
-  assert(content.includes(cdnInstall), `${file}: missing versioned POSIX installer command`);
+  assert(content.includes(cdnInstall), `${file}: missing jsDelivr POSIX installer command`);
   assert(content.includes(CANONICAL_INSTALL), `${file}: missing canonical npm install command`);
   assert(content.includes(CANONICAL_LAUNCH), `${file}: missing canonical launch command`);
   assert(content.includes(UNINSTALL_MA), `${file}: missing uninstall Meta-Architect command`);
@@ -99,7 +99,7 @@ function verifyInstallerIntegrity() {
 }
 
 function verifyDemoDoc({ version, gitTag }) {
-  const cdnInstall = versionedCdnInstall(gitTag);
+  const cdnInstall = latestCdnInstall();
   assert(fs.existsSync("DEMO.md"), "DEMO.md: missing demo guide");
   const content = readText("DEMO.md");
   assert(content.includes(`Release line: \`${gitTag}\``), "DEMO.md: wrong release line");
@@ -180,8 +180,10 @@ function verifyReadmeReleaseSurface({ gitTag }) {
     "README.md: missing all 33 plugins/features toggle",
   );
   assert(
-    content.includes(`<td><code>${gitTag}</code></td>`),
-    "README.md: stale release line table version",
+    content.includes(
+      "https://img.shields.io/github/v/release/JustineDevs/meta-architect?display_name=tag&sort=semver",
+    ),
+    "README.md: missing GitHub release badge",
   );
   assert(content.includes(logoImage), "README.md: release-pinned logo missing");
   assert(

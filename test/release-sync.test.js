@@ -36,12 +36,6 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
     "qa",
     `release-issue-gates-${nextVersion}.json`,
   );
-  const staleReadme = (await fs.readFile(readmePath, "utf8")).replace(
-    /<td><strong>Release line<\/strong><\/td>\s*\n\s*<td><code>v[0-9]+\.[0-9]+\.[0-9]+(?:-[^<]+)?<\/code><\/td>/,
-    "<td><strong>Release line</strong></td>\n    <td><code>v0.1.12</code></td>",
-  );
-  await fs.writeFile(readmePath, staleReadme);
-
   const result = spawnPortable(
     process.execPath,
     [path.join(repoRoot, "scripts", "release-sync.js")],
@@ -80,8 +74,10 @@ test("release-sync bumps patch and rewrites the active release surfaces", async 
   assert.match(readmeText, /Meta-Architect does not replace your coding runtime\./);
   assert.match(readmeText, /docs\/assets\/DEMO_VIDEO\.gif/);
   assert.match(readmeText, /All 33 plugins & features/);
-  assert.match(readmeText, new RegExp(`<td><code>v${nextVersion}</code></td>`));
-  assert.doesNotMatch(readmeText, /<td><code>v0\.1\.12<\/code><\/td>/);
+  assert.match(
+    readmeText,
+    /https:\/\/img\.shields\.io\/github\/v\/release\/JustineDevs\/meta-architect\?display_name=tag&sort=semver/,
+  );
   assert.match(
     pluginManifest,
     /"keywords": \["codex", "skills", "architecture", "workflow", "review"\]/,

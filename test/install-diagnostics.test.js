@@ -29,7 +29,7 @@ test("postinstall opt-out is visible and does not install", () => {
     encoding: "utf8",
   });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /skipped Codex skill auto-install/);
+  assert.match(result.stdout, /deferred host selection/);
 });
 
 test("versioned installer checksum matches the shipped script", () => {

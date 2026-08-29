@@ -3,6 +3,10 @@
 ## v0.14.0
 
 - Release line prepared automatically for v0.14.0.
+- Adds durable autonomous task intake for single, bulk, file, YAML, JSON, and stdin tasks with priorities, dependencies, cancellation, bounded retries, checkpoints, receipts, and batch summaries.
+- Adds pre-launch host discovery and target selection through `MA_AGENT`, preserving the canonical workflow while installing or reusing the selected native host surface.
+- Documents copy-ready AI-agent installation instructions and the complete supported CLI/IDE compatibility scope with linked package manifests and coverage evidence.
+- Adds zero-dependency Maestro output rendering and documents the host-aware installation and autonomous task flows.
 
 ## v0.1.13
 

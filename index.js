@@ -3,6 +3,7 @@ export {
   agentRegistry as agentSurfaceRegistry,
   detectInstalled,
   getAgent,
+  getAgentInvocation,
   getNonUniversalAgents,
   isUniversalAgent as isUniversalAgentSurface,
   listAgents,
@@ -69,6 +70,20 @@ export {
   loadAlignmentSentinelReportOrDefault,
   saveAlignmentSentinelReport,
 } from "./src/runtime/alignment-sentinel.js";
+export {
+  autonomousTaskSchemaVersion,
+  cancelAutonomousTask,
+  createTaskQueue,
+  enqueueAutonomousTasks,
+  getAutonomousTaskQueuePath,
+  loadTaskQueue,
+  parseTaskInput,
+  runAutonomousTasks,
+  saveTaskQueue,
+  seedAutonomousTaskArtifacts,
+  summarizeTasks,
+  validateTaskQueue,
+} from "./src/runtime/autonomous-tasks.js";
 export {
   createCodeGraphTouchpoint,
   createCodeGraphTouchpointFromFile,
@@ -140,6 +155,7 @@ export {
   loadLearningLoopCore,
   validateLearningLoopCore,
 } from "./src/runtime/learning-loop-core.js";
+export { verifyLiveAgentMatrix } from "./src/runtime/live-agent-verification.js";
 export {
   validateRuntimeMcpPolicy,
   validateRuntimeMcpPolicyFile,
@@ -188,6 +204,14 @@ export {
   renameObsidianFileSafely,
   writeObsidianAttachment,
 } from "./src/runtime/obsidian-plugin-bridge.js";
+export {
+  assertPiMaestroToolAllowed,
+  createPiMaestroCapabilityMapping,
+  createPiMaestroToolSurface,
+  isPiMaestroEnabled,
+  maestroGateLanes,
+  runPiMaestroExperimental,
+} from "./src/runtime/pi-maestro-core.js";
 export {
   createDefaultPromptStrategyCore,
   loadPromptStrategyCore,
@@ -287,3 +311,11 @@ export {
   runVibe,
 } from "./src/skills.js";
 export { loadCombinedState, syncStatusUpdates } from "./src/state-sync.js";
+export {
+  measureWidth,
+  padCell,
+  renderGrid,
+  renderRow,
+  renderSeparatorLine,
+} from "./src/tui/grid.js";
+export { renderCheckGrid, renderReleaseGrid } from "./src/tui/status-grid.js";

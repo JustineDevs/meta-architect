@@ -1,5 +1,5 @@
 export function isPiMaestroEnabled(env = process.env) {
-  return env.MA_PI_AGENT_CORE === "1";
+  return env.MA_MAESTRO_PI === "1";
 }
 
 export function assertPiMaestroToolAllowed(
@@ -16,25 +16,59 @@ export function assertPiMaestroToolAllowed(
 
 export function createPiMaestroToolSurface({
   runners = {},
+  controlPlaneReady = true,
+  buildReadiness,
   beforeToolCall,
   afterToolCall,
   isWaitingReview = () => false,
 } = {}) {
-  return {
-    tools: Object.fromEntries(
-      Object.entries(runners).map(([name, runner]) => [
-        name,
-        { name, description: `Run the bounded ${name} Meta-Architect lane`, execute: runner },
-      ]),
-    ),
+  const surface = {
+    tools: {},
     async dispatch(name, input = {}) {
       if (!runners[name]) throw new Error(`Unknown pi-maestro tool: ${name}`);
       if (isWaitingReview()) return { terminate: true, status: "WAITING_REVIEW" };
+      assertPiMaestroToolAllowed(name, { controlPlaneReady, buildReadiness });
       await beforeToolCall?.(name, input);
       const result = await runners[name](input);
       await afterToolCall?.(name, result);
       return { terminate: false, result };
     },
+  };
+  surface.tools = Object.fromEntries(
+    Object.keys(runners).map((name) => [
+      name,
+      {
+        name,
+        description: `Run the bounded ${name} Meta-Architect lane`,
+        execute: (input) => surface.dispatch(name, input),
+      },
+    ]),
+  );
+  return surface;
+}
+
+export const maestroGateLanes = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
+
+export function createPiMaestroCapabilityMapping({
+  runners = {},
+  enabled = isPiMaestroEnabled(),
+  ...options
+} = {}) {
+  const laneRunners = Object.fromEntries(
+    maestroGateLanes
+      .filter((lane) => typeof runners[lane] === "function")
+      .map((lane) => [lane, runners[lane]]),
+  );
+  return {
+    enabled,
+    controlModel: "maestro-pi",
+    umbrella: "$maestro",
+    lanes: maestroGateLanes.map((id) => ({
+      id,
+      runner: laneRunners[id] ? "maestro" : "unavailable",
+      gated: id === "$build" || id === "$vet",
+    })),
+    surface: createPiMaestroToolSurface({ runners: laneRunners, ...options }),
   };
 }
 
@@ -45,7 +79,10 @@ export async function runPiMaestroExperimental({
   afterToolCall,
 } = {}) {
   if (!agent || typeof agent.run !== "function") {
-    return { handled: false, reason: "pi-agent-core is not installed or was not provided" };
+    return {
+      handled: false,
+      reason: "Maestro Pi control runtime is not installed or was not provided",
+    };
   }
   const result = await agent.run({ tools, beforeToolCall, afterToolCall });
   return { handled: true, result };
