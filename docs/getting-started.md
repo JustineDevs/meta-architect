@@ -26,7 +26,7 @@ Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
 
 ```bash
 # One-line install (POSIX shells only; use WSL/Git-Bash on Windows)
-curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh
+curl -fsSLo install.sh https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh && curl -fsSLo install.sh.sha256 https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh.sha256 && sed 's#scripts/install.sh#install.sh#' install.sh.sha256 | sha256sum -c - && sh install.sh
 ```
 
 The jsDelivr installer runs `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`, then `ma setup`.
@@ -55,6 +55,11 @@ sudo dnf install ./meta-architect-<version>-1.noarch.rpm
 ```
 
 Default supported npm fallback:
+
+On the first interactive `ma` launch, Meta-Architect detects supported CLI and
+IDE host markers and asks once for the installation scope and targets. The
+selection is recorded in `.ma/prelaunch.json`; CI and piped/non-interactive
+launches skip the prompt and preserve the default Codex bootstrap behavior.
 
 ```bash
 # Install

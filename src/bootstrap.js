@@ -32,6 +32,7 @@ import {
   readInstallReceipt,
 } from "./skill-installer.js";
 import { runInit } from "./skills.js";
+import { renderCheckGrid } from "./tui/status-grid.js";
 
 function makeStatus(kind, label, detail = "") {
   return { kind, label, detail };
@@ -602,6 +603,19 @@ async function runEnvironmentFlow({ fix, initMcp }) {
 }
 
 function printStatuses(title, statuses) {
+  if (process.stdout.isTTY) {
+    const result = summarizeDoctorStatuses(statuses);
+    console.log(title);
+    console.log("=".repeat(title.length));
+    console.log(renderCheckGrid(statuses));
+    console.log(`\nResult: ${result}`);
+    console.log(
+      result === "BLOCKED"
+        ? "Next: install or repair blocked prerequisites, then rerun `ma bootstrap`."
+        : "Next: start Codex or run `ma run '$maestro'`.",
+    );
+    return result;
+  }
   const result = printDoctorStatuses(title, statuses);
   if (result === "BLOCKED") {
     console.log("Next: install or repair blocked prerequisites, then rerun `ma bootstrap`.");

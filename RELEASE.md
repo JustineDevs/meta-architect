@@ -12,6 +12,10 @@ This release ships Meta-Architect as a Codex-native skills system with:
 - native packaged playbooks and reference packs through `mcp/native-playbooks.json`, `mcp/local/playbooks.js`, and `docs/reference/`
 - a usage-workflow-driven gated path starting with the structured `$arch` prompt
 - helper commands for setup, scripted validation, and branch/release gating
+- durable autonomous task intake for single, bulk, file, YAML, JSON, and stdin workloads with dependency-aware execution and receipts
+- pre-launch host discovery and `MA_AGENT` target selection for Codex, OpenCode, Gemini CLI, Amp, Claude Code, Goose, Hermes, Pi, Cursor, Windsurf, Cline, Continue, Roo, Kiro CLI, Junie, GitHub Copilot, and Antigravity
+- copy-ready AI-agent installation prompt plus linked package manifests and coverage evidence in the README
+- zero-dependency Maestro output rendering for terminal lane status
 - package, skill bundle, and release surfaces aligned to `v0.14.0`
 
 Target package state:

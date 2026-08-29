@@ -23,6 +23,7 @@ Meta-Architect documentation is organized by operator task.
 - published helper-skill and plugin-mirror expectations live in Skills Publishing
 - Linux-native distro package expectations live in the Release Spec and release-readiness docs
 - [MCP Setup](./mcp-setup.md)
+- [Continuity Graph](./continuity-graph.md)
 - [Plugin Bundle](../plugins/meta-architect/README.md)
 
 ## QA and readiness

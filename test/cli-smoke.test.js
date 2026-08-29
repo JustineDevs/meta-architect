@@ -145,6 +145,39 @@ test("ma status --maestro-view shows scratchpad runtime telemetry", async () => 
   assert.match(output, /Global status:/);
 });
 
+test("ma status --json --maestro-view emits one structured lane payload", async () => {
+  const tempRoot = createTestNamespace("meta-architect-status-maestro-json");
+  await copyDir(repoRoot, tempRoot);
+  await fs.mkdir(path.join(tempRoot, ".ma"), { recursive: true });
+  await fs.writeFile(
+    path.join(tempRoot, ".ma", "decisions.json"),
+    `${JSON.stringify(cleanDecisions, null, 2)}\n`,
+  );
+  await fs.writeFile(
+    path.join(tempRoot, ".ma", "release.json"),
+    `${JSON.stringify(cleanRelease, null, 2)}\n`,
+  );
+  const setupResult = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "setup"], {
+    cwd: tempRoot,
+    env: { ...process.env, MA_ROOT: tempRoot },
+    encoding: "utf8",
+  });
+  assert.equal(setupResult.status, 0, setupResult.stderr || setupResult.stdout);
+  const result = spawnPortable(
+    process.execPath,
+    [path.join(repoRoot, "bin/ma.js"), "status", "--json", "--maestro-view"],
+    { cwd: tempRoot, env: { ...process.env, MA_ROOT: tempRoot }, encoding: "utf8" },
+  );
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.scope, "status");
+  assert.equal(payload.maestro.scope, "maestro");
+  assert.ok(Array.isArray(payload.maestro.tracks));
+  assert.ok(Array.isArray(payload.maestro.locks));
+  assert.equal(typeof payload.maestro.nextAction, "string");
+});
+
 test("ma run $build fails closed against the default scaffold", async () => {
   const tempRoot = createTestNamespace("meta-architect-build");
   await copyDir(repoRoot, tempRoot);
@@ -419,6 +452,7 @@ test("ma setup seeds canonical .ma runtime state", async () => {
   for (const relativePath of runtimeArtifacts) {
     await fs.access(path.join(tempRoot, ".ma", ...relativePath));
   }
+  await fs.access(path.join(tempRoot, ".ma", "tasks", "autonomous-queue.json"));
   await fs.access(path.join(tempRoot, "scripts", "active-autonomy-hook.mjs"));
 });
 
@@ -710,6 +744,51 @@ test("ma launcher delegates non-native commands to codex and strips compatibilit
   await fs.access(path.join(codexHome, "meta-architect-sdk", "templates", "AGENTS.md"));
   const output = JSON.parse(await fs.readFile(outputPath, "utf8"));
   assert.deepEqual(output.argv, ["--model", "gpt-5.4", "hello"]);
+});
+
+test("ma launcher delegates non-native commands to the selected MA_AGENT host", async () => {
+  const tempRoot = createTestNamespace("meta-architect-selected-agent");
+  await copyDir(repoRoot, tempRoot);
+  const outputPath = path.join(tempRoot, "agent-output.json");
+  const agentBin = await writeFakeCodex(tempRoot);
+  const result = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "hello"], {
+    cwd: tempRoot,
+    env: {
+      ...process.env,
+      MA_AGENT: "claude-code",
+      MA_CLAUDE_CODE_BIN: agentBin,
+      MA_TEST_OUTPUT: outputPath,
+      MA_SKIP_AUTO_INSTALL: "1",
+    },
+  });
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.deepEqual(JSON.parse(await fs.readFile(outputPath, "utf8")).argv, ["hello"]);
+  assert.deepEqual(
+    JSON.parse(await fs.readFile(path.join(tempRoot, ".ma", "prelaunch.json"), "utf8")),
+    { schemaVersion: "0.1.0", scope: "project", targets: ["claude-code"] },
+  );
+  await fs.access(path.join(tempRoot, ".agents", "skills", "meta-architect", "SKILL.md"));
+});
+
+test("ma installs but does not launch an installation-only IDE target", async () => {
+  const tempRoot = createTestNamespace("meta-architect-install-only-agent");
+  const result = spawnPortable(process.execPath, [path.join(repoRoot, "bin/ma.js"), "hello"], {
+    cwd: tempRoot,
+    env: {
+      ...process.env,
+      MA_AGENT: "antigravity",
+      MA_SKIP_AUTO_INSTALL: "1",
+    },
+  });
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stdout.toString(), /delegation was skipped/);
+  assert.deepEqual(
+    JSON.parse(await fs.readFile(path.join(tempRoot, ".ma", "prelaunch.json"), "utf8")),
+    { schemaVersion: "0.1.0", scope: "project", targets: ["antigravity"] },
+  );
+  await fs.access(path.join(tempRoot, ".agents", "skills", "meta-architect", "SKILL.md"));
 });
 
 test("ma sdk-path prints the installed support bundle root", async () => {

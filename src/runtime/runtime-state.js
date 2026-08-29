@@ -16,6 +16,7 @@ import {
 } from "./active-autonomy-core.js";
 import { seedAlignmentSentinelArtifacts } from "./alignment-sentinel.js";
 import { seedArchitectReviewArtifacts } from "./architect-review.js";
+import { seedAutonomousTaskArtifacts } from "./autonomous-tasks.js";
 import {
   createDefaultCodeGraphRehearse,
   getCodeGraphRehearsePath,
@@ -161,6 +162,7 @@ const runtimeSubsystemSeeders = [
   seedContinuityArtifacts,
   seedSignalHookArtifacts,
   seedOrchestratorArtifacts,
+  seedAutonomousTaskArtifacts,
   seedWorkspaceArtifacts,
   seedMaestroManagerArtifacts,
   seedMaestroStateArtifacts,

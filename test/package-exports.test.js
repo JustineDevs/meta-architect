@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 import {
   agentRegistry,
@@ -53,6 +56,7 @@ import {
   validateUniversalPluginBrokerCore,
   validateUniversalPluginManifest,
   verifyCrossAgentInstallMatrix,
+  verifyLiveAgentMatrix,
   writeObsidianAttachment,
   writeObsidianVaultIndex,
   writeSkillCompatibilityExport,
@@ -108,6 +112,7 @@ test("package entrypoint exposes MA core runtime capabilities", () => {
     validateUniversalPluginBrokerCore,
     validateUniversalPluginManifest,
     verifyCrossAgentInstallMatrix,
+    verifyLiveAgentMatrix,
     writeObsidianVaultIndex,
     writeObsidianAttachment,
     writeSkillCompatibilityExport,
@@ -121,4 +126,34 @@ test("package entrypoint exposes MA core runtime capabilities", () => {
   assert.deepEqual(helperSkillNames, ["$align", "$diagnose", "$tdd", "$cleanup"]);
   assert.equal(Array.isArray(learningLoopDomains), true);
   assert.equal(typeof quorumDecisions, "object");
+});
+
+test("live agent verification separates runtime evidence from distribution evidence", async () => {
+  const report = await verifyLiveAgentMatrix({ targets: Object.keys(agentRegistry) });
+  assert.equal(report.target_count, 55);
+  assert.equal(report.results.length, 55);
+  assert.equal(
+    report.results.every((result) =>
+      ["runtime-verified", "distribution-only", "blocked"].includes(result.status),
+    ),
+    true,
+  );
+  assert.equal(report.production_evidence, false);
+});
+
+test("live agent verification runs non-executable JavaScript overrides through Node", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "ma-live-probe-"));
+  const command = path.join(root, "fake-codex.mjs");
+  const previous = process.env.MA_CODEX_BIN;
+  await fs.writeFile(command, 'process.stdout.write("fake-codex 1.0.0\\n");\n');
+  try {
+    process.env.MA_CODEX_BIN = command;
+    const report = await verifyLiveAgentMatrix({ cwd: root, targets: ["codex"] });
+    assert.equal(report.results[0].status, "runtime-verified");
+    assert.equal(report.results[0].version, "fake-codex 1.0.0");
+  } finally {
+    if (previous === undefined) delete process.env.MA_CODEX_BIN;
+    else process.env.MA_CODEX_BIN = previous;
+    await fs.rm(root, { recursive: true, force: true });
+  }
 });

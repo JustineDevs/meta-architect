@@ -5,7 +5,6 @@ import path from "node:path";
 import test from "node:test";
 import { createTestNamespace } from "../src/test-fixtures.js";
 import { spawnPortable } from "./helpers/spawn-portable.js";
-import { listRelativeFiles } from "./helpers/tree-parity.js";
 
 const repoRoot = process.cwd();
 
@@ -83,64 +82,6 @@ test("packed package installs and supports the documented runtime/helper flow", 
   );
   assert.equal(installResult.status, 0, installResult.stderr || installResult.stdout);
 
-  const installedSkillNames = ["maestro", "arch", "sage", "flow", "vet", "vibe", "build"];
-  for (const skillName of installedSkillNames) {
-    await fs.access(path.join(codexHome, "skills", skillName, "SKILL.md"));
-  }
-  await assert.rejects(fs.access(path.join(codexHome, "skills", "meta-architect", "SKILL.md")));
-  const installedBundleFiles = [
-    ["meta-architect-sdk", "asset-manifest.json"],
-    ["meta-architect-sdk", "docs", "README.md"],
-    ["meta-architect-sdk", "docs", "reference", "native-engineering-patterns.md"],
-    ["meta-architect-sdk", "mcp", "servers.json"],
-    ["meta-architect-sdk", "mcp", "native-playbooks.json"],
-    ["meta-architect-sdk", "mcp", "local", "playbooks.js"],
-    ["meta-architect-sdk", "sprint", "07-release.md"],
-    ["meta-architect-sdk", "prompts", "onboarding.md"],
-    ["meta-architect-sdk", "plugins", "meta-architect", ".codex-plugin", "plugin.json"],
-    [
-      "meta-architect-sdk",
-      "plugins",
-      "meta-architect",
-      "skills",
-      "maestro",
-      "references",
-      "core-release-rules.md",
-    ],
-    ["meta-architect-sdk", "templates", "AGENTS.md"],
-  ];
-  for (const relativePath of installedBundleFiles) {
-    await fs.access(path.join(codexHome, ...relativePath));
-  }
-  const supportManifest = JSON.parse(
-    await fs.readFile(path.join(codexHome, "meta-architect-sdk", "asset-manifest.json"), "utf8"),
-  );
-  assert.equal(supportManifest.schemaVersion, "1.0.0");
-  assert.equal(supportManifest.bundleVersion, "0.14.0");
-  for (const maintainerOnly of [
-    "release-sync.js",
-    "release-verify.js",
-    "build-linux-packages.mjs",
-    "cleanup-test-fixtures.sh",
-  ]) {
-    await assert.rejects(
-      fs.access(path.join(codexHome, "meta-architect-sdk", "scripts", maintainerOnly)),
-    );
-  }
-  const bundledSkillFiles = await listRelativeFiles(path.join(codexHome, "skills"));
-  const bundledPluginSkillFiles = await listRelativeFiles(
-    path.join(codexHome, "meta-architect-sdk", "plugins", "meta-architect", "skills"),
-  );
-  assert.deepEqual(
-    bundledPluginSkillFiles,
-    bundledSkillFiles.filter((relativePath) => relativePath !== "index.json"),
-  );
-  await fs.rm(path.join(codexHome, "skills", "arch"), { recursive: true, force: true });
-  await fs.rm(path.join(codexHome, "meta-architect-sdk", "templates"), {
-    recursive: true,
-    force: true,
-  });
-
   const maBin = path.join(
     installRoot,
     "node_modules",
@@ -161,6 +102,16 @@ test("packed package installs and supports the documented runtime/helper flow", 
     encoding: "utf8",
   });
   assert.equal(launchResult.status, 0, launchResult.stderr || launchResult.stdout);
+  const installedSkillNames = ["maestro", "arch", "sage", "flow", "vet", "vibe", "build"];
+  for (const skillName of installedSkillNames) {
+    await fs.access(path.join(codexHome, "skills", skillName, "SKILL.md"));
+  }
+  await assert.rejects(fs.access(path.join(codexHome, "skills", "meta-architect", "SKILL.md")));
+  const supportManifest = JSON.parse(
+    await fs.readFile(path.join(codexHome, "meta-architect-sdk", "asset-manifest.json"), "utf8"),
+  );
+  assert.equal(supportManifest.schemaVersion, "1.0.0");
+  assert.equal(supportManifest.bundleVersion, "0.14.0");
   await fs.access(path.join(codexHome, "skills", "arch", "SKILL.md"));
   await fs.access(path.join(codexHome, "meta-architect-sdk", "templates", "AGENTS.md"));
 

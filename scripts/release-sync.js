@@ -196,17 +196,10 @@ function updateCurrentSurfaceFile(file, oldVersion, nextVersion) {
   writeText(file, content);
 }
 
-function syncReadmeReleaseSurface(nextVersion) {
+function syncReadmeReleaseSurface(_nextVersion) {
   const readmePath = "README.md";
-  const nextTag = `v${nextVersion}`;
-  let content = readText(readmePath);
-
-  content = content.replace(
-    /<td><strong>Release line<\/strong><\/td>\s*\n\s*<td><code>v[0-9]+\.[0-9]+\.[0-9]+(?:-[^<]+)?<\/code><\/td>/,
-    `<td><strong>Release line</strong></td>\n    <td><code>${nextTag}</code></td>`,
-  );
-
-  writeText(readmePath, content);
+  // The README uses a dynamic GitHub release badge; no version replacement is needed.
+  writeText(readmePath, readText(readmePath));
 }
 
 function syncPackageVersion(nextVersion) {

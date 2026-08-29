@@ -4,6 +4,7 @@
   <p><strong>Quality gates and evidence verification for AI coding agents.</strong></p>
   <p>Your agent writes code fast. Meta-Architect makes it prove each stage first. Design, evidence, logic, security, experience, build. Each gate stays locked until the one before it passes.</p>
   <p>
+    <img src="https://img.shields.io/github/v/release/JustineDevs/meta-architect?display_name=tag&sort=semver" alt="GitHub release">
     <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fma" alt="npm version">
     <img src="https://img.shields.io/npm/dm/%40jstn-sdk%2Fma" alt="npm downloads">
     <a href="https://www.buymeacoffee.com/justinedevs">
@@ -21,19 +22,12 @@
 > Meta-Architect does not replace your coding runtime.
 > It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
 
-<table>
-  <tr>
-    <td><strong>Release line</strong></td>
-    <td><code>v0.14.0</code></td>
-  </tr>
-</table>
-
 <img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">
 
 <details>
 <summary><strong>🔌 All 33 plugins & features</strong></summary>
 
-The plugin and feature inventory is maintained in the package manifests and coverage documentation.
+The plugin and feature inventory is maintained in the [support bundle manifest](./support-bundle.json) and [skills manifest](./skills/index.json), with verification in the [coverage documentation](./COVERAGE.md).
 </details>
 
 ## Why do AI coding agents need gates?
@@ -59,8 +53,8 @@ An open-source workflow governor for AI coding agents. You install it as a skill
 | Fact | Value |
 | --- | --- |
 | Type | Skill and plugin package for AI coding agent hosts |
-| Current host | Codex (full support, reference host) |
-| Roadmap hosts | Claude Code, Cursor. Tracked in [#110](https://github.com/JustineDevs/meta-architect/issues/110) |
+| Reference host | Codex (full support) |
+| Compatibility scope | Codex, OpenCode, Gemini CLI, Amp, Claude Code, Goose, Hermes, Pi, Cursor, Windsurf, Cline, Continue, Roo, Kiro CLI, Junie, GitHub Copilot, and Antigravity ([coverage evidence](./docs/agent-compat-integration-report.md)) |
 | Runtime | Node.js 20+ |
 | Install | `npm i -g @jstn-sdk/ma` |
 | Evidence sources | GitMCP / MCP endpoints |
@@ -119,7 +113,7 @@ Already using a spec tool? Keep it. Their specs become inputs. MA's gates verify
 
 ```bash
 # 1. Install (macOS, Linux, WSL, Git-Bash)
-curl -fsSLo install.sh https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh && curl -fsSLo install.sh.sha256 https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/scripts/install.sh.sha256 && sha256sum -c install.sh.sha256 && sh install.sh
+curl -fsSLo install.sh https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh && curl -fsSLo install.sh.sha256 https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh.sha256 && sed 's#scripts/install.sh#install.sh#' install.sh.sha256 | sha256sum -c - && sh install.sh
 
 # 2. Launch Codex
 ma --madmax --high
@@ -128,11 +122,58 @@ ma --madmax --high
 $maestro I want to build: [your project idea]
 ```
 
+### AI agent installation prompt
+
+Copy and paste this prompt into your AI coding agent:
+
+```text
+Install Meta-Architect for this project.
+
+1. Detect the current AI host and its native project configuration surface.
+2. Install or update `@jstn-sdk/ma@latest` using the host's supported package manager.
+3. Set `MA_AGENT` to the detected host ID when a host-specific surface is available.
+4. Run `ma setup` and accept the detected project scope and targets.
+5. Verify the generated `.ma/` state and native host artifacts.
+6. Report the installed version, selected host, generated files, and any unsupported capabilities.
+
+Do not overwrite user-owned files, modify unrelated configuration, or claim a host is supported without verification.
+```
+
 Windows PowerShell: `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
 More install options: [docs/getting-started.md](./docs/getting-started.md)
 
 Uninstall Meta-Architect: `npm uninstall -g @jstn-sdk/ma`
 Uninstall Meta-Architect and Codex: `npm uninstall -g @jstn-sdk/ma @openai/codex`
+
+### Install into an AI vendor host
+
+Install Meta-Architect once, then select the host surface before launch. The
+pre-launch step detects installed hosts and writes the selected scope and
+targets to `.ma/prelaunch.json`.
+
+```bash
+# Codex (reference host)
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+ma --madmax --high
+
+# Claude Code
+MA_AGENT=claude-code npm i -g @jstn-sdk/ma@latest
+MA_AGENT=claude-code ma --madmax --high
+
+# Cursor
+MA_AGENT=cursor npm i -g @jstn-sdk/ma@latest
+MA_AGENT=cursor ma --madmax --high
+
+# Any registered host surface
+MA_AGENT=<host-id> npm i -g @jstn-sdk/ma@latest
+MA_AGENT=<host-id> ma --madmax --high
+```
+
+MA installs or reuses the native skill/configuration surface for the selected
+host and keeps the canonical workflow unchanged. See the [host compatibility
+evidence](./docs/agent-compat-integration-report.md) and [skills publishing
+guide](./docs/skills-publishing.md) for the complete registry and distribution
+rules.
 
 ## Who is it for?
 

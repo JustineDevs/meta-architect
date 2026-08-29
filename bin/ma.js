@@ -3,9 +3,10 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { resolveAgentCommand } from "../src/agents.js";
 import { runBootstrap, runDoctor } from "../src/bootstrap.js";
 import { appendDecision } from "../src/decision-log.js";
-import { runCodex, shouldDelegateToCodex } from "../src/launcher.js";
+import { runAgent, shouldDelegateToCodex } from "../src/launcher.js";
 import { getRepoRoot, packageRoot } from "../src/paths.js";
 import {
   canMarkBuildDone,
@@ -13,6 +14,7 @@ import {
   validateMergeTarget,
   validateReleaseOrigin,
 } from "../src/policy.js";
+import { choosePrelaunchInstall, installPrelaunchSelection } from "../src/prelaunch.js";
 import { executeGitOperation, inspectGitOperation } from "../src/release-operations.js";
 import { loadReleaseState } from "../src/release-state.js";
 import {
@@ -22,8 +24,17 @@ import {
   validateAgentIntegrations,
 } from "../src/runtime/agent-compat.js";
 import { runExternalArchitectReview } from "../src/runtime/architect-review.js";
+import {
+  cancelAutonomousTask,
+  enqueueAutonomousTasks,
+  loadTaskQueue,
+  parseTaskInput,
+  runAutonomousTasks,
+} from "../src/runtime/autonomous-tasks.js";
 import { evaluateRuntimeBuildReadiness } from "../src/runtime/build-readiness.js";
 import { ingestCoreSources } from "../src/runtime/core-source-ingest.js";
+import { verifyLiveAgentMatrix } from "../src/runtime/live-agent-verification.js";
+import { createMaestroView, formatMaestroView } from "../src/runtime/maestro-output.js";
 import {
   appendObsidianOperationReceipt,
   configureObsidianVault,
@@ -58,6 +69,7 @@ import {
   runVibe,
 } from "../src/skills.js";
 import { syncStatusUpdates } from "../src/state-sync.js";
+import { renderReleaseGrid } from "../src/tui/status-grid.js";
 
 function printUsage() {
   console.log("Meta-Architect CLI");
@@ -70,6 +82,7 @@ function printUsage() {
   console.log("  ma context refresh [--full|--json]");
   console.log("  ma migrate [--dry-run|--rollback|--json]");
   console.log("  ma setup [--obsidian-vault <path>]");
+  console.log("  first interactive launch: choose project or user scope and detected hosts");
   console.log("  ma setup --rollback");
   console.log("  ma setup --rollback --dry-run");
   console.log("  ma uninstall");
@@ -87,8 +100,15 @@ function printUsage() {
   );
   console.log("  ma sdk-path");
   console.log("  ma status [--maestro-view]");
-  console.log("  ma verify --architect");
+  console.log("  ma verify --architect|--agents-live [--json]");
   console.log("  ma run $maestro|$arch|$sage|$flow|$vet|$vibe|$build [--auto-heal] [--parallel]");
+  console.log(
+    "  ma task add <goal> [--priority <level>] [--depends-on <id,...>] [--label <name>] [--deadline <ISO>]",
+  );
+  console.log("  ma task bulk <file|-> [--format json|yaml]");
+  console.log("  ma task list [--json]");
+  console.log("  ma task run [--concurrency <n>] [--max-tasks <n>] [--json]");
+  console.log("  ma task cancel <id> [reason]");
   console.log("  ma hook active-autonomy|context-hydration");
   console.log("  ma redaction purge [--dry-run]");
   console.log("  ma merge <source-branch> <target-branch> [--dry-run|--execute]");
@@ -110,8 +130,107 @@ function printCommandHelp(command) {
     merge: "ma merge <source-branch> <target-branch> [--dry-run|--execute]",
     release: "ma release <origin-branch> <target-branch> [--dry-run|--execute]",
     "agent-compat": "ma agent-compat adapters|detect|compile|validate [path]",
+    verify: "ma verify --architect|--agents-live [--json]",
+    task: "ma task add|bulk|list|run|cancel ...",
   };
   console.log(help[command] ?? `No command-specific help is available for '${command}'.`);
+}
+
+function taskOption(rest, name) {
+  const value = getOptionValue(rest, name);
+  return value === undefined ? undefined : value;
+}
+
+async function runTaskCommand(rest) {
+  const action = rest[0] ?? "list";
+  if (action === "add") {
+    const flags = new Set([
+      "--priority",
+      "--depends-on",
+      "--label",
+      "--deadline",
+      "--id",
+      "--vendor",
+    ]);
+    const goal = rest
+      .slice(1)
+      .filter((value, index, values) => {
+        if (index > 0 && flags.has(values[index - 1])) return false;
+        return !value.startsWith("--") && !flags.has(value);
+      })
+      .join(" ");
+    if (!goal) throw new Error("Usage: ma task add <goal>");
+    const task = {
+      id: taskOption(rest, "--id"),
+      goal,
+      priority: taskOption(rest, "--priority"),
+      dependencies: taskOption(rest, "--depends-on")?.split(",").filter(Boolean),
+      labels: taskOption(rest, "--label")?.split(",").filter(Boolean),
+      deadline: taskOption(rest, "--deadline"),
+      vendor: taskOption(rest, "--vendor"),
+    };
+    const [added] = await enqueueAutonomousTasks(task);
+    console.log(
+      rest.includes("--json")
+        ? JSON.stringify(added, null, 2)
+        : `Queued ${added.id}: ${added.goal}`,
+    );
+    return;
+  }
+  if (action === "bulk") {
+    const source = rest[1];
+    if (!source) throw new Error("Usage: ma task bulk <file|-> [--format json|yaml]");
+    const raw =
+      source === "-"
+        ? await new Promise((resolve, reject) => {
+            const chunks = [];
+            process.stdin.on("data", (chunk) => chunks.push(chunk));
+            process.stdin.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+            process.stdin.on("error", reject);
+          })
+        : await fs.readFile(source, "utf8");
+    const format =
+      taskOption(rest, "--format") ??
+      (source.endsWith(".yaml") || source.endsWith(".yml") ? "yaml" : "json");
+    const added = await enqueueAutonomousTasks(await parseTaskInput(raw, format));
+    console.log(
+      rest.includes("--json") ? JSON.stringify(added, null, 2) : `Queued ${added.length} task(s)`,
+    );
+    return;
+  }
+  if (action === "list") {
+    const queue = await loadTaskQueue();
+    console.log(JSON.stringify(queue.tasks, null, 2));
+    return;
+  }
+  if (action === "cancel") {
+    if (!rest[1]) throw new Error("Usage: ma task cancel <id> [reason]");
+    const task = await cancelAutonomousTask(
+      rest[1],
+      rest
+        .slice(2)
+        .filter((value) => !value.startsWith("--"))
+        .join(" ") || undefined,
+    );
+    console.log(rest.includes("--json") ? JSON.stringify(task, null, 2) : `Cancelled ${task.id}`);
+    return;
+  }
+  if (action === "run") {
+    const result = await runAutonomousTasks({
+      concurrency: Number(taskOption(rest, "--concurrency") ?? 1),
+      maxTasks: Number(taskOption(rest, "--max-tasks") ?? Infinity),
+    });
+    if (rest.includes("--json")) console.log(JSON.stringify(result, null, 2));
+    else
+      console.log(
+        `Autonomous tasks: ${Object.entries(result.summary)
+          .map(([key, value]) => `${key}=${value}`)
+          .join(" ")}`,
+      );
+    if (result.summary.failed > 0 || result.summary.blocked > 0) process.exitCode = 1;
+    return;
+  }
+  throw new Error(`Unknown task action: ${action}`);
 }
 
 function getOptionValue(args, name) {
@@ -197,19 +316,31 @@ async function printStatus(releaseState, { json = false } = {}) {
   }
   console.log("Meta-Architect Status");
   console.log("=====================");
-  console.log(`Idea: ${releaseState.idea_status}`);
-  console.log(`Architecture: ${releaseState.architecture_status}`);
-  console.log(`Evidence: ${releaseState.evidence_status}`);
-  console.log(`Logic: ${releaseState.logic_status}`);
-  console.log(`Security: ${releaseState.security_status}`);
-  console.log(`Experience: ${releaseState.experience_status}`);
-  console.log(`Build: ${releaseState.build_status}`);
+  if (process.stdout.isTTY) {
+    console.log(renderReleaseGrid(releaseState, evaluation.nextTriggers));
+  }
+  if (process.stdout.isTTY) {
+    console.log(
+      `Core source snapshots: ${runtimeSummary.coreSourceIngestCount} (${runtimeSummary.coreSourceIngestStatus})`,
+    );
+    console.log(`Obsidian vault notes: ${runtimeSummary.obsidianVaultNoteCount}`);
+    console.log(`Obsidian CRUD receipts: ${runtimeSummary.obsidianVaultOperationCount}`);
+  }
+  if (!process.stdout.isTTY) {
+    console.log(`Idea: ${releaseState.idea_status}`);
+    console.log(`Architecture: ${releaseState.architecture_status}`);
+    console.log(`Evidence: ${releaseState.evidence_status}`);
+    console.log(`Logic: ${releaseState.logic_status}`);
+    console.log(`Security: ${releaseState.security_status}`);
+    console.log(`Experience: ${releaseState.experience_status}`);
+    console.log(`Build: ${releaseState.build_status}`);
 
-  console.log(
-    `Core source snapshots: ${runtimeSummary.coreSourceIngestCount} (${runtimeSummary.coreSourceIngestStatus})`,
-  );
-  console.log(`Obsidian vault notes: ${runtimeSummary.obsidianVaultNoteCount}`);
-  console.log(`Obsidian CRUD receipts: ${runtimeSummary.obsidianVaultOperationCount}`);
+    console.log(
+      `Core source snapshots: ${runtimeSummary.coreSourceIngestCount} (${runtimeSummary.coreSourceIngestStatus})`,
+    );
+    console.log(`Obsidian vault notes: ${runtimeSummary.obsidianVaultNoteCount}`);
+    console.log(`Obsidian CRUD receipts: ${runtimeSummary.obsidianVaultOperationCount}`);
+  }
   if (
     releaseState.build_status === "DONE" &&
     releaseState.merge_status !== "MERGED_TO_DEVELOPMENT"
@@ -230,41 +361,11 @@ async function printStatus(releaseState, { json = false } = {}) {
   }
 }
 
-async function printMaestroView() {
-  const snapshot = await loadRuntimeSnapshot();
-  const trackEntries = Object.entries(snapshot.maestroState.runtime_tracks);
-  console.log("Maestro View");
-  console.log("============");
-  console.log(`Global status: ${snapshot.maestroState.global_status}`);
-  console.log(`Orchestration id: ${snapshot.maestroState.orchestration_id ?? "not started"}`);
-  console.log("Runtime tracks:");
-  if (trackEntries.length === 0) {
-    console.log("- none");
-  } else {
-    for (const [trackId, track] of trackEntries) {
-      console.log(`- ${trackId}: ${track.active_gate} [${track.status}]`);
-      if (Array.isArray(track.blockers) && track.blockers.length > 0) {
-        console.log(`  blockers: ${track.blockers.join("; ")}`);
-      }
-    }
-  }
-
-  const lockEntries = Object.entries(snapshot.maestroState.downstream_lock_table);
-  console.log("Downstream locks:");
-  if (lockEntries.length === 0) {
-    console.log("- none");
-    return;
-  }
-
-  for (const [gate, lock] of lockEntries) {
-    console.log(`- ${gate}: ${lock.is_locked ? "locked" : "unlocked"}`);
-    if (Array.isArray(lock.locked_by) && lock.locked_by.length > 0) {
-      console.log(`  locked by: ${lock.locked_by.join(", ")}`);
-    }
-    if (lock.unlock_criteria) {
-      console.log(`  unlock criteria: ${lock.unlock_criteria}`);
-    }
-  }
+async function printMaestroView({ json = false, snapshot = null } = {}) {
+  const currentSnapshot = snapshot ?? (await loadRuntimeSnapshot());
+  const view = createMaestroView(currentSnapshot.maestroState);
+  if (json) return view;
+  process.stdout.write(formatMaestroView(view));
 }
 
 async function runBuild() {
@@ -443,6 +544,11 @@ async function main() {
     return;
   }
 
+  if (command === "task") {
+    await runTaskCommand(rest);
+    return;
+  }
+
   if (command === "redaction" && rest[0] === "purge") {
     const result = await purgeRedactionVault({ dryRun: rest.includes("--dry-run") });
     console.log(JSON.stringify(result, null, 2));
@@ -450,8 +556,26 @@ async function main() {
   }
 
   if (shouldDelegateToCodex(args)) {
-    await Promise.all([ensureSkillsInstalled(), ensureSupportBundleInstalled()]);
-    process.exitCode = runCodex(args);
+    const selection = await choosePrelaunchInstall();
+    const agentType = process.env.MA_AGENT || selection?.targets?.[0] || "codex";
+    if (selection) {
+      await installPrelaunchSelection(selection);
+    } else if (process.env.MA_AGENT) {
+      await installPrelaunchSelection({
+        schemaVersion: "0.1.0",
+        scope: "project",
+        targets: [agentType],
+      });
+    } else {
+      await Promise.all([ensureSkillsInstalled(), ensureSupportBundleInstalled()]);
+    }
+    if (!resolveAgentCommand(agentType)) {
+      console.log(
+        `Installed ${agentType} compatibility files; no executable host command is registered, so delegation was skipped.`,
+      );
+      return;
+    }
+    process.exitCode = runAgent(args, agentType);
     return;
   }
 
@@ -738,9 +862,23 @@ async function main() {
 
   if (command === "status") {
     const releaseState = await loadReleaseState();
-    await printStatus(releaseState, { json: rest.includes("--json") });
-    if (rest.includes("--maestro-view")) {
-      await printMaestroView();
+    const json = rest.includes("--json");
+    const snapshot = rest.includes("--maestro-view") ? await loadRuntimeSnapshot() : null;
+    if (json && snapshot) {
+      const runtime = createRuntimeSummary(snapshot);
+      const evaluation = evaluateRuntimeBuildReadiness(releaseState, runtime);
+      const status = {
+        schemaVersion: "0.1.0",
+        scope: "status",
+        release: releaseState,
+        runtime,
+        nextTriggers: evaluation.nextTriggers,
+        maestro: createMaestroView(snapshot.maestroState),
+      };
+      process.stdout.write(`${JSON.stringify(status, null, 2)}\n`);
+    } else {
+      await printStatus(releaseState, { json });
+      if (snapshot) await printMaestroView({ snapshot });
     }
     return;
   }
@@ -753,6 +891,24 @@ async function main() {
     console.log(`Architect verdict: ${review.verdict}`);
     if (review.summary) {
       console.log(review.summary);
+    }
+    return;
+  }
+
+  if (command === "verify" && rest.includes("--agents-live")) {
+    const report = await verifyLiveAgentMatrix({ cwd: process.cwd() });
+    if (rest.includes("--json")) {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    } else {
+      console.log(`Agent live verification: ${report.target_count} targets`);
+      console.log(`Runtime verified: ${report.runtime_verified}`);
+      console.log(`Distribution only: ${report.distribution_only}`);
+      console.log(`Blocked: ${report.blocked}`);
+      for (const result of report.results) {
+        console.log(
+          `- ${result.target}: ${result.status}${result.reason ? ` (${result.reason})` : ""}`,
+        );
+      }
     }
     return;
   }
