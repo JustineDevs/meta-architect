@@ -1,7 +1,7 @@
 # Meta-Architect Demo Guide
 
 Last verified: 2026-06-03
-Release line: `v0.14.0`
+Release line: `v0.14.1`
 Package: `@jstn-sdk/ma`
 
 This demo uses a real existing project: this Meta-Architect repository.
@@ -96,7 +96,7 @@ Scenario: make this repository release-ready without bypassing architecture, evi
 Terminal helper path:
 
 ```bash
-ma idea "Prepare Meta-Architect v0.14.0 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare Meta-Architect v0.14.1 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ma run '$maestro'
 ma status --maestro-view
 ```
@@ -217,7 +217,7 @@ npm pack --dry-run --ignore-scripts --cache ./.npm-cache
 Expected package proof:
 
 - package name is `@jstn-sdk/ma`
-- version line is `0.14.0`
+- version line is `0.14.1`
 - `npm run demo:smoke` creates a realistic Northstar Logistics workspace and Obsidian vault under `/tmp/ma-real-demo-*`
 - the smoke writes `.ma/evidence/real-demo-smoke-proof.json` in that temporary workspace
 - `DEMO.md` is included
@@ -252,7 +252,7 @@ What it proves:
 
 | Surface | Current reality |
 | --- | --- |
-| Release line | `v0.14.0` |
+| Release line | `v0.14.1` |
 | Package | `@jstn-sdk/ma` |
 | Public skills | 11 (`maestro`, `arch`, `sage`, `flow`, `vet`, `vibe`, `build`, `align`, `diagnose`, `tdd`, `cleanup`) |
 | Runtime namespace | `.ma/` |

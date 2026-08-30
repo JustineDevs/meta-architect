@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import test from "node:test";
 import { createTestNamespace } from "../src/test-fixtures.js";
 import { spawnPortable } from "./helpers/spawn-portable.js";
 
 const repoRoot = process.cwd();
+const require = createRequire(import.meta.url);
+const packageVersion = require("../package.json").version;
 
 async function writeFakeCodex(tempRoot, exitCode = 0) {
   const codexBin = path.join(tempRoot, "fake-codex.mjs");
@@ -37,7 +40,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.14.0.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.14.1.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });
@@ -111,7 +114,7 @@ test("packed package installs and supports the documented runtime/helper flow", 
     await fs.readFile(path.join(codexHome, "meta-architect-sdk", "asset-manifest.json"), "utf8"),
   );
   assert.equal(supportManifest.schemaVersion, "1.0.0");
-  assert.equal(supportManifest.bundleVersion, "0.14.0");
+  assert.equal(supportManifest.bundleVersion, packageVersion);
   await fs.access(path.join(codexHome, "skills", "arch", "SKILL.md"));
   await fs.access(path.join(codexHome, "meta-architect-sdk", "templates", "AGENTS.md"));
 
@@ -251,7 +254,7 @@ test("packed package supports the golden-path onboarding flow", async () => {
   const workRoot = path.join(tempRoot, "project");
   const codexHome = path.join(tempRoot, "codex-home");
   const outputPath = path.join(tempRoot, "codex-output.json");
-  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.14.0.tgz");
+  const tarballPath = path.join(tempRoot, "jstn-sdk-ma-0.14.1.tgz");
 
   await fs.mkdir(installRoot, { recursive: true });
   await fs.mkdir(workRoot, { recursive: true });

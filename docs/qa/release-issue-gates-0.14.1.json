@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "releaseVersion": "0.14.0",
-  "releaseTag": "v0.14.0",
+  "releaseVersion": "0.14.1",
+  "releaseTag": "v0.14.1",
   "previousVersion": "0.1.12",
   "passContract": {
     "allIssuesMustPassProduction": true,
@@ -13,9 +13,9 @@
       "number": 13,
       "title": "[feature] Meta tracking: next-release core gated lanes and runtime maturity program",
       "url": "https://github.com/JustineDevs/meta-architect/issues/13",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "All child next-release issues are individually passed with evidence.",
@@ -26,11 +26,11 @@
       "proof": {
         "implementationEvidence": [
           "Child issues #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29 are individually marked passed in this gate with implementation, verification, and production evidence.",
-          "docs/qa/release-readiness-0.14.0.md links this gate as the canonical v0.14.0 issue proof artifact.",
+          "docs/qa/release-readiness-0.14.1.md links this gate as the canonical v0.14.1 issue proof artifact.",
           "src/release-issue-gates.js validates all tracked issue statuses, labels, proof arrays, milestone, release version, and release tag."
         ],
         "verificationEvidence": [
-          "node-based validateReleaseIssueGates(document, { version: 0.14.0 }) returns valid true after this evidence update.",
+          "node-based validateReleaseIssueGates(document, { version: 0.14.1 }) returns valid true after this evidence update.",
           "test/release-issue-gates.test.js covers failing pending gates and passing proof gates.",
           "npm run check passed after core implementation changes (Biome checked 117 files).",
           "npm test passed after core implementation changes (30/30 tests).",
@@ -45,15 +45,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 14,
       "title": "[feature] Reconcile core gated lane contracts and harden the `$build` state loop",
       "url": "https://github.com/JustineDevs/meta-architect/issues/14",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Core gated lane contracts are implemented in repo code and prompts.",
@@ -83,15 +83,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 15,
       "title": "[feature] Add the operational scratchpad layer and `maestro-state.json` control-plane ledger",
       "url": "https://github.com/JustineDevs/meta-architect/issues/15",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Scratchpad and maestro-state ledger are implemented with safe ownership boundaries.",
@@ -119,15 +119,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 16,
       "title": "[feature] Add read-only supply-chain exposure intake and build circuit-breaker orchestration",
       "url": "https://github.com/JustineDevs/meta-architect/issues/16",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Supply-chain intake is read-only and cannot mutate release state directly.",
@@ -157,15 +157,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 17,
       "title": "[feature] Add the Redaction Gateway for provider-bound context sanitization",
       "url": "https://github.com/JustineDevs/meta-architect/issues/17",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Provider-bound context sanitization is implemented.",
@@ -192,15 +192,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 18,
       "title": "[feature] Add the Alignment Sentinel for runtime drift detection and bounded worker reboot",
       "url": "https://github.com/JustineDevs/meta-architect/issues/18",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Runtime drift detection is implemented.",
@@ -227,15 +227,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 19,
       "title": "[feature] Add the Synthetic Workspace Virtualizer for low-overhead bounded verification",
       "url": "https://github.com/JustineDevs/meta-architect/issues/19",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Synthetic workspace virtualization is implemented without replacing real release checks.",
@@ -262,15 +262,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 20,
       "title": "[feature] Add the Quorum Review Engine as an optional high-assurance `$build` substep",
       "url": "https://github.com/JustineDevs/meta-architect/issues/20",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Quorum review is available as an optional high-assurance substep.",
@@ -297,15 +297,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 21,
       "title": "[feature] Add an incremental code graph and bounded `$rehearse` trajectory mode",
       "url": "https://github.com/JustineDevs/meta-architect/issues/21",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Incremental code graph support is implemented.",
@@ -332,15 +332,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 22,
       "title": "[feature] Add the multi-agent skills registry and exported compatibility payload contract",
       "url": "https://github.com/JustineDevs/meta-architect/issues/22",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Universal and non-universal agent registry is implemented.",
@@ -367,15 +367,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 23,
       "title": "[feature] Harden Linux packaging and cross-agent install verification against the real release contract",
       "url": "https://github.com/JustineDevs/meta-architect/issues/23",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Linux package artifacts build for Debian, Arch, and RPM lanes.",
@@ -390,32 +390,32 @@
           "test/package-install-smoke.test.js and test/package-exports.test.js cover install and package export behavior."
         ],
         "verificationEvidence": [
-          "npm run linux:packages:build passed and produced dist/meta-architect_0.14.0_all.deb, dist/meta-architect-0.14.0-1-any.pkg.tar.xz, and dist/meta-architect-0.14.0-1.noarch.rpm.",
+          "npm run linux:packages:build passed and produced dist/meta-architect_0.14.1_all.deb, dist/meta-architect-0.14.1-1-any.pkg.tar.xz, and dist/meta-architect-0.14.1-1.noarch.rpm.",
           "npm run linux:packages:smoke passed against extracted package payloads.",
-          "npm run release:assets passed and validated all v0.14.0 release artifacts plus dist/linux-package-manifest.json.",
+          "npm run release:assets passed and validated all v0.14.1 release artifacts plus dist/linux-package-manifest.json.",
           "npm run check passed after core implementation changes (Biome checked 117 files).",
           "npm test passed after core implementation changes (30/30 tests).",
           "node bin/ma.js doctor returned READY after runtime artifact validation.",
           "node bin/ma.js status reported Evidence VERIFIED, Logic GREEN, Security GREEN, Experience GREEN, and Build DONE."
         ],
         "productionEvidence": [
-          "dist/meta-architect_0.14.0_all.deb validated by release:assets at 1889688 bytes.",
-          "dist/meta-architect-0.14.0-1-any.pkg.tar.xz validated by release:assets at 1892412 bytes.",
-          "dist/meta-architect-0.14.0-1.noarch.rpm validated by release:assets at 1990404 bytes.",
+          "dist/meta-architect_0.14.1_all.deb validated by release:assets at 1889688 bytes.",
+          "dist/meta-architect-0.14.1-1-any.pkg.tar.xz validated by release:assets at 1892412 bytes.",
+          "dist/meta-architect-0.14.1-1.noarch.rpm validated by release:assets at 1990404 bytes.",
           "node bin/ma.js status exercised the shipped CLI runtime and reported all release lanes green.",
           "node bin/ma.js doctor exercised install/runtime readiness checks and returned READY.",
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 24,
       "title": "[feature] Add Obsidian Integration Core as default vault/plugin capability",
       "url": "https://github.com/JustineDevs/meta-architect/issues/24",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Obsidian integration is default core, not optional.",
@@ -447,15 +447,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 25,
       "title": "[feature] Add Context Economy Core as default compression capability",
       "url": "https://github.com/JustineDevs/meta-architect/issues/25",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Context economy is default core across applicable capabilities.",
@@ -486,15 +486,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 26,
       "title": "[feature] Add Ralph Execution Core as default maestro execution engine",
       "url": "https://github.com/JustineDevs/meta-architect/issues/26",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Ralph execution core is default where autonomous execution applies.",
@@ -522,15 +522,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 27,
       "title": "[feature] Add Workspace Intelligence Runtime Core semantic composition contracts",
       "url": "https://github.com/JustineDevs/meta-architect/issues/27",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Workspace intelligence runtime contracts are implemented.",
@@ -559,15 +559,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 28,
       "title": "[feature] Add Prompt Strategy Core as default MA prompt-policy capability",
       "url": "https://github.com/JustineDevs/meta-architect/issues/28",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Prompt strategy is default core across applicable roles and skills.",
@@ -598,15 +598,15 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     },
     {
       "number": 29,
       "title": "[feature] Add Active Autonomy Contract Core to prevent passive chatbot behavior",
       "url": "https://github.com/JustineDevs/meta-architect/issues/29",
-      "releaseVersion": "0.14.0",
-      "releaseTag": "v0.14.0",
-      "milestone": "v0.14.0",
+      "releaseVersion": "0.14.1",
+      "releaseTag": "v0.14.1",
+      "milestone": "v0.14.1",
       "status": "passed",
       "requiredProof": [
         "Active autonomy contract is default core across applicable agents and roles.",
@@ -638,7 +638,7 @@
           "npm run release:check is the required final production release gate for this issue set."
         ]
       },
-      "labels": ["feature", "next-release", "v0.14.0"]
+      "labels": ["feature", "next-release", "v0.14.1"]
     }
   ]
 }

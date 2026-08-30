@@ -8,6 +8,6 @@
   - `logic_status = GREEN`
   - `security_status = GREEN`
   - `experience_status = GREEN` or `WAIVED`
-- Feature work merges into `development`, never directly into `prod`.
-- Release promotion is allowed only from `development` or approved `release/*`.
+- Feature work merges into `dev`, never directly into `main`.
+- Release promotion is allowed only from `dev` or approved `release/*`.
 - Use the helper command path only when repo-local state automation is explicitly needed; otherwise stay inside Codex and carry the gate decisions in the session.

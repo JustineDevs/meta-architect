@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.14.1
+
+- Adds native Cursor project rules at `.cursor/rules/agents.mdc` and validates them during `ma doctor`.
+- Installs the complete MA lane skill set into Cursor's `.agents/skills` and Claude Code's `.claude/skills` project surfaces during prelaunch.
+- Adds native `CLAUDE.md` generation for Claude Code project setup.
+- Hardens runtime subprocess boundaries and preserves hostile arguments without shell execution.
+
 ## v0.14.0
 
 - Release line prepared automatically for v0.14.0.

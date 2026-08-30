@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
 import { createTempRepo } from "./helpers/temp-repo.js";
 
 const repoRoot = process.cwd();
+const require = createRequire(import.meta.url);
+const packageVersion = require("../package.json").version;
 const cleanDecisions = {
   schemaVersion: "0.1.0",
   idea_status: "DRAFT",
@@ -1432,34 +1435,42 @@ test("runtime-aware build readiness blocks on pending release issue gates only i
       experience_status: "GREEN",
     });
     await fs.mkdir(path.join(tempRoot, "docs", "qa"), { recursive: true });
-    await fsUtils.writeJson(path.join(tempRoot, "docs", "qa", "release-issue-gates-0.14.0.json"), {
-      schemaVersion: "1.0.0",
-      releaseVersion: "0.14.0",
-      releaseTag: "v0.14.0",
-      passContract: {
-        allIssuesMustPassProduction: true,
-      },
-      issues: [
-        {
-          number: 14,
-          title: "Pending issue gate",
-          url: "https://github.com/JustineDevs/meta-architect/issues/14",
-          releaseVersion: "0.14.0",
-          releaseTag: "v0.14.0",
-          milestone: "v0.14.0",
-          status: "pending",
-          requiredProof: ["implementation", "verification", "production"],
-          loopAction: "Implement missing issue work.",
-          proof: {
-            implementationEvidence: [],
-            verificationEvidence: [],
-            productionEvidence: [],
-          },
+    await fsUtils.writeJson(
+      path.join(tempRoot, "docs", "qa", `release-issue-gates-${packageVersion}.json`),
+      {
+        schemaVersion: "1.0.0",
+        releaseVersion: packageVersion,
+        releaseTag: `v${packageVersion}`,
+        passContract: {
+          allIssuesMustPassProduction: true,
         },
-      ],
-    });
+        issues: [
+          {
+            number: 14,
+            title: "Pending issue gate",
+            url: "https://github.com/JustineDevs/meta-architect/issues/14",
+            releaseVersion: packageVersion,
+            releaseTag: `v${packageVersion}`,
+            milestone: `v${packageVersion}`,
+            status: "pending",
+            requiredProof: ["implementation", "verification", "production"],
+            loopAction: "Implement missing issue work.",
+            proof: {
+              implementationEvidence: [],
+              verificationEvidence: [],
+              productionEvidence: [],
+            },
+          },
+        ],
+      },
+    );
 
-    const currentGatePath = path.join(tempRoot, "docs", "qa", "release-issue-gates-0.14.0.json");
+    const currentGatePath = path.join(
+      tempRoot,
+      "docs",
+      "qa",
+      `release-issue-gates-${packageVersion}.json`,
+    );
     const historicalGatePath = path.join(tempRoot, "docs", "qa", "release-issue-gates-0.1.12.json");
     const historicalGate = JSON.parse(await fs.readFile(currentGatePath, "utf8"));
     historicalGate.releaseVersion = "0.1.12";

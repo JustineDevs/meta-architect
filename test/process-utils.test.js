@@ -8,6 +8,10 @@ test("process boundary rejects shell syntax in executable values", () => {
   assert.throws(() => assertSafeExecutable("node\n--version"), /unsafe executable/);
 });
 
+test("process boundary allows whitespace inside shell-free executable paths", () => {
+  assert.doesNotThrow(() => assertSafeExecutable("C:\\Program Files\\nodejs\\node.exe"));
+});
+
 test("process boundary passes arguments as argv without enabling a shell", () => {
   const result = safeSpawnSync(
     process.execPath,

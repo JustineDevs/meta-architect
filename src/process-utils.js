@@ -11,8 +11,7 @@ export function assertSafeExecutable(command, label = "Executable") {
     command.includes("\0") ||
     command.includes("\r") ||
     command.includes("\n") ||
-    unsafeExecutable.test(command) ||
-    /\s/.test(command)
+    unsafeExecutable.test(command)
   ) {
     throw new Error(`${label} contains an unsafe executable value`);
   }

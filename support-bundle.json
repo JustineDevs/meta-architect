@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "bundleVersion": "0.14.0",
+  "bundleVersion": "0.14.1",
   "compatibility": {
     "node": ">=20",
     "managedBy": "@jstn-sdk/ma"

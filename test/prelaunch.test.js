@@ -61,6 +61,9 @@ test("pre-launch selection installs a project compatibility entrypoint and persi
     );
     const skill = path.join(root, ".agents", "skills", "meta-architect", "SKILL.md");
     assert.match(await fs.readFile(skill, "utf8"), /Meta-Architect host compatibility entrypoint/);
+    await fs.access(path.join(root, ".agents", "skills", "maestro", "SKILL.md"));
+    const cursorRule = path.join(root, ".cursor", "rules", "agents.mdc");
+    assert.match(await fs.readFile(cursorRule, "utf8"), /alwaysApply: true/);
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(root, ".ma", "prelaunch.json"), "utf8")),
       { schemaVersion: "0.1.0", scope: "project", targets: ["cursor"] },
@@ -80,6 +83,20 @@ test("project Codex selection installs the complete lane skill and support bundl
     await fs.access(path.join(root, ".agents", "skills", "maestro", "SKILL.md"));
     await fs.access(path.join(root, ".agents", "skills", "arch", "SKILL.md"));
     await fs.access(path.join(root, ".ma", "support-bundle", "mcp", "servers.json"));
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
+test("project Claude selection installs native lane skills and instructions", async () => {
+  const root = createTestNamespace("prelaunch-claude-project");
+  try {
+    await installPrelaunchSelection(
+      { schemaVersion: "0.1.0", scope: "project", targets: ["claude-code"] },
+      root,
+    );
+    await fs.access(path.join(root, ".claude", "skills", "maestro", "SKILL.md"));
+    assert.match(await fs.readFile(path.join(root, "CLAUDE.md"), "utf8"), /Meta-Architect/);
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }
