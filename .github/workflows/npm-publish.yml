@@ -55,14 +55,25 @@ jobs:
         id: release_meta
         run: node ./scripts/release-metadata.js --github-output "$GITHUB_OUTPUT"
 
+      - name: Check whether npm version is already published
+        id: npm_version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "@jstn-sdk/ma@$version" version >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "@jstn-sdk/ma@$version already exists on npm; publication will be skipped."
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish stable package to latest
-        if: steps.release_meta.outputs.dist_tag == 'latest'
+        if: steps.release_meta.outputs.dist_tag == 'latest' && steps.npm_version.outputs.published != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance
 
       - name: Publish prerelease package to explicit dist-tag
-        if: steps.release_meta.outputs.dist_tag != 'latest'
+        if: steps.release_meta.outputs.dist_tag != 'latest' && steps.npm_version.outputs.published != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance --tag "${{ steps.release_meta.outputs.dist_tag }}"
