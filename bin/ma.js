@@ -346,7 +346,7 @@ async function printStatus(releaseState, { json = false } = {}) {
     releaseState.merge_status !== "MERGED_TO_DEVELOPMENT"
   ) {
     console.log("Next allowed triggers:");
-    console.log("ma merge <feature/*> development");
+    console.log("ma merge <feature/*> dev");
     return;
   }
   console.log("Next allowed triggers:");
@@ -402,14 +402,14 @@ async function runBuild() {
   }
 
   console.log("Build gate completed the bounded execution substep.");
-  console.log("Next step: ma merge <feature/*> development");
+  console.log("Next step: ma merge <feature/*> dev");
 }
 
 async function runMerge(sourceBranch, targetBranch, mode = "approval") {
   const releaseState = await loadReleaseState();
 
   if (!validateMergeTarget(sourceBranch, targetBranch)) {
-    throw new Error("Merge policy violation: only feature/* -> development is allowed");
+    throw new Error("Merge policy violation: only feature/* -> dev is allowed");
   }
 
   if (!canMarkBuildDone(releaseState)) {
@@ -458,14 +458,12 @@ async function runMerge(sourceBranch, targetBranch, mode = "approval") {
 async function runRelease(originBranch, targetBranch, mode = "approval") {
   const releaseState = await loadReleaseState();
 
-  if (targetBranch !== "prod") {
-    throw new Error("Release policy violation: target branch must be prod");
+  if (targetBranch !== "main") {
+    throw new Error("Release policy violation: target branch must be main");
   }
 
   if (rejectsDirectProdPromotion(originBranch) || !validateReleaseOrigin(originBranch)) {
-    throw new Error(
-      "Release policy violation: only development or approved release/* can promote to prod",
-    );
+    throw new Error("Release policy violation: only dev or approved release/* can promote to main");
   }
 
   if (releaseState.merge_status !== "MERGED_TO_DEVELOPMENT") {

@@ -523,8 +523,8 @@ Canonical demo reference:
 After implementation work is complete:
 
 ```bash
-ma merge feature/ui development
-ma release development prod
+ma merge feature/ui dev
+ma release dev main
 ```
 
 These commands record approval by default; they do not execute Git. Use
@@ -533,8 +533,8 @@ state, or `--execute` to run the checked, explicit merge on the target branch.
 Both modes require a clean worktree and a valid source branch.
 
 Expected effects:
-- merge only succeeds for `feature/* -> development`
-- release only succeeds for `development|release/* -> prod`
+- merge only succeeds for `feature/* -> dev`
+- release only succeeds for `dev|release/* -> main`
 - final statuses advance to:
   - `build_status = DONE`
   - `merge_status = MERGED_TO_DEVELOPMENT`

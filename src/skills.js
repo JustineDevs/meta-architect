@@ -268,31 +268,31 @@ function chooseMaestroRecommendation(releaseState, idea, buildReadiness = null) 
 
   if (releaseState.merge_status !== "MERGED_TO_DEVELOPMENT") {
     return {
-      nextStep: "Finish the implementation slice and merge it into development.",
+      nextStep: "Finish the implementation slice and merge it into dev.",
       why: "The build gate is ready or done, but the branch promotion path has not completed yet.",
       primaryLane: "implementation",
       supportLane: "merge",
       assignments: [
         "Use the current build plan to finish the smallest viable implementation slice.",
-        "When ready, merge feature work into development with `ma merge`.",
+        "When ready, merge feature work into dev with `ma merge`.",
       ],
-      avoid: ["Do not promote directly to prod."],
-      nextTrigger: "`ma merge <feature/*> development`",
+      avoid: ["Do not promote directly to main."],
+      nextTrigger: "`ma merge <feature/*> dev`",
     };
   }
 
   if (releaseState.release_status !== "SHIPPED_TO_PROD") {
     return {
-      nextStep: "Promote the approved release line to prod.",
+      nextStep: "Promote the approved release line to main.",
       why: "Implementation and merge gates are complete, so the remaining step is the controlled release promotion.",
       primaryLane: "release",
       supportLane: "verification",
       assignments: [
-        "Verify the origin branch is development or an approved release branch.",
-        "Run `ma release <origin> prod` when the line is ready.",
+        "Verify the origin branch is dev or an approved release branch.",
+        "Run `ma release <origin> main` when the line is ready.",
       ],
       avoid: ["Do not reopen earlier gates unless a new blocker appears."],
-      nextTrigger: "`ma release <development|release/*> prod`",
+      nextTrigger: "`ma release <dev|release/*> main`",
     };
   }
 
@@ -687,7 +687,7 @@ export async function runBuildLane({ actor = null, reviewMode = null, quorumVote
     allowed: true,
     gateState: "DONE",
     blockers: [],
-    nextTriggers: ["ma merge <feature/*> development"],
+    nextTriggers: ["ma merge <feature/*> dev"],
     suggestedBranches,
     buildSlice,
     verificationPlan,
@@ -708,21 +708,21 @@ export async function runBuildLane({ actor = null, reviewMode = null, quorumVote
       { kind: "ralph-prd", value: ralphContract.prdPath },
     ],
     blockers: [],
-    next_allowed_triggers: ["ma merge <feature/*> development"],
+    next_allowed_triggers: ["ma merge <feature/*> dev"],
   });
   await syncStatusUpdates({ build_status: "DONE" }, { actor: authority.leaderActor });
   await updateMaestroLedgerForBuild({
     buildStatus: "DONE",
     runtimeSummary,
     blockers: [],
-    nextTriggers: ["ma merge <feature/*> development"],
+    nextTriggers: ["ma merge <feature/*> dev"],
     gateState: "COMPLETED",
     trackStatus: "COMPLETED",
     completionEvidence,
   });
   return {
     status: "DONE",
-    nextTrigger: "ma merge <feature/*> development",
+    nextTrigger: "ma merge <feature/*> dev",
     blockers: [],
     suggestedBranches,
   };

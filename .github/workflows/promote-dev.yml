@@ -1,0 +1,42 @@
+name: Promote Dev To Main
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: promote-dev-to-main
+  cancel-in-progress: true
+
+jobs:
+  promotion:
+    name: Open production promotion PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Create or update promotion PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "Promotion PR #$existing already open."
+            exit 0
+          fi
+
+          gh pr create \
+            --base main \
+            --head dev \
+            --title "chore(release): promote dev to main" \
+            --body "Automated promotion PR from dev to main.\n\nAll required CI, security, package, and review checks must pass before a maintainer merges this production promotion." \
+            --label release \
+            --label automation

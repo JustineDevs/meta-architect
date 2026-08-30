@@ -197,7 +197,7 @@ Already using a spec tool? Keep it. Their specs become inputs. MA's gates verify
 
 1. Open an issue before a PR. It saves rework.
 2. Start here: [issues labeled `triage`](https://github.com/JustineDevs/meta-architect/issues)
-3. Branch from `development`. `main` is protected and release-facing.
+3. Branch from `dev`. `main` is protected and release-facing.
 4. Run `npm test` before you submit. Follow [AGENTS.md](./AGENTS.md).
 5. AI-assisted PRs welcome. Explain every line you submit or expect a close.
 

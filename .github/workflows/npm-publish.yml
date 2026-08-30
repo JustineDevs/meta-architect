@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      packages: write
 
     steps:
       - name: Checkout
@@ -71,6 +72,23 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm view @jstn-sdk/ma version dist-tags time --json
+
+      - name: Configure GitHub Packages authentication
+        env:
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_REGISTRY_URL: "https://npm.pkg.github.com/"
+          NPM_SCOPE: "@jstn-sdk"
+        run: node ./scripts/setup-npmrc.js
+
+      - name: Publish package to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish --registry=https://npm.pkg.github.com/ --access public
+
+      - name: Verify GitHub Packages publication
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm view @jstn-sdk/ma version --registry=https://npm.pkg.github.com/
 
       - name: Remove temporary npm auth config
         if: always()
