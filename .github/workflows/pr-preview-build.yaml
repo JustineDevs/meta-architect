@@ -1,0 +1,63 @@
+name: PR Preview Build
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview-build:
+    name: Validate package preview
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check temporary disk capacity
+        run: |
+          usage=$(df -P /tmp | awk 'NR == 2 {gsub("%", "", $5); print $5}')
+          echo "/tmp usage: ${usage}%"
+          if [ "$usage" -gt 80 ]; then echo "::warning::/tmp is ${usage}% full"; fi
+          if [ "$usage" -gt 95 ]; then echo "::error::/tmp is ${usage}% full"; exit 1; fi
+
+      - name: Run code quality checks
+        run: npm run check
+
+      - name: Run test suite
+        run: npm test
+
+      - name: Inspect npm preview package
+        run: npm pack --dry-run --json --ignore-scripts > pr-preview-package.json
+
+      - name: Upload package preview report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-preview-package-${{ github.event.pull_request.number }}
+          path: pr-preview-package.json
+          if-no-files-found: error
+
+      - name: Report and prune temporary fixtures
+        if: always()
+        run: |
+          du -sh /tmp/ma-tests/* 2>/dev/null | sort -hr | head -10 || true
+          bash ./scripts/cleanup-test-fixtures.sh

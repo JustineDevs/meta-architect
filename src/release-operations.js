@@ -26,11 +26,20 @@ export async function inspectGitOperation(root, sourceBranch, targetBranch) {
   const operation = getGitOperation(sourceBranch, targetBranch);
   try {
     const [branch, status] = await Promise.all([
-      execFileAsync("git", ["branch", "--show-current"], { cwd: root, encoding: "utf8" }),
-      execFileAsync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }),
+      execFileAsync("git", ["branch", "--show-current"], {
+        cwd: root,
+        encoding: "utf8",
+        timeout: 10_000,
+      }),
+      execFileAsync("git", ["status", "--porcelain"], {
+        cwd: root,
+        encoding: "utf8",
+        timeout: 10_000,
+      }),
       execFileAsync("git", ["rev-parse", "--verify", `refs/heads/${sourceBranch}`], {
         cwd: root,
         encoding: "utf8",
+        timeout: 10_000,
       }),
     ]);
     return {
@@ -57,6 +66,7 @@ export async function executeGitOperation(root, operation) {
   const result = await execFileAsync(operation.command, operation.args, {
     cwd: root,
     encoding: "utf8",
+    timeout: 30_000,
   });
   return { ...operation, stdout: result.stdout.trim(), stderr: result.stderr.trim() };
 }

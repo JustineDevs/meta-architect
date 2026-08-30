@@ -88,7 +88,12 @@ export async function syncCodeburnUsage({
   const executable = command ?? process.env.MA_CODEBURN_BIN ?? "npx";
   const commandArgs = args ?? ["--yes", "codeburn", "usage", "--json"];
   try {
-    const result = await exec(executable, commandArgs, { cwd, encoding: "utf8", timeout: 15_000 });
+    const result = await exec(executable, commandArgs, {
+      cwd,
+      encoding: "utf8",
+      timeout: 15_000,
+      shell: false,
+    });
     const entries = parseCodeburnOutput(result.stdout ?? result);
     const normalized = entries
       .filter((entry) => entry && typeof entry === "object")

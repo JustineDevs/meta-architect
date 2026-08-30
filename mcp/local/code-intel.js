@@ -103,7 +103,13 @@ async function listGitFiles(rootDir) {
     const { stdout } = await execFileAsync(
       "git",
       ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-      { cwd: rootDir, encoding: "buffer", maxBuffer: 4 * 1024 * 1024 },
+      {
+        cwd: rootDir,
+        encoding: "buffer",
+        maxBuffer: 4 * 1024 * 1024,
+        timeout: 10_000,
+        shell: false,
+      },
     );
     return stdout
       .toString("utf8")

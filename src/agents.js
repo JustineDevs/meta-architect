@@ -245,6 +245,8 @@ export function detectInstalled(type = process.env.MA_AGENT || "codex") {
     script ? [command, "--version"] : ["--version"],
     {
       encoding: "utf8",
+      shell: false,
+      timeout: 5_000,
     },
   );
   return {

@@ -33,8 +33,8 @@ The jsDelivr installer runs `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`,
 Use `sh install.sh --dry-run` to inspect the plan, `--no-setup` to skip local
 runtime writes, or `--no-skills` to skip skill/support-bundle writes. The
 installer prints Node/npm/Codex versions and an uninstall command after a real
-install. Package postinstall supports `MA_SKIP_AUTO_INSTALL=1`,
-`MA_SKIP_SKILLS=1`, and `MA_POSTINSTALL_DRY_RUN=1`.
+install. npm installation is side-effect free; host selection and skill
+installation happen explicitly during the first interactive `ma` launch.
 
 Debian-family install:
 

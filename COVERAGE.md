@@ -105,7 +105,7 @@ Coverage state:
 - source skill contracts in `skills/`: DONE
 - generated manifest in `skills/index.json`: DONE
 - plugin-mirrored skill contracts in `plugins/meta-architect/skills/`: DONE
-- installable package skill surface via `postinstall`: DONE
+- installable package skill surface via first-launch host selection: DONE
 
 ## Test coverage actually present
 
@@ -130,7 +130,7 @@ Coverage state:
 | `test/obsidian-integration-core.test.js` | vault-context indexing and graph-link behavior |
 | `test/obsidian-plugin-bridge.test.js` | in-app plugin bridge, metadata, queue, frontmatter, attachments, protocol helpers |
 | `test/package-exports.test.js` | public package API exports core runtime capabilities |
-| `test/package-install-smoke.test.js` | packed npm install, postinstall skill installation, launcher behavior, helper flow |
+| `test/package-install-smoke.test.js` | packed npm install, first-launch skill installation, launcher behavior, helper flow |
 | `test/policy.test.js` | merge/release branch policy enforcement |
 | `test/prompt-strategy-core.test.js` | prompt strategy policy and high-risk preservation |
 | `test/quorum-review.test.js` | review vote confidence and minority reports |

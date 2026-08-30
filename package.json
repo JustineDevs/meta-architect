@@ -71,7 +71,6 @@
   "scripts": {
     "prepare": "husky",
     "prepack": "node ./scripts/prepack.js",
-    "postinstall": "node ./scripts/postinstall.js",
     "test": "node --test --test-concurrency=1 test/*.test.js",
     "test:disk": "node --test --test-concurrency=1 test/test-fixtures.test.js",
     "fixtures:cleanup": "bash ./scripts/cleanup-test-fixtures.sh",
