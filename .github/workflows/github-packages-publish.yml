@@ -1,0 +1,57 @@
+name: GitHub Packages Publish
+
+on:
+  release:
+    types:
+      - published
+      - prereleased
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, for example v0.14.1"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: github-packages-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish npm package to GitHub Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+          scope: "@jstn-sdk"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate package
+        env:
+          GITHUB_REF_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
+        run: npm run release:check
+
+      - name: Publish package
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+        run: npm publish --registry=https://npm.pkg.github.com/ --access public
+
+      - name: Verify publication
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+        run: npm view @jstn-sdk/ma version --registry=https://npm.pkg.github.com/
