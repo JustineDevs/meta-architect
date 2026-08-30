@@ -10,7 +10,9 @@
     <a href="https://badge.socket.dev/npm/package/@jstn-sdk/ma/0.14.0">
       <img src="https://badge.socket.dev/npm/package/@jstn-sdk/ma/0.14.0" alt="Socket security">
     </a>
-    <a href="https://security.snyk.io/package/npm/%252540jstn-sdk%25252Fma">Snyk security report</a>
+    <a href="https://security.snyk.io/package/npm/%252540jstn-sdk%25252Fma">
+      <img src="https://snyk.io/test/npm/%40jstn-sdk%2Fma/badge.svg" alt="Snyk security">
+    </a>
     <a href="https://www.buymeacoffee.com/justinedevs">
       <img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee">
     </a>
