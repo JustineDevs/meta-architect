@@ -226,6 +226,7 @@ function syncPluginVersions(nextVersion) {
   for (const file of [
     path.join("plugins", "meta-architect", ".app.json"),
     path.join("plugins", "meta-architect", ".mcp.json"),
+    path.join("plugins", "meta-architect", "obsidian", "manifest.json"),
   ]) {
     const value = readJson(file);
     value.version = nextVersion;

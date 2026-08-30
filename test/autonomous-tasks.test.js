@@ -6,6 +6,7 @@ import {
   cancelAutonomousTask,
   createTaskQueue,
   enqueueAutonomousTasks,
+  getRunnerLeasePath,
   loadTaskQueue,
   parseTaskInput,
   runAutonomousTasks,
@@ -161,8 +162,31 @@ test("does not recover a task owned by a live runner", async (t) => {
   queue.tasks[0].runnerPid = process.pid;
   queue.tasks[0].runnerId = "live-runner";
   await fs.writeFile(queuePath, `${JSON.stringify(queue, null, 2)}\n`);
+  await fs.mkdir(path.dirname(getRunnerLeasePath("live-runner")), { recursive: true });
+  await fs.writeFile(
+    getRunnerLeasePath("live-runner"),
+    `${JSON.stringify({ runnerId: "live-runner", runnerPid: process.pid, heartbeatAt: new Date().toISOString() })}\n`,
+  );
 
   assert.equal((await loadTaskQueue()).tasks[0].status, "running");
+});
+
+test("recovers a running task when its ownership lease is stale", async (t) => {
+  await withRoot(t);
+  await enqueueAutonomousTasks({ id: "stale", goal: "Recover stale work" });
+  const queuePath = path.join(process.env.MA_ROOT, ".ma", "tasks", "autonomous-queue.json");
+  const queue = JSON.parse(await fs.readFile(queuePath, "utf8"));
+  queue.tasks[0].status = "running";
+  queue.tasks[0].runnerPid = process.pid;
+  queue.tasks[0].runnerId = "stale-runner";
+  await fs.writeFile(queuePath, `${JSON.stringify(queue, null, 2)}\n`);
+  await fs.mkdir(path.dirname(getRunnerLeasePath("stale-runner")), { recursive: true });
+  await fs.writeFile(
+    getRunnerLeasePath("stale-runner"),
+    `${JSON.stringify({ runnerId: "stale-runner", runnerPid: process.pid, heartbeatAt: "2000-01-01T00:00:00.000Z" })}\n`,
+  );
+
+  assert.equal((await loadTaskQueue()).tasks[0].status, "queued");
 });
 
 test("caps concurrent dispatches by the remaining max-tasks budget", async (t) => {

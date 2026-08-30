@@ -16,9 +16,14 @@ import { createTaskContract, validateTaskContract } from "./task-contracts.js";
 export const autonomousTaskSchemaVersion = "0.1.0";
 const statuses = new Set(["queued", "running", "completed", "failed", "blocked", "cancelled"]);
 const priorities = new Set(["low", "normal", "high", "critical"]);
+const runnerLeaseMaxAgeMs = 30_000;
 
 export function getAutonomousTaskQueuePath() {
   return getRuntimeSubsystemPath("tasks", "autonomous-queue.json");
+}
+
+export function getRunnerLeasePath(runnerId) {
+  return getRuntimeSubsystemPath("tasks", "leases", `${encodeURIComponent(runnerId)}.json`);
 }
 
 export function createTaskQueue() {
@@ -138,9 +143,19 @@ function byId(tasks) {
   return new Map(tasks.map((task) => [task.id, task]));
 }
 
-function runnerIsAlive(task) {
+async function runnerIsAlive(task) {
   if (!Number.isInteger(task.runnerPid) || task.runnerPid < 1 || !task.runnerId) return false;
   try {
+    const lease = await readJson(getRunnerLeasePath(task.runnerId));
+    const heartbeatAt = Date.parse(lease.heartbeatAt);
+    if (
+      lease.runnerId !== task.runnerId ||
+      lease.runnerPid !== task.runnerPid ||
+      !Number.isFinite(heartbeatAt) ||
+      Date.now() - heartbeatAt > runnerLeaseMaxAgeMs
+    ) {
+      return false;
+    }
     process.kill(task.runnerPid, 0);
     return true;
   } catch {
@@ -151,9 +166,10 @@ function runnerIsAlive(task) {
 async function loadTaskQueueUnlocked() {
   try {
     const queue = validateTaskQueue(await readJson(getAutonomousTaskQueuePath()));
-    const interrupted = queue.tasks.filter(
-      (task) => task.status === "running" && !runnerIsAlive(task),
-    );
+    const interrupted = [];
+    for (const task of queue.tasks) {
+      if (task.status === "running" && !(await runnerIsAlive(task))) interrupted.push(task);
+    }
     if (interrupted.length === 0) return queue;
     const recoveredAt = new Date().toISOString();
     for (const task of interrupted) {
@@ -351,7 +367,36 @@ export async function runAutonomousTasks({
       });
       if (!claim?.changed) continue;
       Object.assign(task, claim.task);
+      try {
+        await writeJsonAtomically(getRunnerLeasePath(runnerId), {
+          schemaVersion: autonomousTaskSchemaVersion,
+          runnerId,
+          runnerPid: process.pid,
+          heartbeatAt: new Date().toISOString(),
+        });
+      } catch (error) {
+        await updateTaskQueueTask(task.id, (current) => {
+          if (current.status !== "running" || current.runnerId !== runnerId) return false;
+          Object.assign(current, {
+            status: "queued",
+            error: `Unable to establish task runner lease: ${error.message}`,
+            runnerPid: null,
+            runnerId: null,
+          });
+          return true;
+        });
+        continue;
+      }
       const promise = (async () => {
+        const heartbeat = setInterval(() => {
+          writeJsonAtomically(getRunnerLeasePath(runnerId), {
+            schemaVersion: autonomousTaskSchemaVersion,
+            runnerId,
+            runnerPid: process.pid,
+            heartbeatAt: new Date().toISOString(),
+          }).catch(() => {});
+        }, runnerLeaseMaxAgeMs / 3);
+        heartbeat.unref?.();
         try {
           const result = await runner(task);
           const patch = { runnerPid: null, runnerId: null };
@@ -402,6 +447,9 @@ export async function runAutonomousTasks({
             return true;
           });
           if (transition) Object.assign(task, transition.task);
+        } finally {
+          clearInterval(heartbeat);
+          await fs.rm(getRunnerLeasePath(runnerId), { force: true });
         }
         await emit({
           taskId: task.id,

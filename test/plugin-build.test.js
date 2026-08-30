@@ -67,6 +67,9 @@ test("repository is a directly installable Claude Code marketplace", async () =>
   const marketplace = JSON.parse(await fs.readFile(".claude-plugin/marketplace.json", "utf8"));
   const pluginPath = path.join("plugins", "meta-architect", ".claude-plugin", "plugin.json");
   const plugin = JSON.parse(await fs.readFile(pluginPath, "utf8"));
+  const obsidianManifest = JSON.parse(
+    await fs.readFile("plugins/meta-architect/obsidian/manifest.json", "utf8"),
+  );
 
   assert.equal(marketplace.name, "meta-architect");
   assert.equal(marketplace.owner.email, "justinedevs@jstn.site");
@@ -79,4 +82,5 @@ test("repository is a directly installable Claude Code marketplace", async () =>
   ]);
   assert.equal(plugin.name, "meta-architect");
   assert.equal(plugin.version, packageVersion);
+  assert.equal(obsidianManifest.version, packageVersion);
 });
