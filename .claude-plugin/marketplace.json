@@ -1,0 +1,18 @@
+{
+  "name": "meta-architect",
+  "owner": {
+    "name": "JustineDevs",
+    "email": "justinedevs@jstn.site"
+  },
+  "metadata": {
+    "description": "Meta-Architect gated workflow skills for Claude Code.",
+    "version": "0.14.0"
+  },
+  "plugins": [
+    {
+      "name": "meta-architect",
+      "source": "./plugins/meta-architect",
+      "description": "Meta-Architect gated workflow skills for Claude Code."
+    }
+  ]
+}

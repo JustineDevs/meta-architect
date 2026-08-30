@@ -1,0 +1,12 @@
+{
+  "name": "meta-architect",
+  "description": "Meta-Architect gated workflow skills for Claude Code.",
+  "version": "0.14.0",
+  "author": {
+    "name": "JustineDevs",
+    "url": "https://github.com/JustineDevs"
+  },
+  "homepage": "https://github.com/JustineDevs/meta-architect",
+  "repository": "https://github.com/JustineDevs/meta-architect.git",
+  "license": "MIT"
+}

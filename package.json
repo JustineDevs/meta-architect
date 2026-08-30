@@ -9,6 +9,11 @@
     "type": "git",
     "url": "git+https://github.com/JustineDevs/meta-architect.git"
   },
+  "pi": {
+    "skills": [
+      "./skills"
+    ]
+  },
   "bugs": {
     "url": "https://github.com/JustineDevs/meta-architect/issues"
   },
@@ -49,6 +54,8 @@
     "docs/quality.md",
     "docs/codex-integration.md",
     "docs/autonomous-tasks.md",
+    "docs/vendor-plugin-publishing.md",
+    "docs/assets/banner.png",
     "docs/reference/",
     "docs/qa/",
     "data/",
@@ -85,13 +92,16 @@
     "release:verify": "node ./scripts/release-verify.js",
     "release:assets": "node ./.github/scripts/validate-release-assets.js",
     "release:assets:generate": "node ./.github/scripts/validate-release-assets.js --generate",
-    "release:check": "npm run release:verify && npm run skills:manifest && npm run plugin:sync && npm run skills:validate && npm run plugin:verify && npm run skills:pack && npm run check && npm test && npm run pack:inspect",
+    "release:check": "npm run release:verify && npm run skills:manifest && npm run plugin:sync && npm run plugin:build:all && npm run skills:validate && npm run plugin:verify && npm run skills:pack && npm run check && npm test && npm run pack:inspect",
     "skills:manifest": "node ./scripts/skills-manifest.js",
     "skills:validate": "node ./scripts/skills-validate.js",
     "skills:install": "node ./scripts/skills-install.js",
     "skills:pack": "node ./scripts/skills-pack.js",
     "plugin:sync": "node ./scripts/plugin-sync.js",
     "plugin:verify": "node ./scripts/plugin-sync.js --check",
+    "plugin:build": "node ./scripts/plugin-build.js",
+    "plugin:build:all": "node ./scripts/plugin-build.js --targets all --output ./dist/vendor-plugins",
+    "plugin:publish": "node ./scripts/plugin-publish.js",
     "pack:inspect": "npm pack --dry-run --ignore-scripts --cache ./.npm-cache",
     "package:size": "node ./scripts/package-size-check.mjs",
     "package:doctor": "node ./scripts/doctor.js",

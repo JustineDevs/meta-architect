@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/docs/assets/meta-architect-logo.svg" alt="Meta-Architect: quality gates and evidence verification for AI coding agents" width="1024" height="240">
+  <img src="./docs/assets/banner.png" alt="Meta-Architect: quality gates and evidence verification for AI coding agents" width="1000">
   <h1>Meta-Architect</h1>
   <p><strong>Quality gates and evidence verification for AI coding agents.</strong></p>
   <p>Your agent writes code fast. Meta-Architect makes it prove each stage first. Design, evidence, logic, security, experience, build. Each gate stays locked until the one before it passes.</p>
@@ -30,13 +30,80 @@
 
 <img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">
 
+## 🧩 Quick start
+
+| ✅ Recommended | 🧰 All available installation commands |
+| --- | --- |
+| Use the signed jsDelivr installer on macOS, Linux, WSL, or Git Bash.<br><br>`curl -fsSLo install.sh https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh`<br><br>`curl -fsSLo install.sh.sha256 https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh.sha256`<br><br>`sed 's#scripts/install.sh#install.sh#' install.sh.sha256 \| sha256sum -c -`<br><br>`sh install.sh`<br><br>`ma --madmax --high`<br><br>`$maestro I want to build: [your project idea]` | **npm global**<br><br>`npm i -g @openai/codex@latest @jstn-sdk/ma@latest`<br><br>**Meta-Architect only**<br><br>`npm i -g @jstn-sdk/ma@latest`<br><br>**Windows PowerShell**<br><br>`npm i -g @openai/codex@latest @jstn-sdk/ma@latest`<br><br>**Debian / Ubuntu**<br><br>`sudo apt install ./meta-architect_&lt;version&gt;_all.deb`<br><br>**Arch Linux**<br><br>`sudo pacman -U ./meta-architect-&lt;version&gt;-1-any.pkg.tar.xz`<br><br>**Fedora / openSUSE**<br><br>`sudo dnf install ./meta-architect-&lt;version&gt;-1.noarch.rpm` |
+
+### AI agent installation prompt
+
+Copy and paste this prompt into your AI coding agent:
+
+```text
+Install Meta-Architect for this project.
+
+1. Detect the current AI host and its native project configuration surface.
+2. Install or update `@jstn-sdk/ma@latest` using the host's supported package manager.
+3. Set `MA_AGENT` to the detected host ID when a host-specific surface is available.
+4. Run `ma setup` and accept the detected project scope and targets.
+5. Verify the generated `.ma/` state and native host artifacts.
+6. Report the installed version, selected host, generated files, and any unsupported capabilities.
+
+Do not overwrite user-owned files, modify unrelated configuration, or claim a host is supported without verification.
+```
+
+More install options: [docs/getting-started.md](./docs/getting-started.md)
+
+Uninstall Meta-Architect: `npm uninstall -g @jstn-sdk/ma`
+Uninstall Meta-Architect and Codex: `npm uninstall -g @jstn-sdk/ma @openai/codex`
+
+### Install into an AI vendor host
+
+Install Meta-Architect once, then select the host surface before launch. The
+pre-launch step detects installed hosts and writes the selected scope and
+targets to `.ma/prelaunch.json`.
+
+```bash
+# Codex (reference host)
+npm i -g @openai/codex@latest @jstn-sdk/ma@latest
+ma --madmax --high
+
+# Claude Code
+MA_AGENT=claude-code npm i -g @jstn-sdk/ma@latest
+MA_AGENT=claude-code ma --madmax --high
+
+# Cursor
+MA_AGENT=cursor npm i -g @jstn-sdk/ma@latest
+MA_AGENT=cursor ma --madmax --high
+
+# Any registered host surface
+MA_AGENT=<host-id> npm i -g @jstn-sdk/ma@latest
+MA_AGENT=<host-id> ma --madmax --high
+```
+
+MA installs or reuses the native skill/configuration surface for the selected
+host and keeps the canonical workflow unchanged. See the [host compatibility
+evidence](./docs/agent-compat-integration-report.md) for supported surfaces.
+
+### Claude Code marketplace
+
+The repository includes a hosted Claude Code marketplace for the existing
+`plugins/meta-architect` bundle:
+
+```text
+/plugin marketplace add JustineDevs/meta-architect
+/plugin install meta-architect@meta-architect
+```
+
 <details>
 <summary><strong>🔌 All 33 plugins & features</strong></summary>
 
 The plugin and feature inventory is maintained in the [support bundle manifest](./support-bundle.json) and [skills manifest](./skills/index.json), with verification in the [coverage documentation](./COVERAGE.md).
 </details>
 
-## Why do AI coding agents need gates?
+<details>
+<summary><strong>Why do AI coding agents need gates?</strong></summary>
 
 Your agent writes code faster than you review it. Studies and dev surveys keep finding the same failures:
 
@@ -101,7 +168,7 @@ Build stays LOCKED until every upstream gate passes. Red stays red.
 
 Four helpers support the lanes without moving gates: `$align`, `$diagnose`, `$tdd`, `$cleanup`.
 
-## How is it different from Spec Kit, BMAD, or Agent OS?
+### How is it different from Spec Kit, BMAD, or Agent OS?
 
 Spec-driven tools structure what your agent writes. Meta-Architect enforces what your agent proves.
 
@@ -115,71 +182,7 @@ Spec-driven tools structure what your agent writes. Meta-Architect enforces what
 
 Already using a spec tool? Keep it. Their specs become inputs. MA's gates verify the execution.
 
-## Quick start
-
-```bash
-# 1. Install (macOS, Linux, WSL, Git-Bash)
-curl -fsSLo install.sh https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh && curl -fsSLo install.sh.sha256 https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh.sha256 && sed 's#scripts/install.sh#install.sh#' install.sh.sha256 | sha256sum -c - && sh install.sh
-
-# 2. Launch Codex
-ma --madmax --high
-
-# 3. State your intent inside the session
-$maestro I want to build: [your project idea]
-```
-
-### AI agent installation prompt
-
-Copy and paste this prompt into your AI coding agent:
-
-```text
-Install Meta-Architect for this project.
-
-1. Detect the current AI host and its native project configuration surface.
-2. Install or update `@jstn-sdk/ma@latest` using the host's supported package manager.
-3. Set `MA_AGENT` to the detected host ID when a host-specific surface is available.
-4. Run `ma setup` and accept the detected project scope and targets.
-5. Verify the generated `.ma/` state and native host artifacts.
-6. Report the installed version, selected host, generated files, and any unsupported capabilities.
-
-Do not overwrite user-owned files, modify unrelated configuration, or claim a host is supported without verification.
-```
-
-Windows PowerShell: `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
-More install options: [docs/getting-started.md](./docs/getting-started.md)
-
-Uninstall Meta-Architect: `npm uninstall -g @jstn-sdk/ma`
-Uninstall Meta-Architect and Codex: `npm uninstall -g @jstn-sdk/ma @openai/codex`
-
-### Install into an AI vendor host
-
-Install Meta-Architect once, then select the host surface before launch. The
-pre-launch step detects installed hosts and writes the selected scope and
-targets to `.ma/prelaunch.json`.
-
-```bash
-# Codex (reference host)
-npm i -g @openai/codex@latest @jstn-sdk/ma@latest
-ma --madmax --high
-
-# Claude Code
-MA_AGENT=claude-code npm i -g @jstn-sdk/ma@latest
-MA_AGENT=claude-code ma --madmax --high
-
-# Cursor
-MA_AGENT=cursor npm i -g @jstn-sdk/ma@latest
-MA_AGENT=cursor ma --madmax --high
-
-# Any registered host surface
-MA_AGENT=<host-id> npm i -g @jstn-sdk/ma@latest
-MA_AGENT=<host-id> ma --madmax --high
-```
-
-MA installs or reuses the native skill/configuration surface for the selected
-host and keeps the canonical workflow unchanged. See the [host compatibility
-evidence](./docs/agent-compat-integration-report.md) and [skills publishing
-guide](./docs/skills-publishing.md) for the complete registry and distribution
-rules.
+</details>
 
 ## Who is it for?
 
@@ -204,6 +207,7 @@ rules.
 - [Release Spec](./docs/release-spec.md)
 - [Disk-Bounded Test and Review Runs](./docs/disk-optimization.md)
 - [MCP Setup](./docs/mcp-setup.md)
+- [ChatGPT Integration](./docs/chatgpt-integration.md): deployment requirements and publication boundary
 
 ## License
 

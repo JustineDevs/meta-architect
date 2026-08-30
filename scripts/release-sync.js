@@ -236,6 +236,16 @@ function syncPluginVersions(nextVersion) {
   const pluginManifest = readJson(pluginManifestFile);
   pluginManifest.version = nextVersion;
   writePluginManifestJson(pluginManifestFile, pluginManifest);
+
+  const claudePluginFile = path.join("plugins", "meta-architect", ".claude-plugin", "plugin.json");
+  const claudePlugin = readJson(claudePluginFile);
+  claudePlugin.version = nextVersion;
+  writeJson(claudePluginFile, claudePlugin);
+
+  const claudeMarketplaceFile = path.join(".claude-plugin", "marketplace.json");
+  const claudeMarketplace = readJson(claudeMarketplaceFile);
+  claudeMarketplace.metadata.version = nextVersion;
+  writeJson(claudeMarketplaceFile, claudeMarketplace);
 }
 
 function syncCurrentReleaseFiles(oldVersion, nextVersion) {
