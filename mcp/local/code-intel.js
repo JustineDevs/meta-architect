@@ -1,10 +1,10 @@
-import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { getRepoRoot } from "../../src/paths.js";
+import { safeExecFile } from "../../src/process-utils.js";
 
-const execFileAsync = promisify(execFile);
+const execFileAsync = promisify(safeExecFile);
 const MAX_SCAN_BYTES = 1024 * 1024;
 const ignoredDirs = new Set([
   ".git",

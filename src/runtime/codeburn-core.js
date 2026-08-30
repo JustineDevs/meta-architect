@@ -1,9 +1,9 @@
-import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { ensureDir, readJson, writeFileIfMissing, writeJson } from "../fs-utils.js";
 import { getRuntimeSubsystemPath } from "../paths.js";
+import { assertSafeExecutable, safeExecFile } from "../process-utils.js";
 
-const execFileAsync = promisify(execFile);
+const execFileAsync = promisify(safeExecFile);
 export const codeburnSchemaVersion = "0.1.0";
 
 export function getCodeburnRoot() {
@@ -87,6 +87,7 @@ export async function syncCodeburnUsage({
   const existing = await loadCodeburnUsage();
   const executable = command ?? process.env.MA_CODEBURN_BIN ?? "npx";
   const commandArgs = args ?? ["--yes", "codeburn", "usage", "--json"];
+  assertSafeExecutable(executable, "Codeburn executable");
   try {
     const result = await exec(executable, commandArgs, {
       cwd,

@@ -1,5 +1,5 @@
-import { spawnSync } from "node:child_process";
 import path from "node:path";
+import { safeSpawnSync } from "./process-utils.js";
 
 const definitions = {
   codex: {
@@ -240,7 +240,7 @@ export function detectInstalled(type = process.env.MA_AGENT || "codex") {
     };
   }
   const script = [".js", ".mjs", ".cjs"].includes(path.extname(command));
-  const result = spawnSync(
+  const result = safeSpawnSync(
     script ? process.execPath : command,
     script ? [command, "--version"] : ["--version"],
     {

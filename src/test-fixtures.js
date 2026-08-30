@@ -1,4 +1,3 @@
-import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import {
   chmodSync,
@@ -13,6 +12,7 @@ import {
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { safeSpawn } from "./process-utils.js";
 
 const TEST_ROOT = path.join(os.tmpdir(), "ma-tests");
 const RETENTION_ROOT = path.join(TEST_ROOT, "retained");
@@ -215,7 +215,7 @@ async function copyTree(sourceRoot, targetRoot, { strategy = "copy" } = {}) {
 
 function runCommand(command, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: "ignore" });
+    const child = safeSpawn(command, args, { stdio: "ignore" });
     child.once("error", reject);
     child.once("close", (code) =>
       code === 0 ? resolve() : reject(new Error(`${command} exited with ${code}`)),
@@ -337,7 +337,7 @@ async function enforceFixtureBudget(root, strategy) {
 
 async function runArchive(args) {
   return new Promise((resolve, reject) => {
-    const child = spawn("tar", args, { stdio: ["ignore", "ignore", "pipe"] });
+    const child = safeSpawn("tar", args, { stdio: ["ignore", "ignore", "pipe"] });
     let stderr = "";
     child.stderr.on("data", (chunk) => {
       stderr += chunk.toString();
@@ -442,7 +442,7 @@ export function runTestWithStreaming(command, args, options) {
   assertNoSymlinkComponentsSync(TEST_ROOT, logFile);
   assertNoSymlinkComponentsSync(TEST_ROOT, summaryFile);
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: ["inherit", "pipe", "pipe"] });
+    const child = safeSpawn(command, args, { stdio: ["inherit", "pipe", "pipe"] });
     const log = fs.open(logFile, "w");
     const summary = fs.open(summaryFile, "w");
     let summaryBytes = 0;

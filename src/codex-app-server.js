@@ -1,5 +1,5 @@
-import { spawn } from "node:child_process";
 import fs from "node:fs";
+import { safeSpawn } from "./process-utils.js";
 
 const PACKAGE_VERSION = JSON.parse(
   fs.readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -144,7 +144,7 @@ export class CodexAppServerClient {
 }
 
 export function createStdioTransport(command = "codex") {
-  const child = spawn(command, ["app-server", "--stdio"], {
+  const child = safeSpawn(command, ["app-server", "--stdio"], {
     stdio: ["pipe", "pipe", "inherit"],
     shell: false,
   });
@@ -205,7 +205,7 @@ export function runCodexExec({
 } = {}) {
   if (typeof prompt !== "string" || !prompt.trim()) throw new Error("Codex exec requires a prompt");
   return new Promise((resolve, reject) => {
-    const child = spawn(command, ["exec", "--json", ...args, prompt], {
+    const child = safeSpawn(command, ["exec", "--json", ...args, prompt], {
       cwd,
       stdio: ["ignore", "pipe", "pipe"],
       shell: false,
@@ -250,7 +250,7 @@ export function generateCodexBindings({
   if (!outDir) throw new Error("Codex binding generation requires an output directory");
   const generator = kind === "json-schema" ? "generate-json-schema" : "generate-ts";
   return new Promise((resolve, reject) => {
-    const child = spawn(command, ["app-server", generator, "--out", outDir], {
+    const child = safeSpawn(command, ["app-server", generator, "--out", outDir], {
       cwd,
       stdio: ["ignore", "pipe", "pipe"],
       shell: false,

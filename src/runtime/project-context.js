@@ -1,14 +1,14 @@
-import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { readJson, writeJson } from "../fs-utils.js";
 import { getRepoRoot } from "../paths.js";
+import { safeExecFile } from "../process-utils.js";
 import { createFreshness } from "./context-authority.js";
 import { createManagedMarkdownBlock, replaceManagedMarkdownBlock } from "./managed-markdown.js";
 
-const execFileAsync = promisify(execFile);
+const execFileAsync = promisify(safeExecFile);
 export const projectIndexSchemaVersion = "0.1.0";
 const MAX_SOURCE_FILES = 2000;
 const GENERATED_DIRS = [

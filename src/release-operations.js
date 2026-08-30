@@ -1,7 +1,7 @@
-import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { safeExecFile } from "./process-utils.js";
 
-const execFileAsync = promisify(execFile);
+const execFileAsync = promisify(safeExecFile);
 const branchPattern = /^[A-Za-z0-9._/-]+$/;
 
 function assertBranch(value, label) {
