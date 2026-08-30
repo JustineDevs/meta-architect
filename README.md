@@ -7,8 +7,8 @@
     <img src="https://img.shields.io/github/v/release/JustineDevs/meta-architect?display_name=tag&sort=semver" alt="GitHub release">
     <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fma" alt="npm version">
     <img src="https://img.shields.io/npm/dm/%40jstn-sdk%2Fma" alt="npm downloads">
-    <a href="https://badge.socket.dev/npm/package/@jstn-sdk/ma/0.14.0">
-      <img src="https://badge.socket.dev/npm/package/@jstn-sdk/ma/0.14.0" alt="Socket security">
+    <a href="https://badge.socket.dev/npm/package/@jstn-sdk/ma/0.14.1">
+      <img src="https://badge.socket.dev/npm/package/@jstn-sdk/ma/0.14.1" alt="Socket security">
     </a>
     <a href="https://security.snyk.io/package/npm/%252540jstn-sdk%25252Fma">
       <img src="https://snyk.io/test/npm/%40jstn-sdk%2Fma/badge.svg" alt="Snyk security">
@@ -28,7 +28,7 @@
 > Meta-Architect does not replace your coding runtime.
 > It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
 
-<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.0/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">
+<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.14.1/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">
 
 ## 🧩 Quick start
 
