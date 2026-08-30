@@ -87,3 +87,17 @@ test("project Codex selection installs the complete lane skill and support bundl
     await fs.rm(root, { recursive: true, force: true });
   }
 });
+
+test("project Claude selection installs native lane skills and instructions", async () => {
+  const root = createTestNamespace("prelaunch-claude-project");
+  try {
+    await installPrelaunchSelection(
+      { schemaVersion: "0.1.0", scope: "project", targets: ["claude-code"] },
+      root,
+    );
+    await fs.access(path.join(root, ".claude", "skills", "maestro", "SKILL.md"));
+    assert.match(await fs.readFile(path.join(root, "CLAUDE.md"), "utf8"), /Meta-Architect/);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});

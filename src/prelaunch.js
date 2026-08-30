@@ -176,6 +176,22 @@ export async function installPrelaunchSelection(selection, cwd = process.cwd()) 
       ),
     );
   }
+  if (selection.scope === "project" && selection.targets.includes("claude-code")) {
+    results.push(await ensureSkillsInstalled({ targetRoot: path.join(cwd, ".claude", "skills") }));
+    results.push(
+      await Agents.compile(
+        {
+          version: 1,
+          project: { name: path.basename(path.resolve(cwd)) },
+          instructions: [
+            "Use Meta-Architect lanes for architecture, evidence, review, and gated build work.",
+            "Invoke /maestro to run the autonomous Meta-Architect manager in Claude Code.",
+          ],
+        },
+        { targets: ["claude-code"], output: cwd },
+      ),
+    );
+  }
   if (selection.targets.includes("codex")) {
     const skillsRoot =
       selection.scope === "global" ? undefined : path.join(cwd, ".agents", "skills");
