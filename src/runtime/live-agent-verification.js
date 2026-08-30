@@ -1,8 +1,8 @@
-import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { agentRegistry as executableAgents, resolveAgentCommand } from "../agents.js";
+import { safeSpawn } from "../process-utils.js";
 import {
   agentRegistry,
   createSkillCompatibilityPayload,
@@ -13,7 +13,7 @@ const defaultTimeoutMs = 5000;
 
 function runVersionProbe(command, timeoutMs, args = ["--version"]) {
   return new Promise((resolve) => {
-    const child = spawn(command, args, {
+    const child = safeSpawn(command, args, {
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],
     });

@@ -44,10 +44,10 @@ test("launchDetachedTrack writes a tmux log file when tmux is available", async 
     assert.match(log, /command=/);
     assert.doesNotMatch(log, /log smoke/);
     const tmuxArgs = await fs.readFile(path.join(tempRoot, "tmux-args"), "utf8");
-    assert.match(
-      tmuxArgs,
-      /-e\nconsole\.log\('detached log; \$HOME'\)\narg with spaces\nquote'and"redirect>\n/,
-    );
+    assert.match(tmuxArgs, /'-e'/);
+    assert.match(tmuxArgs, /'console\.log\('\\''detached log; \$HOME'\\''\)'/);
+    assert.match(tmuxArgs, /'arg with spaces'/);
+    assert.match(tmuxArgs, /'quote'\\''and"redirect>'/);
     assert.doesNotMatch(tmuxArgs, /\/bin\/sh|-c/);
   } finally {
     if (previousRoot === undefined) {

@@ -175,6 +175,7 @@ export async function installPrelaunchSelection(selection, cwd = process.cwd()) 
       await writeSkillCompatibilityExport({
         payload,
         agentType: target,
+        renderAgentType: selection.targets.length > 1 ? "generic" : target,
         cwd,
         global: selection.scope === "global",
         agentRootExists: true,

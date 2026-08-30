@@ -49,6 +49,11 @@ coverage/
 dist/
 *.tsbuildinfo
 
+# Remotion render workspace; keep only shareable output
+/public/*
+!/public/result/
+!/public/result/**
+
 # Optional local installs for smoke tests
 dist/installed-skills/
 dist/release-install-check/

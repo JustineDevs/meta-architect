@@ -48,11 +48,22 @@ function latestCdnInstall() {
 function verifyInstallBlock(file) {
   const content = readText(file);
   const cdnInstall = latestCdnInstall();
-  if (!content.includes(CANONICAL_INSTALL) && !content.includes(cdnInstall)) {
+  const htmlCdnInstall = cdnInstall.replaceAll("&&", "&amp;&amp;");
+  const normalizedContent = content.replaceAll("\\|", "|");
+  const splitCdnInstall = [
+    "curl -fsSLo install.sh https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh",
+    "curl -fsSLo install.sh.sha256 https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh.sha256",
+    "sed 's#scripts/install.sh#install.sh#' install.sh.sha256 | sha256sum -c -",
+    "sh install.sh",
+  ].every((command) => normalizedContent.includes(command));
+  if (!content.includes(CANONICAL_INSTALL) && !content.includes(cdnInstall) && !splitCdnInstall) {
     return;
   }
 
-  assert(content.includes(cdnInstall), `${file}: missing jsDelivr POSIX installer command`);
+  assert(
+    content.includes(cdnInstall) || content.includes(htmlCdnInstall) || splitCdnInstall,
+    `${file}: missing jsDelivr POSIX installer command`,
+  );
   assert(content.includes(CANONICAL_INSTALL), `${file}: missing canonical npm install command`);
   assert(content.includes(CANONICAL_LAUNCH), `${file}: missing canonical launch command`);
   assert(content.includes(UNINSTALL_MA), `${file}: missing uninstall Meta-Architect command`);
@@ -156,7 +167,7 @@ function verifyCoverageDoc({ version, gitTag }) {
 function verifyReadmeReleaseSurface({ gitTag }) {
   const content = readText("README.md");
   const demoImage = `<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">`;
-  const logoImage = `<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/docs/assets/meta-architect-logo.svg" alt="Meta-Architect: quality gates and evidence verification for AI coding agents" width="1024" height="240">`;
+  const bannerImage = `<img src="./docs/assets/banner.png" alt="Meta-Architect: quality gates and evidence verification for AI coding agents" width="1000">`;
   assert(content.includes("> [!NOTE]"), "README.md: missing product-positioning note admonition");
   assert(
     content.includes(
@@ -185,7 +196,11 @@ function verifyReadmeReleaseSurface({ gitTag }) {
     ),
     "README.md: missing GitHub release badge",
   );
-  assert(content.includes(logoImage), "README.md: release-pinned logo missing");
+  assert(
+    fs.existsSync(path.join("docs", "assets", "banner.png")),
+    "docs/assets/banner.png: missing",
+  );
+  assert(content.includes(bannerImage), "README.md: banner image missing");
   assert(
     !content.includes("raw.githubusercontent.com/JustineDevs/meta-architect/main/"),
     "README.md: stable docs must not reference mutable main",
@@ -356,11 +371,27 @@ function main() {
   const pluginManifest = readJson(
     path.join("plugins", "meta-architect", ".codex-plugin", "plugin.json"),
   );
+  const claudeMarketplace = readJson(path.join(".claude-plugin", "marketplace.json"));
+  const claudePlugin = readJson(
+    path.join("plugins", "meta-architect", ".claude-plugin", "plugin.json"),
+  );
   assert(pluginApp.version === version, "plugins/meta-architect/.app.json: version drift");
   assert(pluginMcp.version === version, "plugins/meta-architect/.mcp.json: version drift");
   assert(
     pluginManifest.version === version,
     "plugins/meta-architect/.codex-plugin/plugin.json: version drift",
+  );
+  assert(
+    claudeMarketplace.metadata?.version === version,
+    ".claude-plugin/marketplace.json: version drift",
+  );
+  assert(
+    claudeMarketplace.plugins?.some((plugin) => plugin.source === "./plugins/meta-architect"),
+    ".claude-plugin/marketplace.json: missing Meta-Architect plugin source",
+  );
+  assert(
+    claudePlugin.version === version,
+    "plugins/meta-architect/.claude-plugin/plugin.json: version drift",
   );
 
   for (const file of [

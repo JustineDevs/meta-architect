@@ -1,0 +1,300 @@
+{
+  "repo_notes": [
+    {
+      "content": ""
+    }
+  ],
+  "pages": [
+    {
+      "title": "Meta-Architect Overview",
+      "purpose": "High-level introduction to Meta-Architect: what it is, why it exists, how it fits into the Codex ecosystem, and a map to all child pages covering the system in depth.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Getting Started",
+      "purpose": "Step-by-step guide for installing Meta-Architect, bootstrapping a project, and running the first skill. Covers npm installation, `ma bootstrap`, `ma setup`, `ma doctor`, environment variables, and the CODEX_HOME layout.",
+      "parent": "Meta-Architect Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Core Concepts and Terminology",
+      "purpose": "Explains the foundational ideas that underpin the whole system: gated lanes, the fail-closed model, skills vs helper skills, the .ma runtime namespace, release state, and the kernel vs extension model.",
+      "parent": "Meta-Architect Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Skill System",
+      "purpose": "Overview of the Meta-Architect skill architecture: how skills are defined, installed, and invoked. Links to child pages covering the gated workflow skills, helper skills, and the $maestro umbrella manager.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "$maestro — Autonomous Manager",
+      "purpose": "Deep dive into the $maestro umbrella skill: how it inspects runtime state, chooses the next safe step, dispatches helper or gated work, manages the manager-run control plane, and handles team dispatch via the orchestrator.",
+      "parent": "Skill System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Gated Lane Skills",
+      "purpose": "Reference for each of the six gated skills ($arch, $sage, $flow, $vet, $vibe, $build): what each skill does, what status field it owns, its prerequisites, and its output artifacts.",
+      "parent": "Skill System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Helper Skills",
+      "purpose": "Reference for the four non-gating helper skills ($align, $diagnose, $tdd, $cleanup): their purpose, when to invoke them, and how they interact with the gated workflow without advancing release state.",
+      "parent": "Skill System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Skill Packaging and Installation",
+      "purpose": "Explains how skills are packaged into a tarball, installed into CODEX_HOME/skills, and mirrored into the plugin bundle. Covers skills-manifest, skills-validate, skills-pack, skills-install scripts and the postinstall lifecycle.",
+      "parent": "Skill System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "CLI Reference (`ma`)",
+      "purpose": "Overview of the `ma` binary as the primary terminal interface. Links to child pages covering each command group and the Codex delegation mechanism.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Setup and Diagnostic Commands",
+      "purpose": "Detailed reference for `ma setup`, `ma init`, `ma bootstrap`, `ma doctor`, `ma sdk-path`, and `ma skills`. Explains what each command creates, repairs, or reports.",
+      "parent": "CLI Reference (`ma`)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Workflow Commands",
+      "purpose": "Reference for `ma idea`, `ma status`, `ma run <skill>`, `ma merge`, and `ma release`. Explains the policy rules enforced by each command and how they update .ma/release.json.",
+      "parent": "CLI Reference (`ma`)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Codex Delegation and Launcher",
+      "purpose": "Explains how `ma` detects when arguments should be forwarded to the underlying Codex runtime, the `shouldDelegateToCodex` logic, the `MA_CODEX_BIN` environment variable, and the WSL codex-wrapper mechanism.",
+      "parent": "CLI Reference (`ma`)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Runtime Architecture",
+      "purpose": "Overview of the internal Node.js runtime that powers the skill execution engine. Links to child pages covering the state machine, subsystems, and the MCP client.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Release State and Gate Enforcement",
+      "purpose": "Explains the release state machine: all status fields (idea_status through release_status), how they are stored in .ma/release.json, the build-gate evaluation logic, and the policy rules for merge and release promotion.",
+      "parent": "Runtime Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Runtime Subsystems",
+      "purpose": "Covers the internal runtime subsystems seeded under .ma/state/: the maestro-manager (manager runs, dispatch plans, helper failure matrix), the orchestrator (task registry, mailbox, locks), workspaces, guidance stack, continuity notes, and signal hooks.",
+      "parent": "Runtime Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MCP Live Client",
+      "purpose": "Deep dive into McpSseClient: the SSE connection lifecycle, JSON-RPC 2.0 request/response correlation, the endpoint discovery handshake, the 15-second timeout, and how $sage uses it to probe GitMCP endpoints.",
+      "parent": "Runtime Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MCP and Evidence Configuration",
+      "purpose": "Overview of how Meta-Architect connects to external evidence sources via MCP. Links to child pages covering server configuration, local capabilities, and the discovery-to-verification workflow.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MCP Server Configuration",
+      "purpose": "Explains mcp/servers.json, mcp/collections.json, mcp/fallback.json, and the GitMCP endpoint format. Covers how to add new evidence sources, the approved discovery accelerators, and the canonical $sage evidence order.",
+      "parent": "MCP and Evidence Configuration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Local Capabilities and Playbooks",
+      "purpose": "Covers mcp/local-capabilities.json, the first-party in-process capability registry (_state, memory, trace, team_run, code_intel, playbooks), and the native-playbooks.json / mcp/local/playbooks.js read-only playbooks contract.",
+      "parent": "MCP and Evidence Configuration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Plugin Bundle",
+      "purpose": "Overview of the plugins/meta-architect/ plugin bundle: its role as a mirror of the skills directory, the .codex-plugin/plugin.json manifest, .app.json, .mcp.json, and how the bundle is installed into the support bundle.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Plugin Skill Definitions",
+      "purpose": "Reference for the SKILL.md files and openai.yaml agent configs inside plugins/meta-architect/skills/. Explains how plugin skills mirror the canonical skills/ directory and what the parity contract means.",
+      "parent": "Plugin Bundle",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Codex Agent Definitions",
+      "purpose": "Covers the .codex/agents/ TOML files (Architect.toml, Sage.toml, Builder.toml, etc.) and .codex/prompts/ (enforcement.md, onboarding.md, release-rules.md, skill-contract.md) that configure Codex agent behavior for each skill role.",
+      "parent": "Plugin Bundle",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Release Engineering",
+      "purpose": "Overview of the release pipeline: versioning, validation, Linux package builds, npm publication, and GitHub Actions workflows. Links to child pages for the release spec and CI/CD details.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Release Specification and Lifecycle",
+      "purpose": "Detailed walkthrough of the release spec: versioning with npm version, the release:verify / release:check / release:assets pipeline, dist-tag discipline (latest, beta, next, canary), provenance requirements, and the QA readiness documents.",
+      "parent": "Release Engineering",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Linux Native Packages",
+      "purpose": "Explains how .deb, .pkg.tar.xz, and .rpm packages are built from the npm package, the linux-package-lib.mjs / build-linux-packages.mjs scripts, the smoke test, and the dist/ artifact layout.",
+      "parent": "Release Engineering",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "GitHub Actions Workflows",
+      "purpose": "Reference for all CI/CD workflows: ci.yml (validate + linux-packages jobs), npm-publish.yml (provenance publish), release-sync.yml (automated PR on main push), release-advance.yml, pr-check.yml, codex-review.yml, and dependabot.",
+      "parent": "Release Engineering",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Testing",
+      "purpose": "Overview of the test suite structure and testing philosophy. Links to child pages covering smoke tests, unit tests, and the policy/release-sync test helpers.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "CLI and Package Install Smoke Tests",
+      "purpose": "Explains the cli-smoke.test.js and package-install-smoke.test.js test files: what they verify (command routing, skill parity, .ma scaffold, MCP bootstrap), the fake-codex runtime pattern, and key environment variables used in tests.",
+      "parent": "Testing",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Policy and Release-Sync Tests",
+      "purpose": "Covers test/policy.test.js (validateReleaseOrigin, validateMergeTarget, canMarkBuildDone, rejectsDirectProdPromotion), test/release-sync.test.js, test/full-flow.test.js, and the temp-repo helper used in integration tests.",
+      "parent": "Testing",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Sprint Templates and Mission Examples",
+      "purpose": "Overview of the sprint/ lane templates and missions/ example scenarios. Links to child pages covering the sprint workflow documents and the bundled mission walkthroughs.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}

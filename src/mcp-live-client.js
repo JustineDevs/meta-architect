@@ -1,7 +1,7 @@
-import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { safeSpawn } from "./process-utils.js";
 import { maskSensitiveText } from "./runtime/redaction-gateway.js";
 
 const packageMetadata = JSON.parse(
@@ -63,7 +63,7 @@ export function createMcpLiveClient(endpoint) {
     return new McpStdioBridgeClient(
       endpoint,
       process.env[BRIDGE_COMMAND_ENV],
-      spawn,
+      safeSpawn,
       getMcpBridgeConfiguration(),
     );
   }

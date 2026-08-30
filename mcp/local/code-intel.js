@@ -1,10 +1,10 @@
-import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { getRepoRoot } from "../../src/paths.js";
+import { safeExecFile } from "../../src/process-utils.js";
 
-const execFileAsync = promisify(execFile);
+const execFileAsync = promisify(safeExecFile);
 const MAX_SCAN_BYTES = 1024 * 1024;
 const ignoredDirs = new Set([
   ".git",
@@ -103,7 +103,13 @@ async function listGitFiles(rootDir) {
     const { stdout } = await execFileAsync(
       "git",
       ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-      { cwd: rootDir, encoding: "buffer", maxBuffer: 4 * 1024 * 1024 },
+      {
+        cwd: rootDir,
+        encoding: "buffer",
+        maxBuffer: 4 * 1024 * 1024,
+        timeout: 10_000,
+        shell: false,
+      },
     );
     return stdout
       .toString("utf8")

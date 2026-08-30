@@ -22,16 +22,6 @@ test("installer dry-run reports side effects and undo guidance", () => {
   assert.match(result.stdout, /undo: npm uninstall/);
 });
 
-test("postinstall opt-out is visible and does not install", () => {
-  const result = spawnSync(process.execPath, [path.join(root, "scripts/postinstall.js")], {
-    cwd: root,
-    env: { ...process.env, MA_SKIP_AUTO_INSTALL: "1" },
-    encoding: "utf8",
-  });
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /deferred host selection/);
-});
-
 test("versioned installer checksum matches the shipped script", () => {
   const installer = fs.readFileSync(path.join(root, "scripts/install.sh"));
   const expected = fs

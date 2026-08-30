@@ -48,6 +48,17 @@ Use the core repo when you want to develop Meta-Architect itself. Use the plugin
 
 The plugin-facing bundle should be consumed alongside the repository’s documented packaging/install flow.
 
+### Claude Code marketplace
+
+This repository is the hosted marketplace. In Claude Code, add it and install the existing plugin:
+
+```text
+/plugin marketplace add JustineDevs/meta-architect
+/plugin install meta-architect@meta-architect
+```
+
+The same plugin can be tested locally with `claude --plugin-dir ./plugins/meta-architect`.
+
 Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
 
 ```bash
@@ -151,4 +162,5 @@ The plugin is one distribution surface of the same product, not a separate produ
 - [docs/mcp-setup.md](../../docs/mcp-setup.md)
 - [.app.json](./.app.json)
 - [.codex-plugin/plugin.json](./.codex-plugin/plugin.json)
+- [.claude-plugin/plugin.json](./.claude-plugin/plugin.json)
 - [.mcp.json](./.mcp.json)

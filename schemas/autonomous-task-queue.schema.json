@@ -46,6 +46,8 @@
           "completedAt": { "type": ["string", "null"], "format": "date-time" },
           "error": { "type": ["string", "null"] },
           "blocker": { "type": ["string", "null"] },
+          "runnerPid": { "type": ["integer", "null"], "minimum": 1 },
+          "runnerId": { "type": ["string", "null"], "minLength": 1 },
           "evidence": { "type": "array", "items": {} },
           "selectedCapabilities": { "type": "array", "items": { "type": "object" } },
           "invocation": { "type": ["string", "null"] }

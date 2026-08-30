@@ -1,4 +1,3 @@
-import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -12,6 +11,7 @@ import {
 } from "./mcp-config.js";
 import { getMcpBridgeConfiguration, mcpClientVersion } from "./mcp-live-client.js";
 import { getMcpRootPath, getRepoRoot, getRuntimeWritePath, packageRoot } from "./paths.js";
+import { safeSpawnSync } from "./process-utils.js";
 import { resolveReleaseIssueGates } from "./release-issue-gates.js";
 import { loadReleaseState } from "./release-state.js";
 import { getArchitectReviewConfiguration } from "./runtime/architect-review.js";
@@ -238,7 +238,7 @@ function inspectAgent(type = process.env.MA_AGENT || "codex") {
 }
 
 function listCodexPaths() {
-  const result = spawnSync("which", ["-a", "codex"], { encoding: "utf8" });
+  const result = safeSpawnSync("which", ["-a", "codex"], { encoding: "utf8" });
   if (result.error || result.status !== 0) {
     return [];
   }

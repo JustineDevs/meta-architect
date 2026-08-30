@@ -1,9 +1,9 @@
-import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { writeJson } from "../fs-utils.js";
 import { packageRoot } from "../paths.js";
+import { safeSpawn } from "../process-utils.js";
 
 const QUALITY_ROOT = path.join(".ma", "quality");
 let appendQueue = Promise.resolve();
@@ -94,7 +94,7 @@ function calculateQualityScore(kpis) {
 
 function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const child = safeSpawn(command, args, {
       cwd: options.cwd,
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],

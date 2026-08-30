@@ -6,6 +6,7 @@ import {
   cancelAutonomousTask,
   createTaskQueue,
   enqueueAutonomousTasks,
+  loadTaskQueue,
   parseTaskInput,
   runAutonomousTasks,
   validateTaskQueue,
@@ -151,6 +152,19 @@ test("requeues persisted running tasks after an interrupted process", async (t) 
   assert.match(result.tasks[0].evidence.at(-1), /resumed:interrupted/);
 });
 
+test("does not recover a task owned by a live runner", async (t) => {
+  await withRoot(t);
+  await enqueueAutonomousTasks({ id: "live", goal: "Keep live work running" });
+  const queuePath = path.join(process.env.MA_ROOT, ".ma", "tasks", "autonomous-queue.json");
+  const queue = JSON.parse(await fs.readFile(queuePath, "utf8"));
+  queue.tasks[0].status = "running";
+  queue.tasks[0].runnerPid = process.pid;
+  queue.tasks[0].runnerId = "live-runner";
+  await fs.writeFile(queuePath, `${JSON.stringify(queue, null, 2)}\n`);
+
+  assert.equal((await loadTaskQueue()).tasks[0].status, "running");
+});
+
 test("caps concurrent dispatches by the remaining max-tasks budget", async (t) => {
   await withRoot(t);
   await enqueueAutonomousTasks([
@@ -179,4 +193,36 @@ test("serializes concurrent queue enqueues without dropping tasks", async (t) =>
   ]);
   const result = await runAutonomousTasks({ execute: async () => ({ status: "completed" }) });
   assert.deepEqual(result.tasks.map((task) => task.id).sort(), ["first", "second"]);
+});
+
+test("merges concurrent enqueue and cancellation into the runner result", async (t) => {
+  await withRoot(t);
+  await enqueueAutonomousTasks({ id: "first", goal: "First task" });
+  let started;
+  const startedPromise = new Promise((resolve) => {
+    started = resolve;
+  });
+  let release;
+  const releasePromise = new Promise((resolve) => {
+    release = resolve;
+  });
+  const runPromise = runAutonomousTasks({
+    execute: async () => {
+      started();
+      await releasePromise;
+      return { status: "completed", evidence: ["runner-finished"] };
+    },
+  });
+  await startedPromise;
+  await enqueueAutonomousTasks({ id: "second", goal: "Second task" });
+  await cancelAutonomousTask("first", "Cancelled while running");
+  release();
+  const result = await runPromise;
+
+  assert.equal(result.tasks.find((task) => task.id === "first").status, "cancelled");
+  assert.equal(result.tasks.find((task) => task.id === "second").status, "queued");
+  assert.deepEqual((await loadTaskQueue()).tasks.map((task) => task.id).sort(), [
+    "first",
+    "second",
+  ]);
 });
