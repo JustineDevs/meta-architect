@@ -37,6 +37,4 @@ jobs:
             --base main \
             --head dev \
             --title "chore(release): promote dev to main" \
-            --body "Automated promotion PR from dev to main.\n\nAll required CI, security, package, and review checks must pass before a maintainer merges this production promotion." \
-            --label release \
-            --label automation
+            --body "Automated promotion PR from dev to main.\n\nAll required CI, security, package, and review checks must pass before a maintainer merges this production promotion."
