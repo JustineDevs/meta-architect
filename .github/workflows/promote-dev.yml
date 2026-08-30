@@ -33,8 +33,17 @@ jobs:
             exit 0
           fi
 
-          gh pr create \
+          if gh pr create \
             --base main \
             --head dev \
             --title "chore(release): promote dev to main" \
-            --body "Automated promotion PR from dev to main.\n\nAll required CI, security, package, and review checks must pass before a maintainer merges this production promotion."
+            --body "Automated promotion PR from dev to main.\n\nAll required CI, security, package, and review checks must pass before a maintainer merges this production promotion."; then
+            exit 0
+          fi
+
+          existing=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "Promotion PR #$existing was created concurrently."
+            exit 0
+          fi
+          exit 1
