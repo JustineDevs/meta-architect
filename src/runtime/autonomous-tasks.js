@@ -87,6 +87,8 @@ function normalizeTask(input) {
     completedAt: input?.completedAt ?? null,
     error: input?.error ?? null,
     blocker: input?.blocker ?? null,
+    runnerPid: Number.isInteger(input?.runnerPid) ? input.runnerPid : null,
+    runnerId: typeof input?.runnerId === "string" ? input.runnerId : null,
     evidence: Array.isArray(input?.evidence) ? [...input.evidence] : [],
     selectedCapabilities: Array.isArray(input?.selectedCapabilities)
       ? input.selectedCapabilities
@@ -136,15 +138,29 @@ function byId(tasks) {
   return new Map(tasks.map((task) => [task.id, task]));
 }
 
+function runnerIsAlive(task) {
+  if (!Number.isInteger(task.runnerPid) || task.runnerPid < 1 || !task.runnerId) return false;
+  try {
+    process.kill(task.runnerPid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function loadTaskQueueUnlocked() {
   try {
     const queue = validateTaskQueue(await readJson(getAutonomousTaskQueuePath()));
-    const interrupted = queue.tasks.filter((task) => task.status === "running");
+    const interrupted = queue.tasks.filter(
+      (task) => task.status === "running" && !runnerIsAlive(task),
+    );
     if (interrupted.length === 0) return queue;
     const recoveredAt = new Date().toISOString();
     for (const task of interrupted) {
       task.status = "queued";
       task.error = "Recovered after the previous process exited while the task was running";
+      task.runnerPid = null;
+      task.runnerId = null;
       task.updatedAt = recoveredAt;
     }
     await writeJsonAtomically(getAutonomousTaskQueuePath(), queue);
@@ -162,6 +178,24 @@ export async function loadTaskQueue() {
 export async function saveTaskQueue(queue) {
   await fs.mkdir(path.dirname(getAutonomousTaskQueuePath()), { recursive: true });
   return writeJson(getAutonomousTaskQueuePath(), validateTaskQueue(queue));
+}
+
+async function updateTaskQueueTask(taskId, update) {
+  return withRuntimeStateLock(
+    getAutonomousTaskQueuePath(),
+    async () => {
+      const queue = await loadTaskQueueUnlocked();
+      const task = queue.tasks.find((entry) => entry.id === taskId);
+      if (!task) return null;
+      const changed = (await update(task, queue)) !== false;
+      if (changed) {
+        task.updatedAt = new Date().toISOString();
+        await writeJsonAtomically(getAutonomousTaskQueuePath(), validateTaskQueue(queue));
+      }
+      return { task, changed };
+    },
+    { wait: true },
+  );
 }
 
 export async function enqueueAutonomousTasks(inputs) {
@@ -227,7 +261,7 @@ export async function runAutonomousTasks({
   if (!Number.isInteger(concurrency) || concurrency < 1)
     throw new Error("concurrency must be a positive integer");
   const queue = await loadTaskQueue();
-  const byId = new Map(queue.tasks.map((task) => [task.id, task]));
+  const taskById = new Map(queue.tasks.map((task) => [task.id, task]));
   const capabilities = createDefaultEnvironmentAwarenessCore({
     capabilities: await discoverEnvironmentCapabilities({ cwd, includeGlobal }),
   });
@@ -269,7 +303,7 @@ export async function runAutonomousTasks({
     const now = Date.now();
     const eligible = queue.tasks
       .filter((task) => task.status === "queued" && !running.has(task.id))
-      .filter((task) => !isExpired(task, now) && dependenciesReady(task, byId))
+      .filter((task) => !isExpired(task, now) && dependenciesReady(task, taskById))
       .sort(
         (a, b) =>
           (priorities.has(b.priority)
@@ -289,40 +323,86 @@ export async function runAutonomousTasks({
       ).selected;
       task.invocation = task.vendor ? getAgentInvocation(task.vendor, "maestro") : null;
       if (hasUnsafeAction(task)) {
-        task.status = "blocked";
-        task.blocker =
-          "Explicit approval required for destructive, production, credential, or external mutation task";
-        task.updatedAt = new Date().toISOString();
-        await emit({ taskId: task.id, status: task.status, blocker: task.blocker });
+        const transition = await updateTaskQueueTask(task.id, (current) => {
+          if (current.status !== "queued") return false;
+          current.status = "blocked";
+          current.blocker =
+            "Explicit approval required for destructive, production, credential, or external mutation task";
+          return true;
+        });
+        if (transition?.changed) {
+          Object.assign(task, transition.task);
+          await emit({ taskId: task.id, status: task.status, blocker: task.blocker });
+        }
         processed++;
         continue;
       }
-      task.status = "running";
-      task.attempts++;
-      task.startedAt ??= new Date().toISOString();
-      task.updatedAt = new Date().toISOString();
+      const runnerId = randomUUID();
+      const claim = await updateTaskQueueTask(task.id, (current) => {
+        if (current.status !== "queued") return false;
+        current.status = "running";
+        current.attempts++;
+        current.startedAt ??= new Date().toISOString();
+        current.runnerPid = process.pid;
+        current.runnerId = runnerId;
+        current.selectedCapabilities = task.selectedCapabilities;
+        current.invocation = task.invocation;
+        return true;
+      });
+      if (!claim?.changed) continue;
+      Object.assign(task, claim.task);
       const promise = (async () => {
         try {
           const result = await runner(task);
+          const patch = { runnerPid: null, runnerId: null };
           if (result?.status === "blocked") {
-            task.status = "blocked";
-            task.blocker = result.reason ?? "Runner reported a blocker";
+            Object.assign(patch, {
+              status: "blocked",
+              blocker: result.reason ?? "Runner reported a blocker",
+            });
           } else if (result?.status === "failed" && task.attempts < task.maxAttempts) {
-            task.status = "queued";
-            task.error = result.reason ?? "Runner failed; task queued for retry";
+            Object.assign(patch, {
+              status: "queued",
+              error: result.reason ?? "Runner failed; task queued for retry",
+            });
           } else if (result?.status === "failed") {
-            task.status = "failed";
-            task.error = result.reason ?? "Runner failed after maximum attempts";
+            Object.assign(patch, {
+              status: "failed",
+              error: result.reason ?? "Runner failed after maximum attempts",
+            });
           } else {
-            task.status = "completed";
-            task.completedAt = new Date().toISOString();
-            task.evidence.push(...(Array.isArray(result?.evidence) ? result.evidence : []));
+            Object.assign(patch, {
+              status: "completed",
+              completedAt: new Date().toISOString(),
+              evidence: [
+                ...task.evidence,
+                ...(Array.isArray(result?.evidence) ? result.evidence : []),
+              ],
+            });
           }
+          const transition = await updateTaskQueueTask(task.id, (current) => {
+            if (current.status === "cancelled") return false;
+            Object.assign(current, patch);
+            return true;
+          });
+          if (transition) Object.assign(task, transition.task);
         } catch (error) {
           task.error = error instanceof Error ? error.message : String(error);
           task.status = task.attempts < task.maxAttempts ? "queued" : "failed";
+          task.runnerPid = null;
+          task.runnerId = null;
+          const transition = await updateTaskQueueTask(task.id, (current) => {
+            if (current.status === "cancelled") return false;
+            Object.assign(current, {
+              status: task.status,
+              error: task.error,
+              runnerPid: null,
+              runnerId: null,
+            });
+            return true;
+          });
+          if (transition) Object.assign(task, transition.task);
         }
-        task.updatedAt = new Date().toISOString();
         await emit({
           taskId: task.id,
           status: task.status,
@@ -330,37 +410,44 @@ export async function runAutonomousTasks({
           error: task.error,
           blocker: task.blocker,
         });
-        await saveTaskQueue(queue);
         running.delete(promise);
         processed++;
       })();
       running.add(promise);
-      await saveTaskQueue(queue);
     }
   }
   await Promise.all(running);
-  for (const task of queue.tasks) {
-    if (task.status !== "queued") continue;
-    const failedDependency = task.dependencies.find((id) =>
-      ["failed", "blocked", "cancelled"].includes(byId.get(id)?.status),
-    );
-    if (failedDependency) {
-      task.status = "blocked";
-      task.blocker = `Dependency ${failedDependency} is ${byId.get(failedDependency).status}`;
-    } else if (isExpired(task, Date.now())) {
-      task.status = "blocked";
-      task.blocker = "Task deadline expired";
-    } else if (!dependenciesReady(task, byId)) {
-      task.blocker = "Waiting for dependencies";
-    }
-    task.updatedAt = new Date().toISOString();
-  }
-  await saveTaskQueue(queue);
+  await withRuntimeStateLock(
+    getAutonomousTaskQueuePath(),
+    async () => {
+      const latestQueue = await loadTaskQueueUnlocked();
+      const latestById = byId(latestQueue.tasks);
+      for (const task of latestQueue.tasks) {
+        if (task.status !== "queued") continue;
+        const failedDependency = task.dependencies.find((id) =>
+          ["failed", "blocked", "cancelled"].includes(latestById.get(id)?.status),
+        );
+        if (failedDependency) {
+          task.status = "blocked";
+          task.blocker = `Dependency ${failedDependency} is ${latestById.get(failedDependency).status}`;
+        } else if (isExpired(task, Date.now())) {
+          task.status = "blocked";
+          task.blocker = "Task deadline expired";
+        } else if (!dependenciesReady(task, latestById)) {
+          task.blocker = "Waiting for dependencies";
+        }
+        task.updatedAt = new Date().toISOString();
+      }
+      await writeJsonAtomically(getAutonomousTaskQueuePath(), validateTaskQueue(latestQueue));
+    },
+    { wait: true },
+  );
+  const finalQueue = await loadTaskQueue();
   return {
     schemaVersion: autonomousTaskSchemaVersion,
-    tasks: queue.tasks,
+    tasks: finalQueue.tasks,
     events,
-    summary: summarizeTasks(queue.tasks),
+    summary: summarizeTasks(finalQueue.tasks),
   };
 }
 

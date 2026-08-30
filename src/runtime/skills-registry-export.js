@@ -440,7 +440,9 @@ export function renderSkillCompatibilitySkillMd(payload, { agentType = "codex" }
     "",
     "## Invocation",
     "",
-    `- Start the umbrella lane with \`${getAgentInvocation(agentType, agentType === "codex" ? "maestro" : payload.name)}\` in this host.`,
+    agentType === "generic"
+      ? "- Start the umbrella lane using this host's native Meta-Architect invocation syntax."
+      : `- Start the umbrella lane with \`${getAgentInvocation(agentType, agentType === "codex" ? "maestro" : payload.name)}\` in this host.`,
     "- Dispatch to the canonical MA runtime as `ma run '$maestro'`.",
     "- Lane aliases: `arch`, `sage`, `flow`, `vet`, `vibe`, and `build`.",
     "",
@@ -562,6 +564,7 @@ export async function writeSkillCompatibilityExport({
   agentRootExists = null,
   createSymlink = fs.symlink,
   lockMetadata = {},
+  renderAgentType = agentType,
 }) {
   const effectiveAgentRootExists =
     agentRootExists ?? (await detectProjectAgentRoot(agentType, cwd));
@@ -573,11 +576,11 @@ export async function writeSkillCompatibilityExport({
     mode,
     agentRootExists: effectiveAgentRootExists,
   });
-  const skillMd = renderSkillCompatibilitySkillMd(payload, { agentType });
+  const skillMd = renderSkillCompatibilitySkillMd(payload, { agentType: renderAgentType });
   const lockEntry = validateSkillLockEntry(
     createSkillLockEntry({
       payload,
-      agentType,
+      agentType: renderAgentType,
       selectedAgentTargets: [agentType],
       ...lockMetadata,
     }),
@@ -729,6 +732,7 @@ export async function verifyCrossAgentInstallMatrix({
     const result = await writeSkillCompatibilityExport({
       payload,
       agentType,
+      renderAgentType: targets.length > 1 ? "generic" : agentType,
       cwd,
       agentRootExists: await detectProjectAgentRoot(agentType, cwd),
       createSymlink: forceFallback

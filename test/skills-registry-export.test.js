@@ -133,6 +133,32 @@ test("skills registry renders host-native invocation aliases", () => {
   );
 });
 
+test("multi-target installs keep the shared compatibility payload host-neutral", async (t) => {
+  const tempRoot = createTestNamespace("ma-skills-multi-target");
+  t.after(async () => {
+    await fs.rm(tempRoot, { recursive: true, force: true });
+  });
+  const payload = createSkillCompatibilityPayload({ name: "Meta Architect" });
+  const report = await verifyCrossAgentInstallMatrix({
+    payload,
+    cwd: tempRoot,
+    targets: ["codex", "cursor", "claude-code"],
+    existingAgentRoots: ["claude-code"],
+  });
+  const canonical = await fs.readFile(`${tempRoot}/.agents/skills/meta-architect/SKILL.md`, "utf8");
+
+  assert.equal(report.ok, true);
+  assert.doesNotMatch(
+    canonical,
+    /Start the umbrella lane with `\$maestro`|Start the umbrella lane with `\/meta-architect`/,
+  );
+  assert.match(canonical, /host's native Meta-Architect invocation syntax/);
+  assert.equal(
+    await fs.readFile(`${tempRoot}/.claude/skills/meta-architect/SKILL.md`, "utf8"),
+    canonical,
+  );
+});
+
 test("skills registry writes canonical compatibility export files", async (t) => {
   const tempRoot = createTestNamespace("ma-skills-export");
   t.after(async () => {
