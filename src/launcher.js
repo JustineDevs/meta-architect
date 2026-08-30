@@ -1,6 +1,6 @@
-import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { getAgent, resolveAgentCommand } from "./agents.js";
+import { safeSpawnSync } from "./process-utils.js";
 
 const nativeCommands = new Set([
   "bootstrap",
@@ -46,7 +46,7 @@ export function runAgent(args, agentType = process.env.MA_AGENT || "codex") {
     : agentArgs;
   const command = commandArgs[0] === agentCommand ? process.execPath : agentCommand;
   const finalArgs = command === process.execPath ? commandArgs : agentArgs;
-  const result = spawnSync(command, finalArgs, { stdio: "inherit" });
+  const result = safeSpawnSync(command, finalArgs, { stdio: "inherit" });
 
   if (result.error) {
     if (result.error.code === "ENOENT") {

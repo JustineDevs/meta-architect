@@ -1,8 +1,8 @@
-import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ensureDir } from "../fs-utils.js";
 import { getRuntimeSubsystemPath } from "../paths.js";
+import { assertSafeExecutable, safeSpawnSync } from "../process-utils.js";
 
 export function getRuntimeLogsRoot() {
   return getRuntimeSubsystemPath("logs");
@@ -11,7 +11,7 @@ export function getRuntimeLogsRoot() {
 export function resolveDetachedProvider() {
   const preferred = process.env.MA_DETACHED_PROVIDER ?? "";
   if (preferred === "tmux" || process.env.MA_TMUX_PROVIDER === "1") {
-    const probe = spawnSync("tmux", ["ls"], {
+    const probe = safeSpawnSync("tmux", ["ls"], {
       encoding: "utf8",
       env: buildDetachedEnv(),
     });
@@ -24,6 +24,10 @@ export function resolveDetachedProvider() {
 }
 
 export async function launchDetachedTrack({ trackId, title, command, args = [] }) {
+  assertSafeExecutable(command, "Detached provider command");
+  if (!Array.isArray(args) || args.some((arg) => typeof arg !== "string" || arg.includes("\0"))) {
+    throw new Error("Detached provider arguments must be strings without NUL bytes");
+  }
   const provider = resolveDetachedProvider();
   await ensureDir(getRuntimeLogsRoot());
   const safeTrackId = sanitizeTrackId(trackId);
@@ -43,10 +47,15 @@ export async function launchDetachedTrack({ trackId, title, command, args = [] }
 
   const sessionName = `ma_${safeTrackId}`;
   await fs.writeFile(logPath, `provider=tmux\n${metadata}`, "utf8");
-  const started = spawnSync("tmux", ["new-session", "-d", "-s", sessionName, command, ...args], {
-    encoding: "utf8",
-    env: buildDetachedEnv(),
-  });
+  const tmuxCommand = [command, ...args].map(quoteForShell).join(" ");
+  const started = safeSpawnSync(
+    "tmux",
+    ["new-session", "-d", "-s", sessionName, "--", tmuxCommand],
+    {
+      encoding: "utf8",
+      env: buildDetachedEnv(),
+    },
+  );
 
   if (started.status !== 0) {
     await fs.writeFile(
@@ -64,13 +73,13 @@ export async function launchDetachedTrack({ trackId, title, command, args = [] }
     };
   }
 
-  const piped = spawnSync(
+  const piped = safeSpawnSync(
     "tmux",
     ["pipe-pane", "-t", sessionName, "-o", `cat >> ${quoteForShell(logPath)}`],
     { encoding: "utf8", env: buildDetachedEnv() },
   );
   if (piped.status !== 0) {
-    spawnSync("tmux", ["kill-session", "-t", sessionName], {
+    safeSpawnSync("tmux", ["kill-session", "-t", sessionName], {
       encoding: "utf8",
       env: buildDetachedEnv(),
     });

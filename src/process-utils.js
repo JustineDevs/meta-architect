@@ -1,4 +1,5 @@
 import { execFile, execFileSync, spawn, spawnSync } from "node:child_process";
+import { promisify } from "node:util";
 
 const unsafeExecutable = /[;&|<>`$]/;
 
@@ -39,10 +40,14 @@ export function safeSpawnSync(command, args = [], options = {}) {
   return spawnSync(command, args, safeOptions(options));
 }
 
-export function safeExecFile(command, args = [], options = {}) {
+export function safeExecFile(command, args = [], options = {}, callback) {
   assertSafeExecutable(command);
   assertArgs(args);
-  return execFile(command, args, safeOptions(options));
+  if (typeof options === "function") {
+    callback = options;
+    options = {};
+  }
+  return execFile(command, args, safeOptions(options), callback);
 }
 
 export function safeExecFileSync(command, args = [], options = {}) {
@@ -50,3 +55,9 @@ export function safeExecFileSync(command, args = [], options = {}) {
   assertArgs(args);
   return execFileSync(command, args, safeOptions(options));
 }
+
+safeExecFile[promisify.custom] = (command, args = [], options = {}) => {
+  assertSafeExecutable(command);
+  assertArgs(args);
+  return promisify(execFile)(command, args, safeOptions(options));
+};

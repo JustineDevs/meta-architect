@@ -1,9 +1,9 @@
-import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { readJson, writeFileIfMissing, writeJson } from "../fs-utils.js";
 import { getRuntimeStatePath } from "../paths.js";
+import { safeSpawnSync } from "../process-utils.js";
 import {
   maskSensitiveText,
   redactProviderBoundPayload,
@@ -74,7 +74,7 @@ export async function runExternalArchitectReview({ prompt = "" } = {}) {
     getArchitectReviewConfiguration(),
   );
   const timeout = readReviewTimeoutMs();
-  const result = spawnSync(binary, args, {
+  const result = safeSpawnSync(binary, args, {
     cwd: process.cwd(),
     env: buildArchitectReviewEnv({
       MA_ARCHITECT_REVIEW_PROMPT: redactedPrompt.sanitizedText,

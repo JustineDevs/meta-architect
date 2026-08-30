@@ -1,9 +1,9 @@
-import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ensureDir, readJson, writeFileIfMissing, writeJson } from "../fs-utils.js";
 import { getRepoRoot, getRuntimeSubsystemPath, getRuntimeWritePath } from "../paths.js";
+import { safeSpawn } from "../process-utils.js";
 
 export const coreSourceIngestSchemaVersion = "0.1.0";
 
@@ -153,7 +153,7 @@ export async function loadCoreSourceIngest() {
 export async function ingestCoreSources({
   definitions = coreSourceDefinitions,
   refresh = false,
-  spawnImpl = spawn,
+  spawnImpl = safeSpawn,
 } = {}) {
   await ensureDir(getCoreSourcesRootPath());
   const sources = [];
