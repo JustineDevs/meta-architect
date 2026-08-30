@@ -61,6 +61,9 @@ test("pre-launch selection installs a project compatibility entrypoint and persi
     );
     const skill = path.join(root, ".agents", "skills", "meta-architect", "SKILL.md");
     assert.match(await fs.readFile(skill, "utf8"), /Meta-Architect host compatibility entrypoint/);
+    await fs.access(path.join(root, ".agents", "skills", "maestro", "SKILL.md"));
+    const cursorRule = path.join(root, ".cursor", "rules", "agents.mdc");
+    assert.match(await fs.readFile(cursorRule, "utf8"), /alwaysApply: true/);
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(root, ".ma", "prelaunch.json"), "utf8")),
       { schemaVersion: "0.1.0", scope: "project", targets: ["cursor"] },

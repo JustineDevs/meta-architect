@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { stdin as input, stdout as output } from "node:process";
 import readline from "node:readline/promises";
+import { Agents } from "@jstn-sdk/agents";
 import { agentRegistry, detectInstalled, listAgents } from "./agents.js";
 import {
   createSkillCompatibilityPayload,
@@ -159,6 +160,22 @@ export async function installPrelaunchSelection(selection, cwd = process.cwd()) 
     capabilities: ["maestro", "agent-compatibility"],
   });
   const results = [];
+  if (selection.scope === "project" && selection.targets.includes("cursor")) {
+    results.push(await ensureSkillsInstalled({ targetRoot: path.join(cwd, ".agents", "skills") }));
+    results.push(
+      await Agents.compile(
+        {
+          version: 1,
+          project: { name: path.basename(path.resolve(cwd)) },
+          instructions: [
+            "Use Meta-Architect lanes for architecture, evidence, review, and gated build work.",
+            "Run `ma run '$maestro'` when the host supports shell execution, or invoke /maestro in Cursor Agent.",
+          ],
+        },
+        { targets: ["cursor"], output: cwd },
+      ),
+    );
+  }
   if (selection.targets.includes("codex")) {
     const skillsRoot =
       selection.scope === "global" ? undefined : path.join(cwd, ".agents", "skills");

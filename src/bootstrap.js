@@ -14,6 +14,7 @@ import { getMcpRootPath, getRepoRoot, getRuntimeWritePath, packageRoot } from ".
 import { safeSpawnSync } from "./process-utils.js";
 import { resolveReleaseIssueGates } from "./release-issue-gates.js";
 import { loadReleaseState } from "./release-state.js";
+import { validateAgentIntegrations } from "./runtime/agent-compat.js";
 import { getArchitectReviewConfiguration } from "./runtime/architect-review.js";
 import { printDoctorStatuses, summarizeDoctorStatuses } from "./runtime/doctor-report.js";
 import { mcpWriteCapabilityStatus } from "./runtime/mcp-authority.js";
@@ -599,6 +600,23 @@ async function runEnvironmentFlow({ fix, initMcp }) {
   statuses.push(await inspectLocalCapabilityState({ fix }));
   statuses.push(...(await inspectContextHealth()));
   statuses.push(await inspectPluginInjectionState());
+  if (agent.id === "cursor") {
+    try {
+      const validation = await validateAgentIntegrations(getRepoRoot(), { targets: ["cursor"] });
+      const cursorResult = validation.results.cursor;
+      statuses.push(
+        makeStatus(
+          cursorResult?.status === "valid" ? "OK" : "WARN",
+          "Cursor native project rules",
+          cursorResult?.status === "valid"
+            ? ".cursor/rules/agents.mdc validated"
+            : cursorResult?.issues?.map((issue) => issue.message).join(", ") || "run `ma setup`",
+        ),
+      );
+    } catch (error) {
+      statuses.push(makeStatus("WARN", "Cursor native project rules", error.message));
+    }
+  }
   return statuses;
 }
 
