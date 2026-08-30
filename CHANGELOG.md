@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.14.2
+
+- Release line prepared automatically for v0.14.2.
+
 ## v0.14.1
 
 - Adds native Cursor project rules at `.cursor/rules/agents.mdc` and validates them during `ma doctor`.
