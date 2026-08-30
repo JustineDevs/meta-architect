@@ -6,9 +6,6 @@
   <p>
     <img src="https://img.shields.io/github/v/release/JustineDevs/meta-architect?display_name=tag&sort=semver" alt="GitHub release">
     <img src="https://img.shields.io/npm/v/%40jstn-sdk%2Fma" alt="npm version">
-    <a href="https://github.com/users/JustineDevs/packages?repo_name=meta-architect">
-      <img src="https://img.shields.io/badge/GitHub%20Packages-%40jstn--sdk%2Fma-181717?logo=github" alt="GitHub Packages">
-    </a>
     <img src="https://img.shields.io/npm/dm/%40jstn-sdk%2Fma" alt="npm downloads">
     <a href="https://badge.socket.dev/npm/package/@jstn-sdk/ma/0.14.1">
       <img src="https://badge.socket.dev/npm/package/@jstn-sdk/ma/0.14.1" alt="Socket security">
