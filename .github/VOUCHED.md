@@ -9,6 +9,7 @@
 #   -github:username reason for denouncement
 #
 # Keep entries sorted alphabetically.
+github:dependabot[bot]
 github:github-advanced-security[bot]
 github:github-actions[bot]
 github:justinedevs
