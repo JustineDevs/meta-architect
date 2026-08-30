@@ -1,6 +1,6 @@
 {
   "name": "meta-architect",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "collections": [
     "sindresorhus/awesome",
     "dzharii/awesome-typescript",

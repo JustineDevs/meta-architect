@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import test from "node:test";
 import { createTestNamespace } from "../src/test-fixtures.js";
 import { spawnPortable } from "./helpers/spawn-portable.js";
 import { copyProjectFixture as copyDir } from "./helpers/temp-repo.js";
 import { listRelativeFiles } from "./helpers/tree-parity.js";
+
+const require = createRequire(import.meta.url);
+const packageVersion = require("../package.json").version;
 
 const repoRoot = process.cwd();
 const cleanDecisions = {
@@ -440,7 +444,7 @@ test("ma setup seeds canonical .ma runtime state", async () => {
   await fs.access(path.join(tempRoot, ".ma", "plans", "implementation.md"));
   await fs.access(path.join(tempRoot, ".ma", "plans", "build.md"));
   await fs.access(path.join(tempRoot, ".ma", "runbook.md"));
-  await fs.access(path.join(tempRoot, "docs", "qa", "release-issue-gates-0.14.0.json"));
+  await fs.access(path.join(tempRoot, "docs", "qa", `release-issue-gates-${packageVersion}.json`));
   const runtimeArtifacts = [
     ["guidance", "merged.json"],
     ["memory", "notes.md"],

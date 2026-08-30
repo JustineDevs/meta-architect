@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-MA_PACKAGE="${MA_PACKAGE:-@jstn-sdk/ma@0.14.0}"
+MA_PACKAGE="${MA_PACKAGE:-@jstn-sdk/ma@0.14.1}"
 CODEX_PACKAGE="${CODEX_PACKAGE:-@openai/codex@latest}"
 NO_SETUP=0
 NO_SKILLS=0

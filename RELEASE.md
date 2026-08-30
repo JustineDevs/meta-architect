@@ -1,4 +1,4 @@
-# Meta-Architect v0.14.0
+# Meta-Architect v0.14.1
 
 ## Summary
 
@@ -16,14 +16,14 @@ This release ships Meta-Architect as a Codex-native skills system with:
 - pre-launch host discovery and `MA_AGENT` target selection for Codex, OpenCode, Gemini CLI, Amp, Claude Code, Goose, Hermes, Pi, Cursor, Windsurf, Cline, Continue, Roo, Kiro CLI, Junie, GitHub Copilot, and Antigravity
 - copy-ready AI-agent installation prompt plus linked package manifests and coverage evidence in the README
 - zero-dependency Maestro output rendering for terminal lane status
-- package, skill bundle, and release surfaces aligned to `v0.14.0`
+- package, skill bundle, and release surfaces aligned to `v0.14.1`
 
 Target package state:
-- npm package: `@jstn-sdk/ma@0.14.0`
+- npm package: `@jstn-sdk/ma@0.14.1`
 - npm registry state: published as `latest`
-- publishability note: `0.14.0` is the candidate package line and must be published only from the verified `v0.14.0` tag
-- release tag: `v0.14.0`
-- GitHub release: pending publish for `v0.14.0`
+- publishability note: `0.14.0` is already published, so `0.14.1` is the next publishable package line
+- release tag: `v0.14.1`
+- GitHub release: pending publish for `v0.14.1`
 
 ## Verification
 
@@ -47,10 +47,10 @@ This release is only considered real if:
 - helper skills stay non-gating and Meta-Architect-owned
 - the gated workflow remains coherent from `$arch` to `$build`
 - native playbooks and support-bundle references load correctly
-- release docs, changelog, package metadata, and workflows all remain aligned to `v0.14.0`
-- every `v0.14.0` issue in `docs/qa/release-issue-gates-0.14.0.json` is marked `passed` with implementation, verification, and production evidence
+- release docs, changelog, package metadata, and workflows all remain aligned to `v0.14.1`
+- every `v0.14.1` issue in `docs/qa/release-issue-gates-0.14.1.json` is marked `passed` with implementation, verification, and production evidence
 
 Current release-readiness state:
-- `docs/qa/release-issue-gates-0.14.0.json` records all tracked `v0.14.0` issues as `passed` with implementation, verification, production proof, and labels
+- `docs/qa/release-issue-gates-0.14.1.json` records all tracked `v0.14.1` issues as `passed` with implementation, verification, production proof, and labels
 - local release gates passed before publish and must remain green for any follow-up PR
-- npm publication: pending verification after the `v0.14.0` tag is published
+- npm publication: pending verification after the `v0.14.1` tag is published

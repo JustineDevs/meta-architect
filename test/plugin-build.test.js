@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { buildPlugins } from "../scripts/plugin-build.js";
+
+const require = createRequire(import.meta.url);
+const packageVersion = require("../package.json").version;
 
 const targets = [
   "codex",
@@ -30,7 +34,7 @@ test("builds native or portable publish artifacts for every supported host", asy
       );
       assert.equal(manifest.target, target);
       assert.match(manifest.support, /^(native|portable)$/);
-      assert.equal(manifest.version, "0.14.0");
+      assert.equal(manifest.version, packageVersion);
     }
     for (const skillsPath of [
       ["codex", "skills"],
@@ -74,5 +78,5 @@ test("repository is a directly installable Claude Code marketplace", async () =>
     },
   ]);
   assert.equal(plugin.name, "meta-architect");
-  assert.equal(plugin.version, "0.14.0");
+  assert.equal(plugin.version, packageVersion);
 });

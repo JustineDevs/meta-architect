@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import test from "node:test";
 import {
@@ -9,9 +10,12 @@ import {
 } from "../src/release-issue-gates.js";
 import { createTestNamespace, removeTestNamespace } from "../src/test-fixtures.js";
 
+const require = createRequire(import.meta.url);
+const packageVersion = require("../package.json").version;
+
 test("release issue gates resolve the current package version", () => {
-  const resolution = resolveReleaseIssueGates(process.cwd(), "0.14.0");
-  assert.equal(path.basename(resolution.path), "release-issue-gates-0.14.0.json");
+  const resolution = resolveReleaseIssueGates(process.cwd(), packageVersion);
+  assert.equal(path.basename(resolution.path), `release-issue-gates-${packageVersion}.json`);
   assert.equal(resolution.fallback, false);
 });
 
@@ -50,11 +54,11 @@ test("release readiness resolves current and historical versions without source 
 });
 
 test("release issue gate matrix is structurally valid", async () => {
-  const gatePath = path.join("docs", "qa", "release-issue-gates-0.14.0.json");
+  const gatePath = path.join("docs", "qa", `release-issue-gates-${packageVersion}.json`);
   const document = JSON.parse(await fs.readFile(gatePath, "utf8"));
 
   const result = validateReleaseIssueGates(document, {
-    version: "0.14.0",
+    version: packageVersion,
     requirePassed: false,
   });
 
@@ -64,11 +68,11 @@ test("release issue gate matrix is structurally valid", async () => {
 });
 
 test("release issue gate matrix passes production after every issue has proof", async () => {
-  const gatePath = path.join("docs", "qa", "release-issue-gates-0.14.0.json");
+  const gatePath = path.join("docs", "qa", `release-issue-gates-${packageVersion}.json`);
   const document = JSON.parse(await fs.readFile(gatePath, "utf8"));
 
   const result = validateReleaseIssueGates(document, {
-    version: "0.14.0",
+    version: packageVersion,
     requirePassed: true,
   });
 

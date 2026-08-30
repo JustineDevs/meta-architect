@@ -7,7 +7,7 @@ description: "Use when the user wants the singular Meta-Architect in-session aut
 
 ## Overview
 
-Use this skill inside Codex as the singular Meta-Architect umbrella surface and bounded autonomous manager. It inspects workflow state, chooses the smallest safe next step, manages the fixed gated design-and-review sequence one lane at a time, and routes helper handoffs when they are enough. There is no separate shipped `$meta-architect` skill.
+Use this skill inside Codex as the singular Meta-Architect umbrella surface and persistent autonomous manager. It accepts one task or a durable batch, inspects workflow state, chooses the smallest safe next step, manages the fixed gated design-and-review sequence, and keeps resuming eligible work until each task is completed, blocked, cancelled, or failed. It never invents a second umbrella command. There is no separate shipped `$meta-architect` skill.
 
 ## Workflow
 
@@ -30,6 +30,19 @@ Use this skill inside Codex as the singular Meta-Architect umbrella surface and 
    - `$build`
 5. End with a clear result shape: decision, evidence, blockers, the lane assignment if any, and the exact next trigger.
 
+## Autonomous task loop
+
+For a task or batch, keep the manager loop active across turns:
+
+1. Normalize the request into the durable `.ma` task contract before dispatch.
+2. Discover the selected host, available skills, and required lane syntax without taking ownership of user-installed assets.
+3. Dispatch independent tasks with bounded concurrency and preserve dependency order for dependent tasks.
+4. Inspect, implement, test, review, repair, and verify. Route a failure back to its owning lane with the failure evidence attached.
+5. Persist checkpoints, receipts, and the next trigger after every transition so an interrupted process can resume safely.
+6. Continue unaffected batch tasks when one task is blocked, then return a batch summary with terminal states and unresolved blockers.
+
+Routine local work continues without asking for another prompt. Stop only for credentials, destructive actions, production or external mutations, explicit approval gates, unsafe commands, unavailable required providers, or missing verification evidence.
+
 ## Output
 
 Produce:
@@ -43,6 +56,9 @@ Produce:
 ## Rules
 
 - Prefer the smallest next step that moves the workflow forward safely.
+- Continue eligible work until the current task or batch reaches a terminal state; do not stop after a single successful lane.
+- Treat persisted `.ma` state as the source for resume, deduplication, dependency ordering, cancellation, and bounded retries.
+- Keep autonomous execution bounded by task dependencies, concurrency limits, deadlines, retry limits, and explicit safety gates.
 - Respect current gate state before recommending implementation or release work.
 - Be explicit when more evidence, planning, or validation is still needed.
 - Treat the in-session skill flow as primary. Use `ma ...` terminal helpers only when repo-local setup, inspection, or scripted state automation is explicitly the better support path.
