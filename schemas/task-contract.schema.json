@@ -26,6 +26,30 @@
     "verification": { "type": "array", "items": { "type": "string" } },
     "stop_condition": { "type": "string", "minLength": 1 },
     "persist": { "type": "boolean" },
+    "execution": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["workspace_root", "mutation_mode", "allowed_paths", "command", "verification"],
+      "properties": {
+        "workspace_root": { "type": "string", "minLength": 1 },
+        "mutation_mode": { "enum": ["read_only", "worktree", "source_write"] },
+        "allowed_paths": { "type": "array", "items": { "type": "string" } },
+        "command": { "$ref": "#/$defs/command" },
+        "verification": { "type": "array", "items": { "$ref": "#/$defs/command" } }
+      }
+    },
     "created_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "command": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["file", "args", "timeoutMs"],
+      "properties": {
+        "file": { "type": "string", "minLength": 1 },
+        "args": { "type": "array", "items": { "type": "string" } },
+        "timeoutMs": { "type": "integer", "minimum": 1, "maximum": 3600000 }
+      }
+    }
   }
 }

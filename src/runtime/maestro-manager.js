@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { readJson, writeFileIfMissing, writeJson } from "../fs-utils.js";
 import { getRuntimeStatePath } from "../paths.js";
+import { getExpertLane } from "./expert-lanes.js";
 
 const managerModes = new Set(["helper-only", "helper+gated", "team"]);
 const managerStates = new Set([
@@ -48,12 +49,24 @@ function normalizeHelperPlanEntry(entry) {
 }
 
 function normalizeGatedPlanEntry(entry) {
+  const skill = entry?.skill ?? "$arch";
+  const lane = getExpertLane(skill);
   return {
-    skill: entry?.skill ?? "$arch",
+    skill,
     objective: entry?.objective ?? "Advance the next gated lane",
-    owner: entry?.owner ?? entry?.skill ?? "$arch",
+    owner: entry?.owner ?? skill,
     prerequisites: Array.isArray(entry?.prerequisites) ? [...entry.prerequisites] : [],
     status: entry?.status ?? "planned",
+    lane: lane
+      ? {
+          id: lane.id,
+          domain: lane.domain,
+          mission: lane.mission,
+          owns: [...lane.owns],
+          outputs: [...lane.outputs],
+          invariants: [...lane.invariants],
+        }
+      : null,
   };
 }
 
@@ -94,6 +107,7 @@ function normalizeRetry(retry = {}) {
   return {
     count: Number.isInteger(value.count) ? value.count : 0,
     lastReason: value.lastReason ?? null,
+    progressFingerprint: value.progressFingerprint ?? null,
   };
 }
 
@@ -109,6 +123,10 @@ function validateManagerRun(run) {
   }
   if (typeof run.triggeredBy !== "string" || run.triggeredBy.trim() === "") {
     throw new Error("Manager run requires triggeredBy");
+  }
+  run.taskId ??= null;
+  if (!(run.taskId === null || typeof run.taskId === "string")) {
+    throw new Error("Manager run taskId must be null or a string");
   }
   if (!managerModes.has(run.mode)) {
     throw new Error(`Unsupported manager mode: ${run.mode}`);
@@ -141,6 +159,9 @@ function validateManagerRun(run) {
   }
   if (!Array.isArray(run.helperRuns)) {
     throw new Error("Manager run helperRuns must be an array");
+  }
+  if (run.decision !== null && (typeof run.decision !== "object" || Array.isArray(run.decision))) {
+    throw new Error("Manager run decision must be null or an object");
   }
 
   return run;
@@ -197,12 +218,14 @@ export function getActiveManagerRun(registry) {
 
 export function createManagerRun({
   triggeredBy = "$maestro",
+  taskId = null,
   parentRunId = null,
   mode = "helper-only",
   nextAction = "recommend",
   dispatchPlan = {},
   pendingReview = null,
   retry = null,
+  decision = null,
 } = {}) {
   const now = new Date().toISOString();
   const normalizedDispatchPlan = normalizeDispatchPlan(dispatchPlan);
@@ -210,6 +233,7 @@ export function createManagerRun({
   return validateManagerRun({
     id: `run-${randomUUID()}`,
     parentRunId,
+    taskId,
     triggeredBy,
     mode,
     state: "planned",
@@ -218,6 +242,7 @@ export function createManagerRun({
     helperRuns: normalizedDispatchPlan.helpers.map((helper) => ({ ...helper })),
     pendingReview: normalizePendingReview(pendingReview),
     retry: normalizeRetry(retry),
+    decision,
     startedAt: now,
     updatedAt: now,
     completedAt: null,
@@ -336,19 +361,12 @@ export function chooseMaestroManagerAction({
     };
   }
 
-  const helpers = [];
   if (releaseState.architecture_status !== "APPROVED") {
-    helpers.push(
-      createHelperPlan(
-        "$align",
-        "Align the brief and manager-owned lane sequence before architecture work begins.",
-      ),
-    );
     return {
       mode: "helper+gated",
       nextAction: "dispatch-gated",
       dispatchPlan: {
-        helpers,
+        helpers: [],
         gated: [
           createGatedPlan(
             "$arch",

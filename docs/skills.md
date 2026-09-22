@@ -3,10 +3,26 @@
 Meta-Architect ships three in-session skill layers:
 
 - umbrella autonomous manager: `$maestro`
-- fixed gated lanes: `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`
+- gated execution lanes: `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`
 - non-gating helper skills: `$align`, `$diagnose`, `$tdd`, `$cleanup`
 
-The package does not ship a separate `$meta-architect` in-session skill. `$maestro` is the umbrella contract for next-step management, bounded lane handoff, and fixed-sequence supervision.
+The package does not ship a separate `$meta-architect` in-session skill. `$maestro` is the autonomous decision surface: it evaluates the current task and evidence, chooses one locally eligible action, dispatches the owning lane, and records the result. The user does not need to name the next lane.
+
+## Jev decision core
+
+Live Maestro routing uses TypeSafe Jev as its typed decision provider. Configure the server-side key before running autonomous work:
+
+```bash
+export TYPESAFE_API_KEY="jv_live_..."
+export TYPESAFE_DEFAULT_MODEL="jev-latest"
+```
+
+Maestro sends a bounded state object and a typed `choice` question to
+`https://api.typesafe.ai/v1/systemone`. Jev can select only from actions that the
+local release state has already proven safe. It cannot bypass prerequisites,
+change release ownership, or execute arbitrary text. Missing credentials fail
+with an actionable error. Tests and explicitly offline environments may opt into
+the deterministic policy with `MAESTRO_DECISION_PROVIDER=deterministic`.
 
 ## Real usage path
 
@@ -34,10 +50,10 @@ npm uninstall -g @jstn-sdk/ma @openai/codex
 ```
 
 Then inside the Codex session:
-1. Start with `$maestro` when you want Meta-Architect to act as the bounded autonomous manager for the workflow
-2. Or start with `$arch` when you already know the architecture lane is next
-3. Continue through `$sage -> $flow -> $vet -> $vibe -> $build`
-4. Use `$align`, `$diagnose`, `$tdd`, or `$cleanup` only as publishable non-gating helper skills around that gated path
+1. Start with `$maestro` when you want Meta-Architect to autonomously route and execute the next safe action
+2. Provide the project goal and let Maestro repeat the decision/execute/verify loop
+3. Use a named lane only when you intentionally need to inspect or rerun that lane directly
+4. Use `$align`, `$diagnose`, `$tdd`, or `$cleanup` as non-gating helpers when a persisted receipt calls for them
 
 ## Two surfaces
 
@@ -86,7 +102,7 @@ Important:
 
 Manager contract:
 - `$maestro` is the only umbrella in-session surface
-- `$maestro` manages the next allowed step, but gated outputs still belong to `$arch -> $sage -> $flow -> $vet -> $vibe -> $build`
+- `$maestro` decides the next eligible action; gated outputs still belong to the owning lane and its local prerequisites
 - helper skills are publishable mirrors that can assist a lane, but they do not move release gates
 - `ma run '$maestro' --auto-heal --parallel` enables the bounded runtime repair path and records conductor state in the private scratchpad layer when eligible
 - `ma verify --architect` runs an external architect reviewer command when `MA_ARCHITECT_REVIEW_CMD` is configured

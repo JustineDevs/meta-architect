@@ -32,6 +32,75 @@
 
 ## 🧩 Quick start
 
+### Install and start
+
+Requires Node.js 20+ and a TypeSafe API key for autonomous Maestro routing.
+
+```bash
+npm install --global @jstn-sdk/ma@latest
+export TYPESAFE_API_KEY="jv_live_your_key"
+ma setup
+ma --madmax --high
+```
+
+Then give Maestro the project goal inside your AI coding agent:
+
+```text
+$maestro I want to build: [your project idea]
+```
+
+`ma setup` detects the active host, installs the compatible Meta-Architect
+surface, and writes project state to `.ma/`. Keep `TYPESAFE_API_KEY` in your
+shell environment or secret manager; Meta-Architect does not write it to the
+project.
+
+### End-to-end example
+
+After setup, the normal workflow is one goal, not a manually selected lane
+sequence:
+
+```bash
+ma setup
+```
+
+```bash
+ma --madmax --high
+```
+
+Inside the AI coding agent, state the goal once:
+
+```text
+$maestro Build a multi-tenant analytics API with authentication and tests.
+```
+
+Maestro reads the current `.ma/` state, asks Jev to choose the next eligible
+action, dispatches the owning lane, records evidence, and repeats the
+decision-execute-verify loop. The user does not need to manually run
+`$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, or `$build`.
+
+```text
+$maestro
+  -> selects the next eligible lane
+  -> executes the lane
+  -> verifies the result
+  -> records evidence
+  -> continues until complete or blocked
+```
+
+Inspect the current state at any time:
+
+```bash
+ma status
+```
+
+```bash
+ma doctor
+```
+
+Maestro stops for missing credentials, destructive operations, deployments,
+or explicit approval gates. Interrupted work resumes from the persisted `.ma/`
+state.
+
 | ✅ Recommended | 🧰 All available installation commands |
 | --- | --- |
 | Use the signed jsDelivr installer on macOS, Linux, WSL, or Git Bash.<br><br>`curl -fsSLo install.sh https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh`<br><br>`curl -fsSLo install.sh.sha256 https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh.sha256`<br><br>`sed 's#scripts/install.sh#install.sh#' install.sh.sha256 \| sha256sum -c -`<br><br>`sh install.sh`<br><br>`ma --madmax --high`<br><br>`$maestro I want to build: [your project idea]` | **npm global**<br><br>`npm i -g @openai/codex@latest @jstn-sdk/ma@latest`<br><br>**Meta-Architect only**<br><br>`npm i -g @jstn-sdk/ma@latest`<br><br>**Windows PowerShell**<br><br>`npm i -g @openai/codex@latest @jstn-sdk/ma@latest`<br><br>**Debian / Ubuntu**<br><br>`sudo apt install ./meta-architect_&lt;version&gt;_all.deb`<br><br>**Arch Linux**<br><br>`sudo pacman -U ./meta-architect-&lt;version&gt;-1-any.pkg.tar.xz`<br><br>**Fedora / openSUSE**<br><br>`sudo dnf install ./meta-architect-&lt;version&gt;-1.noarch.rpm` |

@@ -3,7 +3,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
+import { promisify } from "node:util";
+import { safeExecFile } from "../src/process-utils.js";
 import { createTempRepo } from "./helpers/temp-repo.js";
+
+const execFile = promisify(safeExecFile);
 
 const repoRoot = process.cwd();
 const cleanDecisions = {
@@ -36,7 +40,7 @@ const cleanRelease = {
 const realisticReleaseHardeningIdea =
   "Harden Meta-Architect v0.1.13 semantic core with Obsidian vault context, Ralph execution proof, context economy, and package-gated release evidence";
 
-test("maestro advances one bounded manager action per call until review gates block it", async () => {
+test("maestro advances one bounded manager action per call and stops on unchanged blockers", async () => {
   const tempRoot = await createTempRepo("meta-architect-flow-", repoRoot);
   await fs.mkdir(path.join(tempRoot, ".ma"), { recursive: true });
   await fs.writeFile(
@@ -67,6 +71,18 @@ test("maestro advances one bounded manager action per call until review gates bl
   await runIdea(realisticReleaseHardeningIdea);
   await runMaestro();
   await runMaestro();
+  await runMaestro();
+  const managerRunsBeforeRetry = JSON.parse(
+    await fs.readFile(path.join(tempRoot, ".ma", "state", "manager-runs.json"), "utf8"),
+  );
+  const blockedRun = managerRunsBeforeRetry.runs.at(-1);
+  assert.equal(blockedRun.state, "blocked");
+  assert.match(blockedRun.retry.lastReason, /without changing a release gate/);
+  await runMaestro();
+  const managerRunsAfterRetry = JSON.parse(
+    await fs.readFile(path.join(tempRoot, ".ma", "state", "manager-runs.json"), "utf8"),
+  );
+  assert.equal(managerRunsAfterRetry.runs.length, managerRunsBeforeRetry.runs.length);
 
   const releaseState = await loadReleaseState();
   assert.equal(releaseState.idea_status, "CLEAR");
@@ -234,21 +250,12 @@ test("maestro persists a manager-run artifact with lifecycle and dispatch metada
     assert.equal(Array.isArray(latestRun.dispatchPlan.helpers), true);
     assert.equal(Array.isArray(latestRun.dispatchPlan.gated), true);
     assert.equal(Array.isArray(latestRun.helperRuns), true);
-    assert.equal(
-      latestRun.dispatchPlan.helpers.some((helper) => helper.skill === "$align"),
-      true,
+    assert.equal(latestRun.dispatchPlan.helpers.length, 0);
+    assert.deepEqual(
+      latestRun.dispatchPlan.gated.map((gate) => gate.skill),
+      ["$arch"],
     );
-    assert.equal(
-      latestRun.helperRuns.some((helper) => helper.skill === "$align"),
-      true,
-    );
-    const alignRun = latestRun.helperRuns.find((helper) => helper.skill === "$align");
-    const alignReceipt = alignRun.evidence.find((item) => item.record_type === "helper_receipt");
-    assert.equal(alignRun.status, "completed");
-    assert.equal(alignReceipt.skill, "$align");
-    assert.equal(alignReceipt.records_as, "helper_alignment_receipt");
-    assert.equal(alignReceipt.does_not_unlock.includes("build_gate"), true);
-    assert.equal(alignReceipt.authority, "$maestro_or_owning_lane");
+    assert.equal(latestRun.helperRuns.length, 0);
     assert.equal(typeof latestRun.pendingReview, "object");
     assert.equal(typeof latestRun.retry, "object");
     assert.equal(maestroState.schemaVersion, "0.1.0");
@@ -259,4 +266,90 @@ test("maestro persists a manager-run artifact with lifecycle and dispatch metada
       process.env.MA_ROOT = previousRoot;
     }
   }
+});
+
+test("maestro build lane executes a declared workspace mutation and records completion", async (t) => {
+  const tempRoot = await createTempRepo("meta-architect-maestro-build-execution-", repoRoot);
+  const previousRoot = process.env.MA_ROOT;
+  const previousLive = process.env.MA_DISABLE_LIVE_MCP;
+  process.env.MA_ROOT = tempRoot;
+  process.env.MA_DISABLE_LIVE_MCP = "1";
+  t.after(() => {
+    if (previousRoot === undefined) delete process.env.MA_ROOT;
+    else process.env.MA_ROOT = previousRoot;
+    if (previousLive === undefined) delete process.env.MA_DISABLE_LIVE_MCP;
+    else process.env.MA_DISABLE_LIVE_MCP = previousLive;
+  });
+
+  const { runBuildLane, runInit } = await import(
+    `${pathToFileURL(path.join(repoRoot, "src", "skills.js")).href}?t=${Date.now()}`
+  );
+  await runInit();
+  await execFile("git", ["init", "-q", tempRoot]);
+  await execFile("git", ["-C", tempRoot, "config", "user.email", "test@example.invalid"]);
+  await execFile("git", ["-C", tempRoot, "config", "user.name", "Meta-Architect Test"]);
+  await execFile("git", ["-C", tempRoot, "add", "."]);
+  await execFile("git", ["-C", tempRoot, "commit", "-qm", "fixture"]);
+  const readyState = {
+    ...cleanRelease,
+    idea_status: "CLEAR",
+    architecture_status: "APPROVED",
+    evidence_status: "VERIFIED",
+    logic_status: "GREEN",
+    security_status: "GREEN",
+    experience_status: "GREEN",
+    build_status: "READY",
+  };
+  await fs.writeFile(
+    path.join(tempRoot, ".ma", "release.json"),
+    `${JSON.stringify(readyState, null, 2)}\n`,
+  );
+  await fs.writeFile(
+    path.join(tempRoot, ".ma", "decisions.json"),
+    `${JSON.stringify({ ...cleanDecisions, ...readyState }, null, 2)}\n`,
+  );
+
+  const result = await runBuildLane({
+    taskId: "maestro-build-proof",
+    taskContract: {
+      goal: "Apply the build-lane proof mutation",
+      execution: {
+        workspace_root: tempRoot,
+        mutation_mode: "source_write",
+        allowed_paths: ["src"],
+        command: {
+          file: process.execPath,
+          args: ["-e", "require('fs').writeFileSync('src/maestro-proof.txt', 'verified\\n')"],
+          timeoutMs: 10_000,
+        },
+        verification: [
+          {
+            file: process.execPath,
+            args: [
+              "-e",
+              "if (require('fs').readFileSync('src/maestro-proof.txt', 'utf8') !== 'verified\\n') process.exit(1)",
+            ],
+            timeoutMs: 10_000,
+          },
+        ],
+      },
+    },
+  });
+
+  assert.equal(result.status, "DONE");
+  assert.equal(
+    await fs.readFile(path.join(tempRoot, "src", "maestro-proof.txt"), "utf8"),
+    "verified\n",
+  );
+  const release = JSON.parse(await fs.readFile(path.join(tempRoot, ".ma", "release.json"), "utf8"));
+  assert.equal(release.build_status, "DONE");
+  const decisions = JSON.parse(
+    await fs.readFile(path.join(tempRoot, ".ma", "decisions.json"), "utf8"),
+  );
+  assert.equal(
+    decisions.decisions
+      .at(-1)
+      ?.evidence?.some((entry) => entry?.recordType === "expert_lane_receipt"),
+    true,
+  );
 });

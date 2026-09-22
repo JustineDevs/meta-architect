@@ -32,6 +32,7 @@ import {
   runAutonomousTasks,
 } from "../src/runtime/autonomous-tasks.js";
 import { evaluateRuntimeBuildReadiness } from "../src/runtime/build-readiness.js";
+import { createConformanceMatrix } from "../src/runtime/conformance-matrix.js";
 import { ingestCoreSources } from "../src/runtime/core-source-ingest.js";
 import { verifyLiveAgentMatrix } from "../src/runtime/live-agent-verification.js";
 import { createMaestroView, formatMaestroView } from "../src/runtime/maestro-output.js";
@@ -101,9 +102,10 @@ function printUsage() {
   console.log("  ma sdk-path");
   console.log("  ma status [--maestro-view]");
   console.log("  ma verify --architect|--agents-live [--json]");
+  console.log("  ma conformance [--json] [--live]");
   console.log("  ma run $maestro|$arch|$sage|$flow|$vet|$vibe|$build [--auto-heal] [--parallel]");
   console.log(
-    "  ma task add <goal> [--priority <level>] [--depends-on <id,...>] [--label <name>] [--deadline <ISO>]",
+    "  ma task add <goal> [--priority <level>] [--depends-on <id,...>] [--label <name>] [--deadline <ISO>] [--workspace <abs>] [--mutation-mode <mode>] [--allow-path <path,...>] [--command <json>] [--verify <json>]",
   );
   console.log("  ma task bulk <file|-> [--format json|yaml]");
   console.log("  ma task list [--json]");
@@ -151,6 +153,11 @@ async function runTaskCommand(rest) {
       "--deadline",
       "--id",
       "--vendor",
+      "--workspace",
+      "--mutation-mode",
+      "--allow-path",
+      "--command",
+      "--verify",
     ]);
     const goal = rest
       .slice(1)
@@ -160,6 +167,18 @@ async function runTaskCommand(rest) {
       })
       .join(" ");
     if (!goal) throw new Error("Usage: ma task add <goal>");
+    const command = taskOption(rest, "--command");
+    const verify = taskOption(rest, "--verify");
+    const workspace = taskOption(rest, "--workspace");
+    const execution = workspace
+      ? {
+          workspace_root: workspace,
+          mutation_mode: taskOption(rest, "--mutation-mode") ?? "read_only",
+          allowed_paths: taskOption(rest, "--allow-path")?.split(",").filter(Boolean) ?? [],
+          command: command ? JSON.parse(command) : null,
+          verification: verify ? JSON.parse(verify) : [],
+        }
+      : undefined;
     const task = {
       id: taskOption(rest, "--id"),
       goal,
@@ -168,6 +187,7 @@ async function runTaskCommand(rest) {
       labels: taskOption(rest, "--label")?.split(",").filter(Boolean),
       deadline: taskOption(rest, "--deadline"),
       vendor: taskOption(rest, "--vendor"),
+      execution,
     };
     const [added] = await enqueueAutonomousTasks(task);
     console.log(
@@ -550,6 +570,27 @@ async function main() {
   if (command === "redaction" && rest[0] === "purge") {
     const result = await purgeRedactionVault({ dryRun: rest.includes("--dry-run") });
     console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (command === "conformance") {
+    const matrix = rest.includes("--live")
+      ? createConformanceMatrix({ liveReport: await verifyLiveAgentMatrix({ cwd: process.cwd() }) })
+      : createConformanceMatrix();
+    if (rest.includes("--json")) {
+      process.stdout.write(`${JSON.stringify(matrix, null, 2)}\n`);
+    } else {
+      console.log(`Conformance matrix: ${matrix.counts.total} entries`);
+      for (const category of ["expert-lane", "support-lane", "subsystem", "vendor-surface"]) {
+        const entries = matrix.entries.filter((entry) => entry.category === category);
+        console.log(`\n${category} (${entries.length})`);
+        for (const entry of entries) {
+          console.log(
+            `- ${entry.id}: owner=${entry.owner}; test=${entry.test}; live=${entry.live_runtime_proof}`,
+          );
+        }
+      }
+    }
     return;
   }
 

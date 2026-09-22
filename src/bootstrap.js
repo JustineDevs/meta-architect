@@ -390,7 +390,7 @@ async function inspectLocalScaffold() {
 }
 
 async function seedStarterMcpConfig() {
-  const files = ["servers.json", "collections.json", "fallback.json"];
+  const files = ["servers.json", "collections.json", "fallback.json", "source-registry.json"];
   for (const file of files) {
     await fs.copyFile(path.join(packageRoot, "mcp", file), path.join(getMcpRootPath(), file));
   }

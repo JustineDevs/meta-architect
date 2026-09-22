@@ -1,10 +1,22 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { appendDecision } from "./decision-log.js";
-import { readJson, writeFileIfMissing, writeJson, writeTextAtomically } from "./fs-utils.js";
+import {
+  readJson,
+  withRuntimeStateLock,
+  writeFileIfMissing,
+  writeJson,
+  writeTextAtomically,
+} from "./fs-utils.js";
 import { validateMcpServers } from "./mcp-config.js";
 import { createMcpLiveClient, hasConfiguredMcpRemoteBridge } from "./mcp-live-client.js";
-import { getRepoRoot, getRuntimeReadPath, getRuntimeWritePath, packageRoot } from "./paths.js";
+import {
+  getRepoRoot,
+  getRuntimeReadPath,
+  getRuntimeSubsystemPath,
+  getRuntimeWritePath,
+  packageRoot,
+} from "./paths.js";
 import { resolveReleaseIssueGates, resolveReleaseReadiness } from "./release-issue-gates.js";
 import {
   evaluateAlignmentDrift,
@@ -16,6 +28,7 @@ import {
   loadCoreSourceIngest,
 } from "./runtime/core-source-ingest.js";
 import { launchDetachedTrack } from "./runtime/detached-provider.js";
+import { createLaneReceipt, getExpertLane } from "./runtime/expert-lanes.js";
 import {
   scanLockfilePackageExposure,
   validateMcpPolicyExposure,
@@ -23,6 +36,7 @@ import {
 import { getMergedGuidancePath } from "./runtime/guidance-stack.js";
 import { createHandoffPacket, writeHandoffPacket } from "./runtime/handoff-packets.js";
 import { createHelperReceipt } from "./runtime/helper-orchestration-core.js";
+import { applyMaestroDecision, decideMaestroLane } from "./runtime/maestro-decision-provider.js";
 import { appendMaestroEvent } from "./runtime/maestro-events.js";
 import {
   buildHelperFailureMatrix,
@@ -55,7 +69,9 @@ import {
   repairRuntimeScratchpadArtifacts,
 } from "./runtime/runtime-state.js";
 import { migrateSchemas } from "./runtime/schema-migrations.js";
+import { loadSourceRegistry } from "./runtime/source-registry.js";
 import { createTaskContract, writeTaskContract } from "./runtime/task-contracts.js";
+import { executeWorkspaceTask } from "./runtime/task-executor.js";
 import {
   seedRuntimeArtifacts,
   writeArchitectureArtifacts,
@@ -93,7 +109,7 @@ const skillNames = [
 const maestroWorkflowSequence = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
 const workflowTemplates = {
   "maestro.skill.md":
-    "# `$maestro`\n\nThe singular Meta-Architect umbrella workflow. Inspect runtime state, execute bounded helper or gated work when it is safe, persist the manager-run control plane, and return the exact next trigger.\n",
+    "# `$maestro`\n\nThe autonomous Meta-Architect workflow. Inspect runtime state, ask the configured Jev decision provider to choose one eligible action, execute it through the owning lane, and persist the decision and evidence. Users do not need to select the next lane manually.\n",
   "arch.skill.md":
     "# `$arch`\n\nProduces blueprint architecture, stack rationale, subsystem design, and tradeoffs.\n",
   "sage.skill.md":
@@ -380,6 +396,20 @@ function createBuildRepairPath() {
   ];
 }
 
+function releaseProgressFingerprint(releaseState) {
+  return JSON.stringify({
+    idea_status: releaseState?.idea_status,
+    architecture_status: releaseState?.architecture_status,
+    evidence_status: releaseState?.evidence_status,
+    logic_status: releaseState?.logic_status,
+    security_status: releaseState?.security_status,
+    experience_status: releaseState?.experience_status,
+    build_status: releaseState?.build_status,
+    merge_status: releaseState?.merge_status,
+    release_status: releaseState?.release_status,
+  });
+}
+
 async function updateMaestroLedgerForBuild({
   buildStatus,
   runtimeSummary,
@@ -477,7 +507,13 @@ async function updateScratchpadTrackForLane({
   });
 }
 
-export async function runBuildLane({ actor = null, reviewMode = null, quorumVotes = [] } = {}) {
+export async function runBuildLane({
+  actor = null,
+  reviewMode = null,
+  quorumVotes = [],
+  taskContract = null,
+  taskId = null,
+} = {}) {
   const authority = await assertLeaderAuthority(actor);
   const runtimeSnapshot = await loadRuntimeSnapshot();
   const runtimeSummary = createRuntimeSummary(runtimeSnapshot);
@@ -575,6 +611,89 @@ export async function runBuildLane({ actor = null, reviewMode = null, quorumVote
       blockers: [],
       suggestedBranches,
     };
+  }
+
+  if (runtimeSnapshot.release.build_status === "READY" && taskContract?.execution?.command) {
+    const execution = await executeWorkspaceTask({
+      id: taskId ?? `maestro-build-${Date.now()}`,
+      attempts: 1,
+      contract: taskContract,
+    });
+    if (execution.status !== "completed") {
+      await writeBuildPlanArtifact({
+        allowed: true,
+        gateState: "READY",
+        blockers: [execution.reason ?? "Workspace execution failed"],
+        nextTriggers: ["$build"],
+        suggestedBranches,
+        buildSlice,
+        verificationPlan,
+        repairPath,
+        runtimeSummary,
+        completionEvidence: execution.evidence ?? [],
+      });
+      await appendDecision({
+        actor: authority.leaderActor,
+        kind: "skill",
+        skill: "$build",
+        decision: "Workspace execution failed verification; build remains gated",
+        status: "BLOCKED",
+        evidence: [execution.receipt ?? execution.evidence],
+        blockers: [execution.reason ?? "Workspace execution failed"],
+        next_allowed_triggers: ["$build"],
+      });
+      await updateMaestroLedgerForBuild({
+        buildStatus: "READY",
+        runtimeSummary,
+        blockers: [execution.reason ?? "Workspace execution failed"],
+        nextTriggers: ["$build"],
+        gateState: "READY",
+        trackStatus: "BLOCKED",
+      });
+      return { status: "BLOCKED", nextTrigger: "$build", blockers: [execution.reason] };
+    }
+    const laneReceipt = createLaneReceipt({
+      lane: "$build",
+      status: "completed",
+      decision: "The build lane executed the declared workspace command and verified its result.",
+      evidence: execution.evidence ?? [],
+      outputs: ["file-change-receipt", "test-receipt", "package-receipt", "release-decision"],
+      tradeoffs: ["Execution is limited to the task contract workspace and allowed paths."],
+      assumptions: ["The task contract declares the command and verification commands explicitly."],
+    });
+    await writeBuildPlanArtifact({
+      allowed: true,
+      gateState: "DONE",
+      blockers: [],
+      nextTriggers: ["ma merge <feature/*> dev"],
+      suggestedBranches,
+      buildSlice,
+      verificationPlan,
+      repairPath,
+      completionEvidence: [...(execution.evidence ?? []), laneReceipt],
+      runtimeSummary,
+    });
+    await appendDecision({
+      actor: authority.leaderActor,
+      kind: "skill",
+      skill: "$build",
+      decision: "Executed and verified the task workspace through the build lane",
+      status: "DONE",
+      evidence: [execution.receipt ?? execution.evidence, laneReceipt],
+      blockers: [],
+      next_allowed_triggers: ["ma merge <feature/*> dev"],
+    });
+    await syncStatusUpdates({ build_status: "DONE" }, { actor: authority.leaderActor });
+    await updateMaestroLedgerForBuild({
+      buildStatus: "DONE",
+      runtimeSummary,
+      blockers: [],
+      nextTriggers: ["ma merge <feature/*> dev"],
+      gateState: "COMPLETED",
+      trackStatus: "COMPLETED",
+      completionEvidence: [...(execution.evidence ?? []), laneReceipt],
+    });
+    return { status: "DONE", nextTrigger: "ma merge <feature/*> dev", blockers: [] };
   }
 
   if (runtimeSnapshot.release.build_status === "READY") {
@@ -728,14 +847,14 @@ export async function runBuildLane({ actor = null, reviewMode = null, quorumVote
   };
 }
 
-function getAutonomousGateRunners() {
+function getAutonomousGateRunners(taskContract = null, taskId = null) {
   return {
     $arch: runArch,
     $sage: runSage,
     $flow: runFlow,
     $vet: runVet,
     $vibe: runVibe,
-    $build: runBuildLane,
+    $build: () => runBuildLane({ taskContract, taskId }),
   };
 }
 
@@ -769,6 +888,7 @@ function buildManagerDecisionEvidence(managerRun, recommendation) {
           skill: gate.skill,
           objective: gate.objective,
           status: gate.status,
+          lane: gate.lane ?? getExpertLane(gate.skill),
         })),
         team: managerRun.dispatchPlan.team
           ? {
@@ -777,6 +897,7 @@ function buildManagerDecisionEvidence(managerRun, recommendation) {
             }
           : null,
       },
+      decision: managerRun.decision,
     },
     recommendation,
   ];
@@ -1077,6 +1198,8 @@ export async function runArch() {
 export async function runSage() {
   await assertLeaderAuthority();
   const config = await validateMcpServers();
+  const sourceRegistry = await loadSourceRegistry();
+  const sourcesByRepo = new Map(sourceRegistry.sources.map((source) => [source.repo, source]));
   const runtimeSummary = await readRuntimeSummary();
   assertControlPlaneReady(runtimeSummary);
   await seedRedactionVault();
@@ -1087,6 +1210,9 @@ export async function runSage() {
     endpoint: server.endpoint,
     category: server.category,
     exactUpstreamMapping: server.repo,
+    sourceId: sourcesByRepo.get(server.repo)?.id ?? null,
+    sourceRole: sourcesByRepo.get(server.repo)?.role ?? "discovery",
+    allowedLanes: sourcesByRepo.get(server.repo)?.allowedLanes ?? [],
     evidenceGrade: disableLiveProbe ? "PARTIAL" : "MISSING",
   }));
   const blockers = [];
@@ -1127,6 +1253,16 @@ export async function runSage() {
         skipped: true,
         reason: "MA_DISABLE_LIVE_MCP=1",
       };
+      continue;
+    }
+
+    if (source.evidenceGrade === "MISSING" && source.sourceRole === "discovery") {
+      source.liveProbe = {
+        skipped: true,
+        reason: "Discovery sources may suggest candidates but cannot unlock verified evidence.",
+      };
+      source.evidenceGrade = "PARTIAL";
+      blockers.push(`Discovery source cannot unlock evidence: ${source.repo}`);
       continue;
     }
 
@@ -1554,31 +1690,31 @@ export async function runVibe() {
   });
 }
 
-export async function runMaestro({
+async function runMaestroUnlocked({
   autoHeal = false,
   parallel = false,
   taskContract = {},
   handoff = {},
+  taskId = null,
 } = {}) {
   await assertLeaderAuthority();
   const intakeContract = createTaskContract({
     goal: taskContract.goal ?? "Execute the next eligible Meta-Architect workflow step",
-    contextUsed: taskContract.contextUsed ?? [
-      ".ma/context/project-index.json",
-      ".ma/context/agent-brief.md",
-    ],
+    contextUsed: taskContract.contextUsed ??
+      taskContract.context_used ?? [".ma/context/project-index.json", ".ma/context/agent-brief.md"],
     assumptions: taskContract.assumptions ?? [
       "Source files and fresh verification output outrank generated context",
     ],
-    constraints: taskContract.constraints ?? [
-      "Do not mutate release state outside the owning lane",
-    ],
+    constraints: taskContract.constraints ??
+      taskContract.constraints ?? ["Do not mutate release state outside the owning lane"],
     risk: taskContract.risk ?? "medium",
     verification: taskContract.verification ?? ["ma doctor", "focused tests"],
     stopCondition:
       taskContract.stopCondition ??
+      taskContract.stop_condition ??
       "Stop when the selected lane is complete, blocked, or requires review",
     persist: taskContract.persist !== false,
+    execution: taskContract.execution ?? null,
   });
   if (intakeContract.persist) {
     await writeTaskContract(`maestro-${Date.now()}`, intakeContract);
@@ -1737,6 +1873,31 @@ export async function runMaestro({
   }
   const registry = await loadManagerRunRegistry();
   const activeRun = getActiveManagerRun(registry);
+  const latestManagerRun = registry.runs.at(-1);
+  const currentReleaseProgress = releaseProgressFingerprint(releaseState);
+  if (
+    latestManagerRun?.state === "blocked" &&
+    latestManagerRun.retry.progressFingerprint === currentReleaseProgress
+  ) {
+    await writeMaestroPlan({
+      releaseState,
+      recommendation,
+      runtimeSummary,
+      workflowSequence: maestroWorkflowSequence,
+      managerRun: latestManagerRun,
+    });
+    await appendDecision({
+      kind: "skill",
+      skill: "$maestro",
+      decision:
+        "Held the manager at the unchanged blocked gate until fresh evidence changes release state",
+      status: "BLOCKED",
+      evidence: buildManagerDecisionEvidence(latestManagerRun, recommendation),
+      blockers: buildManagerDecisionBlockers(latestManagerRun, runtimeSummary, buildReadiness),
+      next_allowed_triggers: [stripBackticks(recommendation.nextTrigger)],
+    });
+    return;
+  }
   const managerAction = chooseMaestroManagerAction({
     releaseState,
     runtimeSummary,
@@ -1744,6 +1905,7 @@ export async function runMaestro({
     recommendation,
     activeRun,
   });
+  const releaseProgressBeforeDispatch = releaseProgressFingerprint(releaseState);
 
   if (activeRun?.state === "waiting-review" && managerAction.nextAction === "recommend") {
     await writeMaestroPlan({
@@ -1765,13 +1927,35 @@ export async function runMaestro({
     return;
   }
 
+  let autonomousAction;
+  try {
+    const decision = await decideMaestroLane({
+      releaseState,
+      runtimeSummary,
+      idea,
+      managerAction,
+    });
+    autonomousAction = applyMaestroDecision(managerAction, decision);
+    autonomousAction.decision = decision;
+  } catch (error) {
+    await appendMaestroEvent({
+      record_type: "decision:failed",
+      gate: "$maestro",
+      provider: process.env.MAESTRO_DECISION_PROVIDER ?? "jev",
+      error: error.message,
+    });
+    throw error;
+  }
+
   const managerRun = createManagerRun({
     parentRunId: activeRun?.id ?? null,
+    taskId,
     triggeredBy: "$maestro",
-    mode: managerAction.mode,
-    nextAction: managerAction.nextAction,
-    dispatchPlan: managerAction.dispatchPlan,
-    pendingReview: managerAction.pendingReview ?? null,
+    mode: autonomousAction.mode,
+    nextAction: autonomousAction.nextAction,
+    dispatchPlan: autonomousAction.dispatchPlan,
+    pendingReview: autonomousAction.pendingReview ?? null,
+    decision: autonomousAction.decision,
   });
   registry.runs.push(managerRun);
   updateManagerRunTimestamps(managerRun);
@@ -1800,7 +1984,7 @@ export async function runMaestro({
     }
 
     if (managerRun.state !== "completed" && managerRun.nextAction === "dispatch-gated") {
-      const gateRunners = getAutonomousGateRunners();
+      const gateRunners = getAutonomousGateRunners(intakeContract, taskId);
       for (const gate of managerRun.dispatchPlan.gated) {
         const runner = gateRunners[gate.skill];
         if (!runner) {
@@ -1859,6 +2043,23 @@ export async function runMaestro({
   buildReadiness = evaluateRuntimeBuildReadiness(releaseState, runtimeSummary);
   recommendation = chooseMaestroRecommendation(releaseState, idea, buildReadiness);
 
+  const gatedDispatchCompleted = managerRun.dispatchPlan.gated.some(
+    (gate) => gate.status === "completed",
+  );
+  const releaseProgressed =
+    releaseProgressFingerprint(releaseState) !== releaseProgressBeforeDispatch;
+  if (gatedDispatchCompleted && !releaseProgressed) {
+    updateManagerRunTimestamps(managerRun, {
+      state: "blocked",
+      retry: {
+        count: managerRun.retry.count,
+        lastReason: `${managerRun.dispatchPlan.gated.map((gate) => gate.skill).join(", ")} completed without changing a release gate. Resolve its external blocker or provide fresh evidence before retrying.`,
+        progressFingerprint: releaseProgressFingerprint(releaseState),
+      },
+    });
+    await saveManagerRunRegistry(registry);
+  }
+
   if (managerRun.state === "dispatching" || managerRun.state === "running") {
     updateManagerRunTimestamps(managerRun, { state: "completed" });
     await saveManagerRunRegistry(registry);
@@ -1881,6 +2082,14 @@ export async function runMaestro({
     blockers: buildManagerDecisionBlockers(managerRun, runtimeSummary, buildReadiness),
     next_allowed_triggers: [stripBackticks(recommendation.nextTrigger)],
   });
+}
+
+export async function runMaestro(options = {}) {
+  return withRuntimeStateLock(
+    getRuntimeSubsystemPath("maestro-lock", "execution.json"),
+    () => runMaestroUnlocked(options),
+    { wait: true, staleMs: 15 * 60 * 1000 },
+  );
 }
 
 async function runInitUnlocked({
@@ -2031,6 +2240,7 @@ async function runInitUnlocked({
     "servers.json",
     "collections.json",
     "fallback.json",
+    "source-registry.json",
     "local-capabilities.json",
   ]) {
     templateCopies.push([

@@ -54,6 +54,7 @@
     "docs/quality.md",
     "docs/codex-integration.md",
     "docs/autonomous-tasks.md",
+    "docs/maestro-jev.md",
     "docs/vendor-plugin-publishing.md",
     "docs/assets/banner.png",
     "docs/reference/",
@@ -78,7 +79,7 @@
   "scripts": {
     "prepare": "husky",
     "prepack": "node ./scripts/prepack.js",
-    "test": "node --test --test-concurrency=1 test/*.test.js",
+    "test": "MAESTRO_DECISION_PROVIDER=deterministic node --test --test-concurrency=1 test/*.test.js",
     "test:disk": "node --test --test-concurrency=1 test/test-fixtures.test.js",
     "fixtures:cleanup": "bash ./scripts/cleanup-test-fixtures.sh",
     "demo:smoke": "node ./scripts/demo-smoke.js",
