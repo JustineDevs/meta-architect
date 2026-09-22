@@ -1,0 +1,18 @@
+---
+title: Agent host surfaces
+description: How one workflow fits different AI coding environments.
+---
+
+Each host has its own project files and command syntax. Meta-Architect detects
+the host and installs the matching surface without changing the canonical
+workflow.
+
+| Host type | Typical invocation | What Meta-Architect provides |
+| --- | --- | --- |
+| Codex | `$maestro` | Native skills and full runtime controls |
+| Claude Code | `/maestro` | Claude project skills and compatible guidance |
+| Cursor | Agent prompt | Project skills and host-aware instructions |
+| Other supported hosts | Native host syntax | Portable guidance plus the host adapter |
+
+The host chooses how a skill is invoked. Maestro keeps the decision and
+verification behavior consistent.

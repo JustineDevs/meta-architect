@@ -1,0 +1,5 @@
+{
+  "title": "Guides",
+  "description": "Task-focused instructions you can follow from start to finish.",
+  "pages": ["autonomous-work", "agent-hosts", "troubleshooting"]
+}

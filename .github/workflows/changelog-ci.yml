@@ -21,5 +21,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
       - name: Changelog CI
-        uses: saadmk11/changelog-ci@v1.2.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          heading="## v${version}"
+
+          if ! grep -Fxq "$heading" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md is missing the release heading '$heading'."
+            exit 1
+          fi
+
+          notes="$(awk -v heading="$heading" '
+            $0 == heading { found=1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md)"
+
+          if ! grep -Eq '(^|[[:space:]])[-*][[:space:]]+' <<<"$notes"; then
+            echo "::error::CHANGELOG.md has no release notes under '$heading'."
+            exit 1
+          fi
+
+          {
+            echo "### Changelog validation"
+            echo "- Version: \`$version\`"
+            echo "- Heading: \`$heading\`"
+            echo "- Status: passed"
+          } >> "$GITHUB_STEP_SUMMARY"

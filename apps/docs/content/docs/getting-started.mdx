@@ -1,0 +1,59 @@
+---
+title: Getting started
+description: Install Meta-Architect and run your first guided task.
+---
+
+## Before you begin
+
+- [Node.js 20 or newer](https://nodejs.org/en/download "Download Node.js 20 or newer from the official Node.js site.") — install the current LTS release before running Meta-Architect.
+- [An AI coding agent](/docs/guides/agent-hosts "See supported agent hosts and host-specific setup instructions.") — install Codex, Claude Code, Cursor, or another supported host first.
+- [A TypeSafe API key](https://typesafe.ai "Join TypeSafe AI, then create a key in the TypeSafe console when invited.") — request access and export it as `TYPESAFE_API_KEY` for live Maestro routing.
+
+## Install
+
+```bash
+npm install --global @jstn-sdk/ma@latest
+```
+
+Set the key in your shell. It is read at runtime and is not written to the
+project:
+
+```bash
+export TYPESAFE_API_KEY="jv_live_your_key"
+```
+
+## Set up the project
+
+Run this from the project directory:
+
+```bash
+ma setup
+```
+
+Setup detects the current host, installs the compatible project surface, and
+creates `.ma/` state. Existing user-owned files are preserved.
+
+## Start work
+
+```bash
+ma --madmax --high
+```
+
+Then give Maestro one clear goal inside the agent:
+
+```text
+$maestro Build a multi-tenant analytics API with authentication and tests.
+```
+
+Maestro chooses the next eligible action, runs it, verifies the result, and
+continues until the task is complete or a decision needs your approval.
+
+## Check the installation
+
+```bash
+ma status
+```
+
+```bash
+ma doctor
+```

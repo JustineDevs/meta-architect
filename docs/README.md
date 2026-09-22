@@ -12,6 +12,7 @@ Meta-Architect documentation is organized by operator task.
 - [Coverage Matrix](../COVERAGE.md)
 - [Release Spec](./release-spec.md)
 - [Skills Reference](./skills.md)
+- [Maestro Decision Core](./maestro-jev.md)
 - umbrella, gated lanes, and helper skill distinctions live in the Skills Reference
 - [Installed Support Bundle](./installed-sdk.md)
 - [Runtime retention](./runtime-retention.md)

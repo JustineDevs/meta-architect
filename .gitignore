@@ -12,6 +12,9 @@ node_modules/
 skills-lock.json
 .internal
 
+# Vercel local project metadata
+.vercel/
+
 # Logs
 logs
 *.log

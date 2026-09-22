@@ -44,3 +44,18 @@ test("migration preflight fails without partially writing malformed state", asyn
   assert.equal(JSON.parse(await fs.readFile(valid, "utf8")).schemaVersion, "0.0.1");
   await fs.rm(root, { recursive: true, force: true });
 });
+
+test("migration preserves contract-owned source registry schemas", async () => {
+  const root = await createTestNamespace("schema-migrations-source-registry");
+  const file = path.join(root, "mcp", "source-registry.json");
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  await fs.writeFile(
+    file,
+    JSON.stringify({ schemaVersion: "1.0.0", recordType: "source_registry" }),
+  );
+
+  const result = await migrateSchemas(root);
+  assert.equal(result.status, "current");
+  assert.equal(JSON.parse(await fs.readFile(file, "utf8")).schemaVersion, "1.0.0");
+  await fs.rm(root, { recursive: true, force: true });
+});

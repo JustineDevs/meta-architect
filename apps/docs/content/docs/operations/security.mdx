@@ -1,0 +1,22 @@
+---
+title: Security and privacy
+description: How to use Meta-Architect without leaking project secrets.
+---
+
+Meta-Architect keeps credentials outside project state and sends bounded routing
+information to Jev. Do not include tokens, private keys, or `.env` contents in
+task descriptions.
+
+## Safe defaults
+
+- API keys are read from the environment.
+- Provider requests use a timeout.
+- Invalid provider responses fail closed.
+- User-owned files are not overwritten during setup.
+- Destructive and external actions require an explicit boundary.
+
+Run the health check after setup:
+
+```bash
+ma doctor
+```

@@ -156,6 +156,14 @@ function renderManagerSection(managerRun) {
     `- next action: ${managerRun.nextAction}`,
   ];
 
+  if (managerRun.decision) {
+    lines.push(`- decision provider: ${managerRun.decision.provider ?? "unknown"}`);
+    lines.push(`- selected action: ${managerRun.decision.choice ?? "none"}`);
+    if (managerRun.decision.confidence !== null && managerRun.decision.confidence !== undefined) {
+      lines.push(`- decision confidence: ${managerRun.decision.confidence}`);
+    }
+  }
+
   if (managerRun.dispatchPlan.helpers.length > 0) {
     lines.push("- helper dispatch:");
     lines.push(

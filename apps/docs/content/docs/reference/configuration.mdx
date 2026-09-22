@@ -1,0 +1,15 @@
+---
+title: Configuration
+description: The environment values that affect a normal setup.
+---
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `TYPESAFE_API_KEY` | For live Maestro routing | Authenticates Jev decisions |
+| `MA_AGENT` | Optional | Selects a host surface explicitly |
+| `TYPESAFE_DEFAULT_MODEL` | Optional | Selects the Jev model alias |
+| `TYPESAFE_ENDPOINT` | Optional | Overrides the TypeSafe endpoint |
+| `TYPESAFE_TIMEOUT_MS` | Optional | Bounds the Jev request |
+
+Keep secrets in the shell environment or an approved secret manager. Do not
+commit them to project files.

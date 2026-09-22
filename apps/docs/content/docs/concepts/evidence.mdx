@@ -1,0 +1,26 @@
+---
+title: Evidence and state
+description: What Meta-Architect records and why it matters.
+---
+
+The `.ma/` directory is the project-local record of the workflow. It keeps
+decisions, task state, checks, and receipts close to the project they describe.
+
+## A useful rule
+
+Source files and fresh test results are stronger evidence than generated notes.
+When the two disagree, Meta-Architect should surface the conflict instead of
+pretending the project is ready.
+
+## Inspect state
+
+```bash
+ma status
+```
+
+```bash
+ma doctor
+```
+
+Use the status output for the current state. Use the receipts under `.ma/` when
+you need to understand why a decision was made.

@@ -1,0 +1,31 @@
+---
+title: Run autonomous work
+description: Give Maestro one goal and let it manage the safe workflow.
+---
+
+## Start a task
+
+Launch your configured agent and state the outcome you want:
+
+```text
+$maestro Add password reset to the account service, including tests and documentation.
+```
+
+The exact prefix depends on the host. Follow the host's native skill syntax.
+
+## What happens next
+
+Maestro reads the current state, asks Jev to select one eligible action, runs
+that action, and checks the result. It can route to architecture, planning,
+testing, review, experience, or build work as the evidence requires.
+
+## When it stops
+
+It stops when the task is complete, a required check fails, or the next action
+needs your authority. This includes production deployment, destructive deletion,
+missing credentials, and external mutations.
+
+## Resume after interruption
+
+Run Maestro again in the same project. The `.ma/` state contains the saved task
+and receipts, so the workflow can continue instead of starting from memory.

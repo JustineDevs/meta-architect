@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0.0",
+  "recordType": "source_registry",
+  "policy": {
+    "discoveryUnlocksEvidence": false,
+    "runtimeFetchRequired": false,
+    "verifiedRequiresPinnedContent": true
+  },
+  "sources": [
+    {
+      "id": "obsidian-api-official",
+      "role": "authoritative",
+      "repo": "obsidianmd/obsidian-api",
+      "endpoint": "https://gitmcp.io/obsidianmd/obsidian-api",
+      "allowedLanes": ["arch", "sage", "vibe"],
+      "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
+    },
+    {
+      "id": "obsidian-plugin-reference",
+      "role": "reference",
+      "repo": "obsidianmd/obsidian-sample-plugin",
+      "endpoint": "https://gitmcp.io/obsidianmd/obsidian-sample-plugin",
+      "allowedLanes": ["sage", "flow", "vibe"],
+      "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
+    },
+    {
+      "id": "context-economy-reference",
+      "role": "reference",
+      "repo": "JuliusBrussee/caveman",
+      "endpoint": "https://gitmcp.io/JuliusBrussee/caveman",
+      "allowedLanes": ["sage", "flow", "vet", "vibe", "build"],
+      "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
+    },
+    {
+      "id": "prompt-techniques-reference",
+      "role": "reference",
+      "repo": "NirDiamant/Prompt_Engineering",
+      "endpoint": "https://gitmcp.io/NirDiamant/Prompt_Engineering",
+      "allowedLanes": ["arch", "sage", "flow", "vet", "vibe", "build"],
+      "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
+    },
+    {
+      "id": "awesome-discovery",
+      "role": "discovery",
+      "repo": "sindresorhus/awesome",
+      "endpoint": "https://gitmcp.io/sindresorhus/awesome",
+      "allowedLanes": ["arch", "sage"],
+      "requiredClaims": ["source_identity"]
+    }
+  ]
+}

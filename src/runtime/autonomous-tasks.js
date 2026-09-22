@@ -13,6 +13,7 @@ import {
 } from "./environment-awareness-core.js";
 import { appendMaestroEvent } from "./maestro-events.js";
 import { createTaskContract, validateTaskContract } from "./task-contracts.js";
+import { recoverWorkspaceExecution } from "./task-executor.js";
 
 export const autonomousTaskSchemaVersion = "0.1.0";
 const statuses = new Set(["queued", "running", "completed", "failed", "blocked", "cancelled"]);
@@ -74,6 +75,7 @@ function normalizeTask(input) {
         verification: ["ma doctor", "Maestro lane receipts"],
         stopCondition: "Complete with verification evidence or record a blocker",
         risk: input?.risk ?? "medium",
+        execution: input?.execution ?? null,
       });
   return {
     id,
@@ -86,6 +88,8 @@ function normalizeTask(input) {
     attempts: Number.isInteger(input?.attempts) ? input.attempts : 0,
     maxAttempts: Number.isInteger(input?.maxAttempts) ? Math.max(1, input.maxAttempts) : 3,
     vendor: input?.vendor ?? null,
+    invocation: typeof input?.invocation === "string" ? input.invocation : null,
+    execution: contract.execution ?? null,
     contract,
     createdAt: input?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -174,8 +178,13 @@ async function loadTaskQueueUnlocked() {
     if (interrupted.length === 0) return queue;
     const recoveredAt = new Date().toISOString();
     for (const task of interrupted) {
-      task.status = "queued";
-      task.error = "Recovered after the previous process exited while the task was running";
+      const recovery = await recoverWorkspaceExecution(task);
+      task.status = recovery?.status === "blocked" ? "blocked" : "queued";
+      task.error =
+        recovery?.reason ??
+        "Recovered after the previous process exited while the task was running";
+      task.blocker = recovery?.reason ?? null;
+      if (recovery?.evidence) task.evidence.push(...recovery.evidence);
       task.runnerPid = null;
       task.runnerId = null;
       task.updatedAt = recoveredAt;
@@ -342,27 +351,58 @@ export async function runAutonomousTasks({
     execute ??
     (async (task) => {
       const { runMaestro } = await import("../skills.js");
-      await runMaestro({ taskContract: task.contract, handoff: { nextAction: task.goal } });
-      const [{ loadManagerRunRegistryOrDefault }, { loadAlignmentSentinelReport }] =
-        await Promise.all([import("./maestro-manager.js"), import("./alignment-sentinel.js")]);
-      const [managerRegistry, alignment] = await Promise.all([
-        loadManagerRunRegistryOrDefault(),
-        loadAlignmentSentinelReport(),
-      ]);
-      const latestRun = managerRegistry.runs.at(-1);
-      if (alignment?.driftStatus === "DRIFTED") {
-        return {
-          status: "blocked",
-          reason: "Maestro blocked dispatch because alignment drift must be resolved",
-        };
+      const steps = task.execution?.command ? 8 : 1;
+      for (let step = 0; step < steps; step += 1) {
+        await runMaestro({
+          taskId: task.id,
+          taskContract: task.contract,
+          handoff: { nextAction: task.goal },
+        });
+        const [
+          { loadManagerRunRegistryOrDefault },
+          { loadAlignmentSentinelReportOrDefault },
+          { loadReleaseStateOrDefault },
+        ] = await Promise.all([
+          import("./maestro-manager.js"),
+          import("./alignment-sentinel.js"),
+          import("../release-state.js"),
+        ]);
+        const [managerRegistry, alignment, release] = await Promise.all([
+          loadManagerRunRegistryOrDefault(),
+          loadAlignmentSentinelReportOrDefault(),
+          loadReleaseStateOrDefault(),
+        ]);
+        const latestRun = task.id
+          ? [...managerRegistry.runs]
+              .reverse()
+              .find((run) => run.triggeredBy === "$maestro" && run.taskId === task.id)
+          : [...managerRegistry.runs].at(-1);
+        if (task.id && !latestRun) {
+          return { status: "failed", reason: `No manager run was recorded for task ${task.id}` };
+        }
+        if (alignment?.driftStatus === "DRIFTED") {
+          return {
+            status: "blocked",
+            reason: "Maestro blocked dispatch because alignment drift must be resolved",
+          };
+        }
+        if (latestRun && ["waiting-review", "blocked"].includes(latestRun.state)) {
+          return {
+            status: "blocked",
+            reason: `Maestro ${latestRun.state}: ${latestRun.retry?.lastReason ?? "review or blocker remains"}`,
+          };
+        }
+        if (!task.execution?.command || release.build_status === "DONE") {
+          return {
+            status: "completed",
+            evidence: [`Maestro completed after ${step + 1} lane step(s)`],
+          };
+        }
       }
-      if (latestRun && ["waiting-review", "blocked"].includes(latestRun.state)) {
-        return {
-          status: "blocked",
-          reason: `Maestro ${latestRun.state}: ${latestRun.retry?.lastReason ?? "review or blocker remains"}`,
-        };
-      }
-      return { status: "completed", evidence: ["Maestro manager run completed"] };
+      return {
+        status: "blocked",
+        reason: "Maestro exhausted its bounded lane steps before build completion",
+      };
     });
   const events = [];
   const emit = async (event) => {

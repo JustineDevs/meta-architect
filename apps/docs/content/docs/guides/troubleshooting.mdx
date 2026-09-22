@@ -1,0 +1,45 @@
+---
+title: Troubleshooting
+description: Diagnose the common setup and runtime problems.
+---
+
+## Check the installation
+
+```bash
+ma --version
+```
+
+```bash
+ma doctor
+```
+
+## Missing TypeSafe credentials
+
+Live Maestro routing requires `TYPESAFE_API_KEY`:
+
+```bash
+export TYPESAFE_API_KEY="jv_live_your_key"
+```
+
+Run the command again after exporting the key. Do not put the key in `.env`
+files that are committed to the project.
+
+## A file was not changed
+
+Meta-Architect preserves existing user-owned files. Read the setup receipt and
+doctor output before replacing anything manually.
+
+## The workflow stopped
+
+Check the latest status and receipt:
+
+```bash
+ma status
+```
+
+```bash
+ma doctor
+```
+
+The stop reason should identify the missing evidence, failed check, or approval
+that is required.

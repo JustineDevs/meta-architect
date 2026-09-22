@@ -13,6 +13,23 @@ cat tasks.yaml | ma task bulk - --format yaml
 ma task list --json
 ```
 
+For a task that is allowed to change source files, declare the workspace,
+mutation mode, allowed paths, command argv, and verification argv explicitly:
+
+```bash
+ma task add "Update the parser" \
+  --workspace "$PWD" \
+  --mutation-mode source_write \
+  --allow-path src \
+  --command '{"file":"node","args":["scripts/update-parser.mjs"]}' \
+  --verify '[{"file":"npm","args":["test","--","parser"]}]'
+```
+
+Commands are executed without a shell. The executor snapshots the Git
+workspace before and after the command, rejects newly changed files outside
+the declared paths, runs verification, and writes a receipt to
+`.ma/tasks/execution-receipts/`. A task is not completed from a plan alone.
+
 Each task receives a durable contract, status, retry budget, dependencies,
 labels, optional deadline, selected environment capabilities, and evidence.
 Duplicate IDs, malformed contracts, unknown dependencies, and dependency
@@ -41,6 +58,7 @@ the latest queue atomically. Safe local work proceeds automatically; goals
 that imply credentials, destructive changes, publication, production, or
 other external mutations are blocked with an actionable reason.
 
-The default runner delegates to the existing Maestro manager. Tests and host
-integrations can inject `execute(task)` into `runAutonomousTasks` without
-changing the queue contract.
+Tasks with an explicit execution contract use the workspace executor for real
+file changes. Tasks without one delegate to the Maestro manager for policy and
+lane routing. Tests and host integrations can inject `execute(task)` into
+`runAutonomousTasks` without changing the queue contract.

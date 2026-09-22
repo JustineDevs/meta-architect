@@ -1,0 +1,25 @@
+---
+title: How it works
+description: The workflow in plain language.
+---
+
+Meta-Architect is a workflow layer. Your AI agent still writes and edits the
+code. Meta-Architect decides what should happen next and checks whether the
+result is ready to move forward.
+
+## The loop
+
+1. **Inspect** the project and current state.
+2. **Choose** the next safe action from the evidence already available.
+3. **Execute** the owning lane.
+4. **Verify** files, tests, and required checks.
+5. **Record** the decision and evidence in `.ma/`.
+
+Maestro repeats this loop. You do not need to remember a lane sequence.
+
+## What it does not do
+
+Meta-Architect does not replace your editor, model, terminal, or deployment
+platform. It also does not silently bypass a failed check. When an action needs
+credentials, approval, destructive changes, or deployment access, it stops with
+an explicit reason.

@@ -1,0 +1,32 @@
+---
+title: Configure an agent host
+description: Install Meta-Architect for Codex, Claude Code, Cursor, or another host.
+---
+
+## Let Meta-Architect detect the host
+
+```bash
+ma setup
+```
+
+## Select a host explicitly
+
+Use `MA_AGENT` when more than one host is installed or when you are setting up
+from a non-interactive shell:
+
+```bash
+MA_AGENT=claude-code ma setup
+```
+
+```bash
+MA_AGENT=cursor ma setup
+```
+
+The selected surface is recorded in `.ma/prelaunch.json`. Meta-Architect keeps
+user-owned configuration intact and reports unsupported capabilities.
+
+## Host-specific command syntax
+
+Codex and several CLI hosts use `$maestro`. Claude Code and some IDE hosts use
+their own native command or prompt surface. Do not paste a Codex command into a
+different host; use the generated host guidance.

@@ -1,0 +1,19 @@
+---
+title: Updates and releases
+description: Keep the CLI current without losing project state.
+---
+
+Update the global package with:
+
+```bash
+npm install --global @jstn-sdk/ma@latest
+```
+
+Then refresh the project surface:
+
+```bash
+ma setup
+```
+
+Setup is designed to preserve user-owned files. Review the receipt and run
+`ma doctor` after an update.
