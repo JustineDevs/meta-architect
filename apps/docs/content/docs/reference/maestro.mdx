@@ -1,0 +1,24 @@
+---
+title: Maestro decision contract
+description: How autonomous routing stays bounded and inspectable.
+---
+
+Maestro asks Jev to choose from a locally computed list of eligible actions.
+The decision is a preference among safe options, not permission to bypass the
+workflow.
+
+## Guarantees
+
+- The candidate list comes from local project state.
+- Jev cannot introduce an unknown lane.
+- Malformed responses fail closed.
+- Timeouts and provider errors stop the run with an actionable error.
+- The provider, decision ID, selected action, and evidence are persisted.
+
+## Offline tests
+
+The deterministic provider is for explicit tests only:
+
+```bash
+MAESTRO_DECISION_PROVIDER=deterministic npm test
+```

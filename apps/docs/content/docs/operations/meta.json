@@ -1,0 +1,5 @@
+{
+  "title": "Operations",
+  "description": "Maintenance, safety, and release guidance.",
+  "pages": ["security", "updates", "support"]
+}

@@ -1,0 +1,206 @@
+@import "fumadocs-ui/css/style.css";
+@import "fumadocs-ui/css/shadcn.css";
+
+:root {
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.2 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0 0);
+  --primary: oklch(0.24 0 0);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.24 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.48 0 0);
+  --accent: oklch(0.95 0 0);
+  --accent-foreground: oklch(0.24 0 0);
+  --border: oklch(0.89 0 0);
+  --input: oklch(0.89 0 0);
+  --ring: oklch(0.58 0 0);
+  --radius: 0.45rem;
+}
+
+.dark {
+  --background: oklch(0.15 0 0);
+  --foreground: oklch(0.93 0 0);
+  --card: oklch(0.18 0 0);
+  --card-foreground: oklch(0.93 0 0);
+  --popover: oklch(0.18 0 0);
+  --popover-foreground: oklch(0.93 0 0);
+  --primary: oklch(0.9 0 0);
+  --primary-foreground: oklch(0.18 0 0);
+  --secondary: oklch(0.23 0 0);
+  --secondary-foreground: oklch(0.93 0 0);
+  --muted: oklch(0.23 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.25 0 0);
+  --accent-foreground: oklch(0.93 0 0);
+  --border: oklch(0.3 0 0);
+  --input: oklch(0.3 0 0);
+  --ring: oklch(0.65 0 0);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-feature-settings:
+    "ss01" 1,
+    "cv11" 1;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  inset-block-start: 1rem;
+  inset-inline-start: 1rem;
+  transform: translateY(-200%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--foreground);
+  color: var(--background);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+#nd-docs-layout {
+  --fd-sidebar-width: 260px;
+  --fd-toc-width: 220px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 1280px) {
+  #nd-docs-layout {
+    --fd-sidebar-width: 240px;
+    --fd-toc-width: 200px;
+  }
+}
+
+#nd-sidebar > div:last-child {
+  align-items: flex-end;
+}
+
+#nd-sidebar > div:last-child > div {
+  width: max-content;
+}
+
+#nd-sidebar {
+  border-inline-end-color: var(--border);
+}
+
+#nd-toc {
+  color: color-mix(in oklch, var(--foreground) 72%, transparent);
+}
+
+#nd-toc #toc-title {
+  font-weight: 600;
+}
+
+#nd-toc a[data-active="true"] {
+  font-weight: 600;
+}
+
+#nd-page {
+  width: min(100%, 920px);
+  min-width: 0;
+  max-width: 100%;
+  padding: 3rem clamp(1rem, 3vw, 2rem) 5rem;
+}
+
+#nd-page > *,
+#nd-page .prose > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+#nd-page > h1 {
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+#nd-page > p,
+#nd-page .prose > :where(p, li) {
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+#nd-page .prose > :where(h2, h3) {
+  scroll-margin-top: 5rem;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+#nd-page .prose table {
+  display: table;
+  width: 100%;
+  min-width: max-content;
+  max-width: none;
+}
+
+#nd-page .prose > div.relative.overflow-auto {
+  max-width: 100%;
+  overscroll-behavior-inline: contain;
+}
+
+#nd-page h2 > button:focus-visible,
+#nd-page h3 > button:focus-visible {
+  opacity: 1;
+}
+
+#nd-docs-layout :where(a, button) {
+  touch-action: manipulation;
+  transition: transform 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+#nd-docs-layout :where(a, button):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+#nd-docs-layout button:active:not(:disabled),
+#nd-docs-layout a:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-link,
+  #nd-docs-layout :where(a, button) {
+    transition: none;
+    transform: none;
+  }
+}

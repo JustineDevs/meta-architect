@@ -1,0 +1,77 @@
+---
+title: Conformance matrix
+description: The evidence contract for lanes, subsystems, and agent surfaces.
+---
+
+Meta-Architect tracks every execution surface separately. A skill directory being copied successfully is distribution evidence; it is not proof that the host can execute the workflow.
+
+## Inspect the matrix
+
+Run this from the project where Meta-Architect is installed:
+
+```bash
+ma conformance --json
+```
+
+To probe the host commands installed on the current machine:
+
+```bash
+ma conformance --live --json
+```
+
+The live report is intentionally conservative. Targets without a safe non-interactive command remain distribution-only or blocked.
+
+## What every record contains
+
+| Field | Meaning |
+| --- | --- |
+| `owner` | The lane or authority responsible for the behavior |
+| `inputs` | Contracts and evidence consumed |
+| `outputs` | Decisions, artifacts, or receipts produced |
+| `mutation_boundary` | The filesystems or external boundaries it may touch |
+| `receipt` | Evidence required before completion |
+| `test` | The regression or conformance test covering it |
+| `live_runtime_proof` | The exact runtime proof still required |
+
+## Current coverage
+
+| Category | Entries | What it covers |
+| --- | ---: | --- |
+| Expert lanes | 6 | Architecture, evidence, flow, security, experience, and build |
+| Support lanes | 5 | Alignment, diagnosis, test-first work, cleanup, and Maestro |
+| Runtime subsystems | 21 | Tasks, context, MCP, Obsidian, memory, plugins, release, and safety boundaries |
+| Vendor surfaces | 55 | The complete registered distribution target set |
+| **Total** | **87** | Separately auditable records |
+
+## Expert lanes
+
+| Lane | Owns | Completion evidence |
+| --- | --- | --- |
+| `$arch` | Boundaries, contracts, data ownership, tradeoffs | Architecture decision and risk register |
+| `$sage` | Source provenance, candidate selection, license and maintenance fit | Pinned source and claim receipts |
+| `$flow` | State transitions, retries, idempotency, recovery, backpressure | Runtime model and integration evidence |
+| `$vet` | Security, privacy, authorization, dependencies | Threat model and security receipt |
+| `$vibe` | Journeys, accessibility, onboarding, operator recovery | Acceptance scenarios and UX risks |
+| `$build` | File changes, tests, packaging, rollback, readiness | Workspace, test, package, and release receipts |
+
+## Support lanes
+
+| Lane | Boundary |
+| --- | --- |
+| `$align` | Reads runtime state and creates bounded recovery plans |
+| `$diagnose` | Reads failures and creates repair plans |
+| `$tdd` | Creates test-first plans and test evidence |
+| `$cleanup` | Maintains managed runtime state and retention policies |
+| `$maestro` | Selects and dispatches eligible work; workspace mutation stays in `$build` |
+
+## Runtime proof policy
+
+The matrix does not claim that all 55 hosts are live-verified. A runtime claim requires:
+
+1. The host is installed and discoverable.
+2. A safe version probe succeeds.
+3. Distribution artifacts are installed into the selected boundary.
+4. The host accepts the generated surface.
+5. The resulting evidence is recorded in the live verification report.
+
+Production release evidence is a separate gate and may not be inferred from local distribution or synthetic tests.
