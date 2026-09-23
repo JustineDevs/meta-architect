@@ -353,11 +353,22 @@ export async function runAutonomousTasks({
       const { runMaestro } = await import("../skills.js");
       const steps = task.execution?.command ? 8 : 1;
       for (let step = 0; step < steps; step += 1) {
-        await runMaestro({
+        const maestroResult = await runMaestro({
           taskId: task.id,
           taskContract: task.contract,
           handoff: { nextAction: task.goal },
         });
+        if (maestroResult?.executionResult) {
+          if (maestroResult.executionResult.status !== "completed")
+            return maestroResult.executionResult;
+          return {
+            status: "completed",
+            evidence: [
+              `Maestro completed after ${step + 1} lane step(s)`,
+              ...(maestroResult.executionResult.evidence ?? []),
+            ],
+          };
+        }
         const [
           { loadManagerRunRegistryOrDefault },
           { loadAlignmentSentinelReportOrDefault },

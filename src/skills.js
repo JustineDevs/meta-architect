@@ -693,7 +693,12 @@ export async function runBuildLane({
       trackStatus: "COMPLETED",
       completionEvidence: [...(execution.evidence ?? []), laneReceipt],
     });
-    return { status: "DONE", nextTrigger: "ma merge <feature/*> dev", blockers: [] };
+    return {
+      status: "DONE",
+      nextTrigger: "ma merge <feature/*> dev",
+      blockers: [],
+      executionResult: execution,
+    };
   }
 
   if (runtimeSnapshot.release.build_status === "READY") {
@@ -1262,7 +1267,6 @@ export async function runSage() {
         reason: "Discovery sources may suggest candidates but cannot unlock verified evidence.",
       };
       source.evidenceGrade = "PARTIAL";
-      blockers.push(`Discovery source cannot unlock evidence: ${source.repo}`);
       continue;
     }
 
@@ -1346,8 +1350,10 @@ export async function runSage() {
   existing.items = sourceEntries;
   await writeJson(getRuntimeWritePath("evidence", "sources.json"), existing);
 
-  const verified = sourceEntries.length > 0 && verificationSuccessCount === sourceEntries.length;
-  if (sourceEntries.length > 0 && !verified && blockers.length === 0) {
+  const requiredSources = sourceEntries.filter((source) => source.sourceRole !== "discovery");
+  const verified =
+    requiredSources.length > 0 && verificationSuccessCount === requiredSources.length;
+  if (requiredSources.length > 0 && !verified && blockers.length === 0) {
     blockers.push(
       disableLiveProbe
         ? "Live MCP verification was skipped, so evidence remains unverified."
@@ -1362,7 +1368,7 @@ export async function runSage() {
       "Bound architectural choices to approved sources using local core-source snapshots first, with GitMCP only as refresh/provenance fallback",
     status: verified ? "VERIFIED" : sourceEntries.length > 0 ? "PARTIAL" : "MISSING",
     evidence: sourceEntries,
-    blockers: sourceEntries.length > 0 ? blockers : ["No approved GitMCP sources configured"],
+    blockers: requiredSources.length > 0 ? blockers : ["No approved GitMCP sources configured"],
     next_allowed_triggers: verified ? ["$flow"] : ["mcp/servers.json", "$sage"],
   });
 
@@ -1373,7 +1379,7 @@ export async function runSage() {
     gate: "$sage",
     trackStatus: verified ? "COMPLETED" : "BLOCKED",
     globalStatus: verified ? "COMPLETED" : "LOCKED",
-    blockers: sourceEntries.length > 0 ? blockers : ["No approved GitMCP sources configured"],
+    blockers: requiredSources.length > 0 ? blockers : ["No approved GitMCP sources configured"],
     nextTriggers: verified ? ["$flow"] : ["$sage"],
     details: {
       evidence_grade: verified ? "VERIFIED" : sourceEntries.length > 0 ? "PARTIAL" : "MISSING",
@@ -1957,6 +1963,7 @@ async function runMaestroUnlocked({
     pendingReview: autonomousAction.pendingReview ?? null,
     decision: autonomousAction.decision,
   });
+  let executionResult = null;
   registry.runs.push(managerRun);
   updateManagerRunTimestamps(managerRun);
   await saveManagerRunRegistry(registry);
@@ -2014,7 +2021,10 @@ async function runMaestroUnlocked({
             objective: gate.objective,
           },
         });
-        await runner();
+        const gateResult = await runner();
+        if (gate.skill === "$build" && gateResult?.executionResult) {
+          executionResult = gateResult.executionResult;
+        }
         gate.status = "completed";
         await saveManagerRunRegistry(registry);
       }
@@ -2082,6 +2092,7 @@ async function runMaestroUnlocked({
     blockers: buildManagerDecisionBlockers(managerRun, runtimeSummary, buildReadiness),
     next_allowed_triggers: [stripBackticks(recommendation.nextTrigger)],
   });
+  return executionResult ? { executionResult } : null;
 }
 
 export async function runMaestro(options = {}) {

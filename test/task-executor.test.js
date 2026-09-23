@@ -67,6 +67,26 @@ test("workspace executor fails closed for changes outside the allowed paths", as
   assert.deepEqual(result.receipt.disallowedFiles, ["outside.txt"]);
 });
 
+test("workspace executor detects mutations to ignored files", async (t) => {
+  const root = await createRepo(t, "task-executor-ignored-boundary");
+  await fs.writeFile(path.join(root, ".gitignore"), "outside.log\n");
+  await execFile("git", ["-C", root, "add", ".gitignore"]);
+  await execFile("git", ["-C", root, "commit", "-qm", "ignore fixture"]);
+  const result = await executeWorkspaceTask({
+    id: "ignored-escape-source",
+    attempts: 1,
+    execution: {
+      workspace_root: root,
+      mutation_mode: "source_write",
+      allowed_paths: ["src"],
+      command: command("require('fs').writeFileSync('outside.log', 'blocked\\n')"),
+      verification: [],
+    },
+  });
+  assert.equal(result.status, "failed");
+  assert.deepEqual(result.receipt.disallowedFiles, ["outside.log"]);
+});
+
 test("workspace executor detects mutations to files that were already dirty", async (t) => {
   const root = await createRepo(t, "task-executor-dirty-boundary");
   await fs.writeFile(path.join(root, "outside.txt"), "already dirty\n");
@@ -189,10 +209,10 @@ test("default autonomous runner routes a workspace task through Maestro build", 
       workspace_root: root,
       mutation_mode: "source_write",
       allowed_paths: ["src"],
-      command: command("require('fs').writeFileSync('src/index.txt', 'maestro\\n')"),
+      command: command("require('fs').appendFileSync('src/index.txt', 'maestro\\n')"),
       verification: [
         command(
-          "if (require('fs').readFileSync('src/index.txt', 'utf8') !== 'maestro\\n') process.exit(1)",
+          "if (require('fs').readFileSync('src/index.txt', 'utf8') !== 'before\\nmaestro\\n') process.exit(1)",
         ),
       ],
     },
@@ -200,5 +220,5 @@ test("default autonomous runner routes a workspace task through Maestro build", 
   const result = await runAutonomousTasks();
   assert.equal(result.summary.completed, 1);
   assert.equal(result.tasks[0].status, "completed");
-  assert.equal(await fs.readFile(path.join(root, "src", "index.txt"), "utf8"), "maestro\n");
+  assert.equal(await fs.readFile(path.join(root, "src", "index.txt"), "utf8"), "before\nmaestro\n");
 });
