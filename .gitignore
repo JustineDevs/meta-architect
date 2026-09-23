@@ -29,6 +29,18 @@ temp/
 .tmp/
 .cache/
 *.tmp
+*.temp
+*.swp
+*.swo
+*.orig
+.pnpm-store/
+.yarn/cache/
+.yarn/install-state.gz
+.parcel-cache/
+.vite/
+.turbo/
+.eslintcache
+.stylelintcache
 
 # Environment files
 .env
@@ -51,6 +63,14 @@ coverage/
 # Build / packaging artifacts
 dist/
 *.tsbuildinfo
+*.tgz
+*.tar.gz
+*.tar.zst
+*.deb
+*.rpm
+*.pkg.tar.xz
+*.pkg.tar.zst
+*.pacman
 
 # Remotion render workspace; keep only shareable output
 /public/*

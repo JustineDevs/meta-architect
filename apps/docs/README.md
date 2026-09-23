@@ -1,8 +1,9 @@
 # Meta-Architect documentation
 
-The public documentation site is a Fumadocs application backed by MDX in
-`content/docs`. The repository-level `docs/` directory remains the engineering
-record; this app is the clear product guide for users and operators.
+The public documentation site for Meta-Architect `v0.15.0` is a Fumadocs
+application backed by MDX in `content/docs`. The repository-level `docs/`
+directory remains the engineering record; this app is the clear product guide
+for users and operators.
 
 ## Development
 
@@ -13,6 +14,11 @@ npm run dev
 ```
 
 Open `http://localhost:3000/docs`.
+
+The documentation covers the same supported workflow as the package README:
+install `@jstn-sdk/ma`, run `ma setup`, configure `TYPESAFE_API_KEY` for
+autonomous Jev routing, launch the host, and give `$maestro` one goal. See the
+package root README for the canonical installation variants and release links.
 
 ## Content rules
 

@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           {children}
         </RootProvider>
+        <Analytics />
       </body>
     </html>
   );

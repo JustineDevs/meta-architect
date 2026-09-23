@@ -360,6 +360,7 @@ function main() {
   const issueGates = validateReleaseIssueGates(readJson(issueGatesPath), {
     version,
     requirePassed: true,
+    requireScope: true,
   });
   assert(
     issueGates.valid,

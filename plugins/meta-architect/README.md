@@ -2,6 +2,8 @@
 
 This plugin bundle packages the Meta-Architect skill surfaces for consumers that want an installable plugin-style distribution instead of working directly from the source repository.
 
+Current release line: `v0.15.0` · package: `@jstn-sdk/ma@0.15.0`
+
 ## What the plugin contains
 
 - plugin metadata:
@@ -14,6 +16,7 @@ This plugin bundle packages the Meta-Architect skill surfaces for consumers that
 - non-gating helper skills: `$align`, `$diagnose`, `$tdd`, `$cleanup`
 - packaged native reference files mirrored under the relevant skill folders
 - a release-scoped version line aligned to the repo
+- the same `$maestro` autonomous workflow documented by the package README
 
 ## What the plugin does not contain
 
@@ -104,6 +107,40 @@ npm uninstall -g @jstn-sdk/ma @openai/codex
 
 Use the plugin bundle when you need installable skill metadata or local marketplace discovery. Use the package and Codex skill flow when you want the full Meta-Architect product experience.
 
+## Current user flow
+
+For the supported end-to-end workflow, install the package, configure the
+provider key in the shell or secret manager, initialize the project, and give
+Maestro one goal. The user does not manually select the gated lanes.
+
+```bash
+npm i -g @jstn-sdk/ma@latest
+export TYPESAFE_API_KEY="jv_live_your_key"
+ma setup
+ma --madmax --high
+```
+
+```text
+$maestro Build a multi-tenant analytics API with authentication and tests.
+```
+
+Maestro asks Jev for the next eligible action, runs the owning lane, verifies
+the result, records receipts, and continues until the task is complete or an
+approval boundary is reached. `TYPESAFE_API_KEY` is never written into the
+project.
+
+For a real-provider release check, run:
+
+```bash
+npm run live:regression -- --output docs/qa/live-regression-0.15.0.json
+```
+
+The redacted evidence records setup, doctor, provider selection, source
+mutation, verification, execution receipt, and cleanup. See the canonical
+[package README](../../README.md), [live regression guide](../../docs/live-regression.md),
+and [release readiness record](../../docs/qa/release-readiness-0.15.0.md) for
+the complete contract.
+
 Primary related surfaces:
 - [docs/skills-publishing.md](../../docs/skills-publishing.md)
 - [skills/](../../skills/)
@@ -149,7 +186,7 @@ When consuming the plugin:
 The plugin version should track the release scope of the core repo.
 
 For this repository:
-- plugin scope is aligned to Meta-Architect `v0.14.1`
+- plugin scope is aligned to Meta-Architect `v0.15.0`
 - any breaking contract change should be versioned intentionally
 
 The plugin is one distribution surface of the same product, not a separate product line.

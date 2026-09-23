@@ -1,0 +1,36 @@
+name: Live Regression
+
+on:
+  workflow_dispatch:
+
+jobs:
+  live-regression:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run real live regression
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: npm run live:regression -- --output "$RUNNER_TEMP/meta-architect-live-regression.json"
+
+      - name: Upload live regression evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta-architect-live-regression
+          path: ${{ runner.temp }}/meta-architect-live-regression.json
+          if-no-files-found: error

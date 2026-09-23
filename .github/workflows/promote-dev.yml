@@ -33,11 +33,15 @@ jobs:
             exit 0
           fi
 
+          body="$(printf '%s\n\n%s\n' \
+            'Automated promotion PR from dev to main.' \
+            'All required CI, security, package, and review checks must pass before a maintainer merges this production promotion.')"
+
           if gh pr create \
             --base main \
             --head dev \
             --title "chore(release): promote dev to main" \
-            --body "Automated promotion PR from dev to main.\n\nAll required CI, security, package, and review checks must pass before a maintainer merges this production promotion."; then
+            --body "$body"; then
             exit 0
           fi
 

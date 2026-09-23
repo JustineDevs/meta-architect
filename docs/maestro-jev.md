@@ -1,9 +1,14 @@
 # Maestro Decision Core
 
-Meta-Architect Maestro is an autonomous workflow controller. A user starts
-Maestro once; Maestro reads the durable `.ma` state, computes safe eligible
-actions, asks Jev to choose among those actions, dispatches the selected lane,
-and records the decision. A user does not need to type the next lane command.
+Meta-Architect Maestro is an autonomous workflow controller. When the local
+Maestro runtime is started with its live provider configured, a user starts
+Maestro once; it reads the durable `.ma` state, computes safe eligible actions,
+asks Jev to choose among those actions, dispatches the selected lane, and
+records the decision. A user does not need to type the next lane command.
+
+Loading the in-session `$maestro` skill in an AI host is not a provider call. If
+the host did not run the local Maestro runtime, provider use is **not verified**
+and must not be inferred from an API key, package, or prompt.
 
 ## Runtime contract
 
@@ -52,9 +57,21 @@ MAESTRO_DECISION_PROVIDER=deterministic npm test
 This mode is not the live default and is not a substitute for validating a
 production Jev credential and endpoint.
 
+Run the real provider smoke test when `TYPESAFE_API_KEY` is available:
+
+```bash
+TYPESAFE_API_KEY="$TYPESAFE_API_KEY" npm run test:maestro-live
+```
+
+This performs one bounded Jev decision request and exits non-zero when the
+provider is unavailable or returns an invalid lane. The regular test suite
+remains deterministic so it is reproducible without credentials.
+
 ## Persisted evidence
 
-Each manager run records the provider, decision ID, selected action, confidence,
-model, and eligible candidates in `.ma/state/manager-runs.json` and the Maestro
-event log. This makes autonomous routing inspectable without persisting the API
-key or raw authorization header.
+Each successful manager run records the provider, decision ID, selected action,
+confidence, model, and eligible candidates in `.ma/state/manager-runs.json` and
+the Maestro event log. Failed requests record the requested provider and
+`provider_used: false`; they are not evidence of a provider decision. This
+makes autonomous routing inspectable without persisting the API key or raw
+authorization header.

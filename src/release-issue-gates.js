@@ -111,6 +111,10 @@ export function validateReleaseIssueGates(document, options = {}) {
     errors.push("passContract.allIssuesMustHaveLabels must be true");
   }
 
+  if (options.requireScope && !isNonEmptyString(document.scope)) {
+    errors.push("scope is required for a release gate manifest");
+  }
+
   if (!Array.isArray(document.issues) || document.issues.length === 0) {
     errors.push("issues must be a non-empty array");
     return { valid: errors.length === 0, errors };

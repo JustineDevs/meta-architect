@@ -7,6 +7,15 @@ import { writeJsonAtomically } from "../setup-lifecycle.js";
 const MAX_OUTPUT_BYTES = 1_000_000;
 const CONTROL_PATH = ".ma/tasks/execution-receipts/";
 const JOURNAL_PATH = ".ma/tasks/execution-journal/";
+const IGNORED_SCAN_EXCLUDES = new Set([
+  ".git",
+  "node_modules",
+  "dist",
+  "build",
+  ".next",
+  ".turbo",
+  "coverage",
+]);
 
 function isWithin(root, candidate) {
   const relative = path.relative(root, candidate);
@@ -97,8 +106,22 @@ async function snapshotWorkspace(root) {
   const porcelain = await gitOutput(root, ["status", "--porcelain=v1", "-z"]);
   const diff = await gitOutput(root, ["diff", "--binary"]);
   const trackedFiles = await gitOutput(root, ["ls-files", "-co", "--exclude-standard", "-z"]);
+  const ignoredFiles = await gitOutput(root, [
+    "ls-files",
+    "--others",
+    "--ignored",
+    "--exclude-standard",
+    "-z",
+  ]);
   const files = {};
-  for (const relative of trackedFiles.split("\0").filter(Boolean)) {
+  const candidates = [
+    ...trackedFiles.split("\0").filter(Boolean),
+    ...ignoredFiles
+      .split("\0")
+      .filter(Boolean)
+      .filter((relative) => !relative.split("/").some((part) => IGNORED_SCAN_EXCLUDES.has(part))),
+  ];
+  for (const relative of candidates) {
     if (relative.startsWith(CONTROL_PATH) || relative.startsWith(JOURNAL_PATH)) continue;
     const absolute = path.resolve(root, relative);
     if (!isWithin(root, absolute)) continue;

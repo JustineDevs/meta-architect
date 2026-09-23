@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.15.0
+
+- Adds a real live regression workflow that validates setup, doctor, Jev-backed `$maestro`, autonomous task intake, bounded source mutation, verification, receipts, and temporary-workspace cleanup.
+- Fixes the default autonomous runner so declared workspace commands execute only after Maestro reaches `$build` and completion includes the workspace receipt.
+- Publishes redacted release evidence at `docs/qa/live-regression-0.15.0.json` and gates tagged releases on the live workflow before package and GitHub publication.
+- Aligns package, plugin, support-bundle, release metadata, and documentation surfaces to `v0.15.0`.
+
 ## v0.14.1
 
 - Adds native Cursor project rules at `.cursor/rules/agents.mdc` and validates them during `ma doctor`.

@@ -13,7 +13,7 @@ import {
 } from "./environment-awareness-core.js";
 import { appendMaestroEvent } from "./maestro-events.js";
 import { createTaskContract, validateTaskContract } from "./task-contracts.js";
-import { recoverWorkspaceExecution } from "./task-executor.js";
+import { executeWorkspaceTask, recoverWorkspaceExecution } from "./task-executor.js";
 
 export const autonomousTaskSchemaVersion = "0.1.0";
 const statuses = new Set(["queued", "running", "completed", "failed", "blocked", "cancelled"]);
@@ -353,11 +353,22 @@ export async function runAutonomousTasks({
       const { runMaestro } = await import("../skills.js");
       const steps = task.execution?.command ? 8 : 1;
       for (let step = 0; step < steps; step += 1) {
-        await runMaestro({
+        const maestroResult = await runMaestro({
           taskId: task.id,
           taskContract: task.contract,
           handoff: { nextAction: task.goal },
         });
+        if (maestroResult?.executionResult) {
+          if (maestroResult.executionResult.status !== "completed")
+            return maestroResult.executionResult;
+          return {
+            status: "completed",
+            evidence: [
+              `Maestro completed after ${step + 1} lane step(s)`,
+              ...(maestroResult.executionResult.evidence ?? []),
+            ],
+          };
+        }
         const [
           { loadManagerRunRegistryOrDefault },
           { loadAlignmentSentinelReportOrDefault },
@@ -392,7 +403,18 @@ export async function runAutonomousTasks({
             reason: `Maestro ${latestRun.state}: ${latestRun.retry?.lastReason ?? "review or blocker remains"}`,
           };
         }
-        if (!task.execution?.command || release.build_status === "DONE") {
+        if (release.build_status === "DONE") {
+          if (task.execution?.command) {
+            const execution = await executeWorkspaceTask(task);
+            if (execution.status !== "completed") return execution;
+            return {
+              status: "completed",
+              evidence: [
+                `Maestro completed after ${step + 1} lane step(s)`,
+                ...(execution.evidence ?? []),
+              ],
+            };
+          }
           return {
             status: "completed",
             evidence: [`Maestro completed after ${step + 1} lane step(s)`],

@@ -8,7 +8,9 @@ const result = spawnSync("npm", ["pack", "--dry-run", "--json", "--ignore-script
 });
 if (result.status !== 0) throw new Error(result.stderr || "npm pack inspection failed");
 const pack = JSON.parse(result.stdout)[0];
-const excludedMedia = pack.files.filter((file) => /docs\/assets\//.test(file.path));
+const excludedMedia = pack.files.filter(
+  (file) => /docs\/assets\//.test(file.path) && file.path !== "docs/assets/banner.png",
+);
 if (excludedMedia.length > 0)
   throw new Error(
     `Heavy demo media included: ${excludedMedia.map((file) => file.path).join(", ")}`,

@@ -169,7 +169,6 @@ export async function decideMaestroLane({
 }
 
 export function applyMaestroDecision(managerAction, decision) {
-  if (decision?.provider === "deterministic") return managerAction;
   if (!decision || decision.choice === "none") {
     return { ...managerAction, dispatchPlan: { helpers: [], gated: [], team: null } };
   }
