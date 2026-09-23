@@ -28,7 +28,7 @@
 > Meta-Architect does not replace your coding runtime.
 > It wraps that runtime with architecture, evidence, gate enforcement, and release-sensitive workflow control.
 
-<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/v0.15.0/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">
+<img src="./docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">
 
 ## 🧩 Quick start
 
