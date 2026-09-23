@@ -1,10 +1,16 @@
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
 import test from "node:test";
 import {
   applyMaestroDecision,
   decideMaestroLane,
   getMaestroDecisionProviderConfig,
 } from "../src/runtime/maestro-decision-provider.js";
+
+const maestroSkill = await fs.readFile(
+  new URL("../skills/maestro/SKILL.md", import.meta.url),
+  "utf8",
+);
 
 const managerAction = {
   mode: "helper+gated",
@@ -24,6 +30,15 @@ test("Maestro defaults to the Jev provider and reads the server-side API key", (
     model: "jev-latest",
     timeoutMs: 10_000,
   });
+});
+
+test("Maestro does not claim provider usage without runtime evidence", () => {
+  assert.match(
+    maestroSkill,
+    /does not by itself call TypeSafe, Jev, or any other decision provider/,
+  );
+  assert.match(maestroSkill, /provider use: not verified/);
+  assert.match(maestroSkill, /successful.*provider: "jev"/s);
 });
 
 test("offline routing is explicit and constrained to the eligible action", async () => {

@@ -53,6 +53,25 @@ Produce:
 - what to avoid doing yet
 - exact next trigger, command, or handoff
 
+## Provider truthfulness
+
+The in-session `$maestro` skill is an orchestration instruction surface. Loading
+this skill does not by itself call TypeSafe, Jev, or any other decision provider.
+Never claim that TypeSafe, Jev, JEV, or a model was used from the presence of a
+skill, an API key, a package, a configuration default, or a typed workflow state.
+
+Only claim provider usage when the current runtime contains fresh evidence in
+`.ma/state/manager-runs.json` or the Maestro event log showing a successful
+decision with `provider: "jev"`, its decision id, and the selected eligible
+action. A failed request, missing key, timeout, malformed response, or merely
+configured provider is not usage evidence.
+
+When no such evidence exists, report: `provider use: not verified`. If the user
+asks whether TypeSafe or Jev was used, inspect the persisted runtime evidence
+first. If the user invoked `/maestro` inside a host without running the local
+Maestro runtime, explain that the skill was loaded but no provider call was
+verified; do not fill the gap with an assumption.
+
 ## Rules
 
 - Prefer the smallest next step that moves the workflow forward safely.
