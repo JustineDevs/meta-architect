@@ -13,7 +13,7 @@ import {
 } from "./environment-awareness-core.js";
 import { appendMaestroEvent } from "./maestro-events.js";
 import { createTaskContract, validateTaskContract } from "./task-contracts.js";
-import { recoverWorkspaceExecution } from "./task-executor.js";
+import { executeWorkspaceTask, recoverWorkspaceExecution } from "./task-executor.js";
 
 export const autonomousTaskSchemaVersion = "0.1.0";
 const statuses = new Set(["queued", "running", "completed", "failed", "blocked", "cancelled"]);
@@ -392,7 +392,18 @@ export async function runAutonomousTasks({
             reason: `Maestro ${latestRun.state}: ${latestRun.retry?.lastReason ?? "review or blocker remains"}`,
           };
         }
-        if (!task.execution?.command || release.build_status === "DONE") {
+        if (release.build_status === "DONE") {
+          if (task.execution?.command) {
+            const execution = await executeWorkspaceTask(task);
+            if (execution.status !== "completed") return execution;
+            return {
+              status: "completed",
+              evidence: [
+                `Maestro completed after ${step + 1} lane step(s)`,
+                ...(execution.evidence ?? []),
+              ],
+            };
+          }
           return {
             status: "completed",
             evidence: [`Maestro completed after ${step + 1} lane step(s)`],

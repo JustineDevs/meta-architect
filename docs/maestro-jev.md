@@ -57,6 +57,16 @@ MAESTRO_DECISION_PROVIDER=deterministic npm test
 This mode is not the live default and is not a substitute for validating a
 production Jev credential and endpoint.
 
+Run the real provider smoke test when `TYPESAFE_API_KEY` is available:
+
+```bash
+TYPESAFE_API_KEY="$TYPESAFE_API_KEY" npm run test:maestro-live
+```
+
+This performs one bounded Jev decision request and exits non-zero when the
+provider is unavailable or returns an invalid lane. The regular test suite
+remains deterministic so it is reproducible without credentials.
+
 ## Persisted evidence
 
 Each successful manager run records the provider, decision ID, selected action,

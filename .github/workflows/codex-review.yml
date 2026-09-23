@@ -117,7 +117,7 @@ jobs:
             await core.summary.write();
 
             if (!matched) {
-              core.warning(
-                "No observable ChatGPT Codex Connector evidence was found on this pull request; continuing without synthetic review evidence."
+              core.setFailed(
+                "No observable ChatGPT Codex Connector evidence was found on this pull request; review evidence is required."
               );
             }

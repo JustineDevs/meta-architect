@@ -92,6 +92,18 @@ test("release issue gate matrix passes production after every issue has proof", 
   );
 });
 
+test("release verification can require an explicit issue scope", async () => {
+  const gatePath = path.join("docs", "qa", `release-issue-gates-${packageVersion}.json`);
+  const document = JSON.parse(await fs.readFile(gatePath, "utf8"));
+  const result = validateReleaseIssueGates(document, {
+    version: packageVersion,
+    requirePassed: true,
+    requireScope: true,
+  });
+  assert.equal(result.valid, true);
+  assert.match(document.scope, /release-scoped issues/);
+});
+
 test("release issue gate can pass when every issue has proof", () => {
   const document = {
     schemaVersion: "1.0.0",

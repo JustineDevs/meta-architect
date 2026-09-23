@@ -32,6 +32,19 @@ jobs:
             exit 1
           }
 
+      - name: Run real live regression
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: npm run live:regression -- --output "$RUNNER_TEMP/meta-architect-live-regression.json"
+
+      - name: Upload live regression evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta-architect-live-regression-${{ github.ref_name }}
+          path: ${{ runner.temp }}/meta-architect-live-regression.json
+          if-no-files-found: error
+
       - name: Install RPM tooling
         run: sudo apt-get update && sudo apt-get install -y rpm
 

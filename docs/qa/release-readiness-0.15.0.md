@@ -1,26 +1,26 @@
-# Release Readiness 0.14.1
+# Release Readiness 0.15.0
 
 ## Production bar
 
-`v0.14.1` is treated as production only when:
+`v0.15.0` is treated as production only when:
 - the package installs cleanly from the canonical public install command
 - the Codex-hosted runtime path works end to end
 - the helper flow remains valid for scripted verification
 - the singular `$maestro` umbrella and helper-skill contract stay coherent
-- release docs, package metadata, and workflows all agree on `0.14.1`
+- release docs, package metadata, and workflows all agree on `0.15.0`
 
 Target release state:
-- npm package: `@jstn-sdk/ma@0.14.1`
-- npm registry state: pending publish
-- publishability note: `0.14.0` is already published, so `0.14.1` is the next publishable package line
-- git tag: `v0.14.1`
-- GitHub release: pending publish for `v0.14.1`
+- npm package: `@jstn-sdk/ma@0.15.0`
+- npm registry state: verified by the release publication workflow
+- publishability note: `0.14.1` is the current release line, so `0.15.0` is the next minor package line
+- git tag: `v0.15.0`
+- GitHub release state: verified by the release workflow
 
 ## Production checklist
 
 - skills-first product identity: PASS
 - package/plugin identity aligned to `@jstn-sdk/ma`: PASS
-- version/tag alignment `0.14.1` / `v0.14.1`: PASS
+- version/tag alignment `0.15.0` / `v0.15.0`: PASS
 - install/uninstall docs aligned: PASS
 - onboarding is concise and sequential: PASS
 - helper command documented as secondary: PASS
@@ -31,17 +31,19 @@ Target release state:
 - helper skill family shipped but non-gating: PASS
 - native playbooks and support-bundle reference assets aligned: PASS
 - tests pass: PASS
+- live Jev-backed regression: PASS; `docs/qa/live-regression-0.15.0.json` records setup, doctor, `$maestro`, source mutation, verification, receipt, and cleanup
 - package dry-run passes: PASS
 - installed-package behavior passes: PASS
 - workflow/release/provenance docs aligned: PASS
 - no stale package names remain in tracked repo surfaces: PASS
 - no conflicting CLI-first product story remains in tracked product docs: PASS
-- issue proof gates for `v0.14.1`: PASS; `release-issue-gates-0.14.1.json` marks issues `#13-#29` passed with implementation, verification, and production evidence, so release verification can enforce the gate artifact instead of blocking on pending issue states
+- issue proof gates for `v0.15.0`: PASS; `release-issue-gates-0.15.0.json` marks issues `#13-#29` passed with implementation, verification, and production evidence, so release verification can enforce the gate artifact instead of blocking on pending issue states
 
 ## Automated checks run
 
 ```bash
 npm run release:check
+npm run live:regression -- --output docs/qa/live-regression-0.15.0.json
 ```
 
 That must cover:
@@ -51,6 +53,7 @@ That must cover:
 - repo checks
 - automated tests
 - npm package dry-run inspection
+- real-provider live regression with redacted evidence
 
 Linux-native release lane:
 
@@ -71,10 +74,10 @@ That should prove:
 Issue gate artifact:
 
 ```text
-docs/qa/release-issue-gates-0.14.1.json
+docs/qa/release-issue-gates-0.15.0.json
 ```
 
-Every open issue assigned to `v0.14.1` must remain in this file until it is production-passed. A passed issue requires:
+Every open issue assigned to `v0.15.0` must remain in this file until it is production-passed. A passed issue requires:
 - implementation evidence
 - verification evidence
 - production evidence
@@ -93,7 +96,7 @@ Helper-path validation:
 
 ```bash
 ma setup
-ma idea "Harden Meta-Architect v0.14.1 semantic core with Obsidian vault context, Ralph execution proof, context economy, and package-gated release evidence"
+ma idea "Harden Meta-Architect v0.15.0 semantic core with Obsidian vault context, Ralph execution proof, context economy, and package-gated release evidence"
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'

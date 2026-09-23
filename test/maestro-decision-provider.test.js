@@ -63,6 +63,29 @@ test("offline routing is explicit and constrained to the eligible action", async
   assert.equal(applyMaestroDecision(managerAction, decision).dispatchPlan.gated[0].skill, "$arch");
 });
 
+test("offline routing dispatches only the selected action when several are eligible", async () => {
+  const action = {
+    mode: "helper+gated",
+    nextAction: "dispatch-gated",
+    dispatchPlan: {
+      helpers: [{ skill: "$diagnose", objective: "Diagnose the failure" }],
+      gated: [{ skill: "$arch", objective: "Approve architecture" }],
+      team: null,
+    },
+  };
+  const decision = await decideMaestroLane({
+    managerAction: action,
+    env: { MAESTRO_DECISION_PROVIDER: "deterministic" },
+  });
+  const applied = applyMaestroDecision(action, decision);
+  assert.equal(decision.choice, "$arch");
+  assert.deepEqual(applied.dispatchPlan.helpers, []);
+  assert.deepEqual(
+    applied.dispatchPlan.gated.map((item) => item.skill),
+    ["$arch"],
+  );
+});
+
 test("Jev routing sends typed choices and rejects choices outside the safe action set", async () => {
   let request;
   const decision = await decideMaestroLane({
