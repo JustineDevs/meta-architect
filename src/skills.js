@@ -1941,7 +1941,8 @@ async function runMaestroUnlocked({
     await appendMaestroEvent({
       record_type: "decision:failed",
       gate: "$maestro",
-      provider: process.env.MAESTRO_DECISION_PROVIDER ?? "jev",
+      requestedProvider: process.env.MAESTRO_DECISION_PROVIDER ?? "jev",
+      provider_used: false,
       error: error.message,
     });
     throw error;

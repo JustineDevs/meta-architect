@@ -41,6 +41,15 @@ test("Maestro does not claim provider usage without runtime evidence", () => {
   assert.match(maestroSkill, /successful.*provider: "jev"/s);
 });
 
+test("the generated host prompt distinguishes skill loading from provider use", async () => {
+  const prompt = await fs.readFile(
+    new URL("../skills/maestro/agents/openai.yaml", import.meta.url),
+    "utf8",
+  );
+  assert.match(prompt, /Loading this prompt does not call TypeSafe or Jev/);
+  assert.match(prompt, /successful local Maestro runtime receipt/);
+});
+
 test("offline routing is explicit and constrained to the eligible action", async () => {
   const decision = await decideMaestroLane({
     releaseState: {},

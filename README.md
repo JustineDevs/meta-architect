@@ -73,10 +73,15 @@ Inside the AI coding agent, state the goal once:
 $maestro Build a multi-tenant analytics API with authentication and tests.
 ```
 
+When the local Maestro runtime is running with the live provider configured,
 Maestro reads the current `.ma/` state, asks Jev to choose the next eligible
 action, dispatches the owning lane, records evidence, and repeats the
 decision-execute-verify loop. The user does not need to manually run
 `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, or `$build`.
+
+Loading `$maestro` as an in-session skill alone does not call Jev. Report
+`provider use: not verified` unless a successful local Maestro receipt records
+the provider decision.
 
 ```text
 $maestro

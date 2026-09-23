@@ -3,9 +3,10 @@ title: Maestro decision contract
 description: How autonomous routing stays bounded and inspectable.
 ---
 
-Maestro asks Jev to choose from a locally computed list of eligible actions.
-The decision is a preference among safe options, not permission to bypass the
-workflow.
+When the local Maestro runtime is running with live routing configured, Maestro
+asks Jev to choose from a locally computed list of eligible actions. Loading
+the `$maestro` skill in an AI host alone does not call Jev. The decision is a
+preference among safe options, not permission to bypass the workflow.
 
 ## Guarantees
 
@@ -13,7 +14,10 @@ workflow.
 - Jev cannot introduce an unknown lane.
 - Malformed responses fail closed.
 - Timeouts and provider errors stop the run with an actionable error.
-- The provider, decision ID, selected action, and evidence are persisted.
+- Successful runs persist the provider, decision ID, selected action, and
+  evidence.
+- Failed requests persist `provider_used: false`; they are not evidence that
+  Jev was used.
 
 ## Offline tests
 

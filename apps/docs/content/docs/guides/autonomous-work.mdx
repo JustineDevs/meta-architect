@@ -15,9 +15,12 @@ The exact prefix depends on the host. Follow the host's native skill syntax.
 
 ## What happens next
 
-Maestro reads the current state, asks Jev to select one eligible action, runs
-that action, and checks the result. It can route to architecture, planning,
-testing, review, experience, or build work as the evidence requires.
+When the local runtime is running with live routing configured, Maestro reads
+the current state, asks Jev to select one eligible action, runs that action,
+and checks the result. It can route to architecture, planning, testing,
+review, experience, or build work as the evidence requires. If the host only
+loaded the `$maestro` skill, provider use is not verified; the skill prompt is
+not a provider invocation.
 
 ## When it stops
 

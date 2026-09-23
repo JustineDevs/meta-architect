@@ -10,19 +10,23 @@ The package does not ship a separate `$meta-architect` in-session skill. `$maest
 
 ## Jev decision core
 
-Live Maestro routing uses TypeSafe Jev as its typed decision provider. Configure the server-side key before running autonomous work:
+Live Maestro routing uses TypeSafe Jev as its typed decision provider when the
+local runtime is actually running. Loading `$maestro` in an AI host does not
+call Jev. Configure the server-side key before running autonomous work:
 
 ```bash
 export TYPESAFE_API_KEY="jv_live_..."
 export TYPESAFE_DEFAULT_MODEL="jev-latest"
 ```
 
-Maestro sends a bounded state object and a typed `choice` question to
+The local runtime sends a bounded state object and a typed `choice` question to
 `https://api.typesafe.ai/v1/systemone`. Jev can select only from actions that the
 local release state has already proven safe. It cannot bypass prerequisites,
 change release ownership, or execute arbitrary text. Missing credentials fail
-with an actionable error. Tests and explicitly offline environments may opt into
-the deterministic policy with `MAESTRO_DECISION_PROVIDER=deterministic`.
+with an actionable error. A successful receipt in `.ma/state/manager-runs.json`
+or the Maestro event log is required before reporting that Jev was used. Tests
+and explicitly offline environments may opt into the deterministic policy with
+`MAESTRO_DECISION_PROVIDER=deterministic`.
 
 ## Real usage path
 
