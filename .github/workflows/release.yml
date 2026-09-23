@@ -32,6 +32,11 @@ jobs:
             exit 1
           }
 
+      - name: Install Codex CLI for live acceptance
+        run: |
+          npm install --global @openai/codex@latest
+          codex --version
+
       - name: Run real live regression
         env:
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
