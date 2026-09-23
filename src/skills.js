@@ -109,7 +109,7 @@ const skillNames = [
 const maestroWorkflowSequence = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
 const workflowTemplates = {
   "maestro.skill.md":
-    '# `$maestro`\n\nThe autonomous Meta-Architect workflow. Inspect runtime state, ask the configured decision provider to choose one eligible action when the local runtime is actually running, execute it through the owning lane, and persist the decision and evidence. Loading this skill does not itself call TypeSafe or Jev; report provider use only when `.ma/state/manager-runs.json` or the Maestro event log contains a successful `provider: \\"jev\\"` decision receipt. Users do not need to select the next lane manually.\n',
+    "# `$maestro`\n\nThe autonomous Meta-Architect workflow. Inspect runtime state, ask the configured Jev decision provider to choose one eligible action, execute it through the owning lane, and persist the decision and evidence. Users do not need to select the next lane manually.\n",
   "arch.skill.md":
     "# `$arch`\n\nProduces blueprint architecture, stack rationale, subsystem design, and tradeoffs.\n",
   "sage.skill.md":
@@ -1941,8 +1941,7 @@ async function runMaestroUnlocked({
     await appendMaestroEvent({
       record_type: "decision:failed",
       gate: "$maestro",
-      requestedProvider: process.env.MAESTRO_DECISION_PROVIDER ?? "jev",
-      provider_used: false,
+      provider: process.env.MAESTRO_DECISION_PROVIDER ?? "jev",
       error: error.message,
     });
     throw error;
