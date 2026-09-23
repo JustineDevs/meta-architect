@@ -64,6 +64,9 @@ jobs:
       - name: Smoke test Linux native packages
         run: npm run linux:packages:smoke
 
+      - name: Remove plugin build staging output
+        run: rm -rf dist/vendor-plugins
+
       - name: Generate release checksums and SBOM
         run: npm run release:assets:generate
 
