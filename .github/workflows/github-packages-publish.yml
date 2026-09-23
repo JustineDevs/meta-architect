@@ -38,10 +38,12 @@ jobs:
 
       - name: Configure package registries
         run: |
-          cat > .npmrc <<'EOF'
+          npmrc="${RUNNER_TEMP}/meta-architect-github-packages.npmrc"
+          cat > "$npmrc" <<'EOF'
           registry=https://registry.npmjs.org/
           //npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
           EOF
+          echo "NPM_CONFIG_USERCONFIG=$npmrc" >> "$GITHUB_ENV"
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
 
@@ -62,3 +64,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
         run: npm view @jstn-sdk/ma version --registry=https://npm.pkg.github.com/
+
+      - name: Remove temporary npm auth config
+        if: always()
+        run: rm -f -- "${NPM_CONFIG_USERCONFIG:-}" "${RUNNER_TEMP}/meta-architect-github-packages.npmrc"
