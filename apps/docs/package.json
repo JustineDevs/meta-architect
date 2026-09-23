@@ -12,6 +12,7 @@
     "lint": "biome check ."
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "fumadocs-core": "^16.15.9",
     "fumadocs-mdx": "^15.4.0",
     "fumadocs-ui": "^16.15.9",
