@@ -53,7 +53,10 @@ jobs:
 
             const matchingChecks = checkRuns.filter((run) => {
               const slug = run.app?.slug?.toLowerCase();
-              return slug === appSlug;
+              return slug === appSlug &&
+                run.head_sha === headSha &&
+                run.status === "completed" &&
+                run.conclusion === "success";
             });
 
             const issueComments = await github.paginate(github.rest.issues.listComments, {
@@ -72,12 +75,12 @@ jobs:
 
             const matchingComments = issueComments.filter((comment) => {
               const login = comment.user?.login?.toLowerCase();
-              return login && expectedLogins.has(login);
+              return login && expectedLogins.has(login) && comment.body?.includes(headSha);
             });
 
             const matchingReviews = reviewEvents.filter((review) => {
               const login = review.user?.login?.toLowerCase();
-              return login && expectedLogins.has(login);
+              return login && expectedLogins.has(login) && review.commit_id === headSha;
             });
 
             const matched = matchingChecks.length > 0 || matchingComments.length > 0 || matchingReviews.length > 0;

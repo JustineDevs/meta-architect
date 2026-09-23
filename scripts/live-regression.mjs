@@ -106,6 +106,7 @@ async function main() {
   const workspace = createTestNamespace("meta-architect-live-regression");
   const stages = [];
   const startedAt = new Date().toISOString();
+  let workspaceRemoved = false;
   const env = {
     MAESTRO_DECISION_PROVIDER: "jev",
     TYPESAFE_TIMEOUT_MS: process.env.TYPESAFE_TIMEOUT_MS ?? "15000",
@@ -243,6 +244,8 @@ async function main() {
         retained: false,
       },
     };
+    await removeTestNamespace(workspace);
+    workspaceRemoved = true;
     await fs.mkdir(path.dirname(output), { recursive: true });
     await fs.writeFile(output, `${JSON.stringify(evidence, null, 2)}\n`);
     console.log(
@@ -264,7 +267,7 @@ async function main() {
           completedAt: new Date().toISOString(),
           error: redact(error.message, workspace),
           stages,
-          workspace: { isolated: true, retained: false },
+          workspace: { isolated: true, retained: !workspaceRemoved },
         },
         null,
         2,
@@ -272,7 +275,9 @@ async function main() {
     );
     throw error;
   } finally {
-    await removeTestNamespace(workspace);
+    if (!workspaceRemoved) {
+      await removeTestNamespace(workspace);
+    }
   }
 }
 
