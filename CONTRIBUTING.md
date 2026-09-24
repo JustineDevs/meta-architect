@@ -64,8 +64,19 @@ npm run plugin:sync
 npm run plugin:verify
 npm run check
 npm test
+npm run test:coverage
 npm run pack:inspect
 ```
+
+`npm ci` is the reproducible install command. `npm test` runs the public Node
+test suite, `npm run test:coverage` measures the suite with Node's built-in
+coverage reporter, and `npm run check` runs Biome lint and formatting validation.
+Release-sensitive changes must also pass `npm run release:check`, which covers
+metadata, manifests, plugin mirrors, packaging, checks, and package size.
+
+The repository does not claim a fixed test-coverage percentage until a current
+repeatable measurement is generated. Do not replace a missing measurement with
+an estimate.
 
 ## Contribution types
 
@@ -226,6 +237,10 @@ Every PR should include:
 - whether docs were updated
 - whether release behavior changed
 
+New behavior should include a focused regression test or a documented reason
+why a test is not applicable. Pull requests are reviewed through the required
+CI and security workflows before integration.
+
 If a PR changes skills, release automation, package metadata, or `.github/workflows`, it should be treated as release-sensitive.
 
 ### Base branch policy
@@ -300,3 +315,11 @@ And verify:
 ## Release rule
 
 Meta-Architect is production-oriented. If a change makes the repository less inspectable, less reproducible, or less strict about gates and evidence, it should not be merged until that regression is corrected.
+
+## Reporting
+
+Use the [bug report template](./.github/ISSUE_TEMPLATE/bug_report.yml) for
+reproducible defects, the [feature request template](./.github/ISSUE_TEMPLATE/feature_request.yml)
+for proposals, and the [release regression template](./.github/ISSUE_TEMPLATE/release_regression.yml)
+for packaging or publication failures. Report security vulnerabilities privately
+through [SECURITY.md](./SECURITY.md), not through a public issue.
