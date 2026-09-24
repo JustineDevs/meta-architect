@@ -81,6 +81,7 @@
     "prepare": "husky",
     "prepack": "node ./scripts/prepack.js",
     "test": "MAESTRO_DECISION_PROVIDER=deterministic node --test --test-concurrency=1 test/*.test.js",
+    "test:coverage": "MAESTRO_DECISION_PROVIDER=deterministic node --test --test-concurrency=1 --experimental-test-coverage test/*.test.js",
     "test:disk": "node --test --test-concurrency=1 test/test-fixtures.test.js",
     "fixtures:cleanup": "bash ./scripts/cleanup-test-fixtures.sh",
     "demo:smoke": "node ./scripts/demo-smoke.js",

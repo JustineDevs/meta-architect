@@ -20,7 +20,7 @@
       <img src="https://img.shields.io/badge/GitHub%20Sponsors-JustineDevs-1f6feb?style=flat-square&logo=githubsponsors&logoColor=white" alt="GitHub Sponsors">
     </a>
   </p>
-  <p><a href="#quick-start">Quick Start</a> · <a href="./DEMO.md">Demo</a> · <a href="./COVERAGE.md">Verified Coverage</a> · <a href="#how-do-i-contribute">Contributing</a> · <a href="https://github.com/JustineDevs/meta-architect/issues">Issues</a></p>
+  <p><a href="#quick-start">Quick Start</a> · <a href="./DEMO.md">Demo</a> · <a href="./COVERAGE.md">Verified Coverage</a> · <a href="./SECURITY.md">Security</a> · <a href="#how-do-i-contribute">Contributing</a> · <a href="https://github.com/JustineDevs/meta-architect/issues">Issues</a></p>
 </div>
 
 > [!NOTE]
@@ -128,6 +128,9 @@ Do not overwrite user-owned files, modify unrelated configuration, or claim a ho
 ```
 
 More install options: [docs/getting-started.md](./docs/getting-started.md)
+
+Security reporting and OpenSSF evidence: [SECURITY.md](./SECURITY.md) and the
+[OpenSSF Best Practices evidence matrix](./docs/ossf-best-practices.md).
 
 Uninstall Meta-Architect: `npm uninstall -g @jstn-sdk/ma`
 Uninstall Meta-Architect and Codex: `npm uninstall -g @jstn-sdk/ma @openai/codex`
@@ -269,8 +272,11 @@ Already using a spec tool? Keep it. Their specs become inputs. MA's gates verify
 1. Open an issue before a PR. It saves rework.
 2. Start here: [issues labeled `triage`](https://github.com/JustineDevs/meta-architect/issues)
 3. Branch from `dev`. `main` is protected and release-facing.
-4. Run `npm test` before you submit. Follow [AGENTS.md](./AGENTS.md).
+4. Run `npm test` before you submit. Follow [CONTRIBUTING.md](./CONTRIBUTING.md).
 5. AI-assisted PRs welcome. Explain every line you submit or expect a close.
+
+See the [Code of Conduct](./CODE_OF_CONDUCT.md) and [security policy](./SECURITY.md)
+for participation and private vulnerability reporting.
 
 ## Learn more
 
@@ -278,6 +284,7 @@ Already using a spec tool? Keep it. Their specs become inputs. MA's gates verify
 - [Skills Reference](./docs/skills.md)
 - [Demo](./DEMO.md)
 - [Coverage Matrix](./COVERAGE.md): the proof behind every claim on this page
+- [OpenSSF Best Practices evidence](./docs/ossf-best-practices.md): criterion-to-file and workflow mapping
 - [Release Spec](./docs/release-spec.md)
 - [Disk-Bounded Test and Review Runs](./docs/disk-optimization.md)
 - [MCP Setup](./docs/mcp-setup.md)

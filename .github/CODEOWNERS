@@ -1,0 +1,9 @@
+# Default review ownership for the repository.
+* @JustineDevs
+
+# Release and security surfaces require maintainer review.
+/.github/ @JustineDevs
+/SECURITY.md @JustineDevs
+/package.json @JustineDevs
+/package-lock.json @JustineDevs
+/scripts/ @JustineDevs

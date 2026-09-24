@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Check temporary disk capacity
         run: |
           usage=$(df -P /tmp | awk 'NR == 2 {gsub("%", "", $5); print $5}')
@@ -60,6 +63,9 @@ jobs:
 
       - name: Run test suite
         run: npm test
+
+      - name: Measure test coverage
+        run: npm run test:coverage
 
       - name: Report and prune temporary fixtures
         if: always()
