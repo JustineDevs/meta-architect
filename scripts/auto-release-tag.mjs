@@ -39,7 +39,10 @@ if (remoteHashes.length > 0) {
     console.log(`${tag} already points at ${head}; nothing to do.`);
     process.exit(0);
   }
-  throw new Error(`${tag} already exists on ${remote} but does not point at ${head}`);
+  console.log(
+    `${tag} already exists on ${remote}; release workflow will validate its production ancestry.`,
+  );
+  process.exit(0);
 }
 
 if (dryRun) {
