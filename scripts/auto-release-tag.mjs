@@ -24,6 +24,9 @@ if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
 const tag = `v${version}`;
 const head = run("git", ["rev-parse", "HEAD"]);
 const remote = process.env.RELEASE_REMOTE ?? "origin";
+const taggerName = process.env.RELEASE_TAGGER_NAME ?? "github-actions[bot]";
+const taggerEmail =
+  process.env.RELEASE_TAGGER_EMAIL ?? "41898282+github-actions[bot]@users.noreply.github.com";
 const dryRun = hasFlag("--dry-run") || process.env.RELEASE_DRY_RUN === "1";
 const remoteRefs = run("git", ["ls-remote", remote, `refs/tags/${tag}`, `refs/tags/${tag}^{}`]);
 const remoteHashes = remoteRefs
@@ -44,7 +47,18 @@ if (dryRun) {
   process.exit(0);
 }
 
-run("git", ["tag", "-a", tag, head, "-m", `Release ${tag}`]);
+run("git", [
+  "-c",
+  `user.name=${taggerName}`,
+  "-c",
+  `user.email=${taggerEmail}`,
+  "tag",
+  "-a",
+  tag,
+  head,
+  "-m",
+  `Release ${tag}`,
+]);
 try {
   run("git", ["push", remote, tag]);
 } catch (error) {
