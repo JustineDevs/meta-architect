@@ -1,0 +1,33 @@
+name: Auto Tag Production Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-tag-production-release
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Tag the version from main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Create or verify the release tag
+        env:
+          RELEASE_REMOTE: origin
+        run: node ./scripts/auto-release-tag.mjs
