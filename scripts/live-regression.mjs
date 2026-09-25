@@ -110,12 +110,15 @@ async function main() {
   const stages = [];
   const startedAt = new Date().toISOString();
   let workspaceRemoved = false;
+  const codexHome = path.join(workspace, "codex-home");
   const env = {
     MAESTRO_DECISION_PROVIDER: "jev",
     TYPESAFE_TIMEOUT_MS: process.env.TYPESAFE_TIMEOUT_MS ?? "15000",
+    CODEX_HOME: codexHome,
   };
 
   try {
+    await fs.mkdir(codexHome, { recursive: true, mode: 0o700 });
     await fs.writeFile(
       path.join(workspace, "package.json"),
       `${JSON.stringify({ name: "ma-live-regression", version: "1.0.0", type: "module" }, null, 2)}\n`,
