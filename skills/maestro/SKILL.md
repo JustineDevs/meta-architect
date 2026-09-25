@@ -11,24 +11,31 @@ Use this skill inside Codex as the singular Meta-Architect umbrella surface and 
 
 ## Workflow
 
-1. Inspect the current gate state, active evidence, and current blockers.
-2. Choose the smallest safe next step and decide whether the next move is:
+1. Triage the task as P0, P1, P2, or P3 and record the reason, risk, definition of done, and rollback boundary before mutation.
+2. Understand the current gate state, active evidence, repository boundaries, and blockers.
+3. Design the smallest safe change, then trim unrelated scope before selecting an owner.
+4. Choose the smallest safe next step and decide whether the next move is:
    - a direct advisory result
    - a helper-skill handoff
    - a gated-lane handoff
-3. When the issue is alignment, diagnosis, regression-first execution, or final-pass cleanup, hand work to the publishable but non-gating helper skills:
+5. When the issue is alignment, diagnosis, regression-first execution, or final-pass cleanup, hand work to the publishable but non-gating helper skills:
    - `$align`
    - `$diagnose`
    - `$tdd`
    - `$cleanup`
-4. When the user wants the full Meta-Architect workflow, manage the fixed gated sequence without inventing new gates or skipping lane ownership:
+6. When the user wants the full Meta-Architect workflow, manage the fixed gated sequence without inventing new gates or skipping lane ownership:
    - `$arch`
    - `$sage`
    - `$flow`
    - `$vet`
    - `$vibe`
    - `$build`
-5. End with a clear result shape: decision, evidence, blockers, the lane assignment if any, and the exact next trigger.
+7. Run guardrails before completion, then use a contained rollout or preview with monitoring and rollback evidence where the task changes an external or production surface.
+8. End with a clear result shape: priority, decision, evidence, blockers, the lane assignment if any, rollout state, and the exact next trigger.
+
+## Senior execution contract
+
+Maestro is responsible for deciding what it is doing, not merely suggesting the next lane. It must preserve the P0-P3 classification, execution plan, definition of done, verification evidence, and rollback boundary in durable task state. It may continue safe local work autonomously, but it must stop for credentials, destructive actions, external mutations, production promotion, explicit approval gates, unavailable required providers, or missing evidence.
 
 ## Autonomous task loop
 
@@ -91,3 +98,44 @@ verified; do not fill the gap with an assumption.
 - Prefer official docs, upstream repos, and repo-configured GitMCP sources when validating tooling choices.
 - For release gates and branch policy, read `references/core-release-rules.md`.
 - For the native helper-family contract and pattern classification, read `references/native-ingest-map.md`.
+# `$maestro`
+
+Maestro is the autonomous decision and verification loop. It does not replace or copy user skills. At intake it discovers project-local and user-global skill surfaces, ranks them against the task, and writes `.ma/context/skill-composition-plan.json`.
+
+## Capability brokerage
+
+- This brokerage is a required `$maestro` intake step. Every manager run must
+  persist its `capabilityPlan` in `.ma/state/manager-runs.json` and the full
+  plan in `.ma/context/skill-composition-plan.json` before lane selection.
+- A task goal is enough; users do not need to name skills. Direct matches are
+  preferred, then a bounded `ambient_fallback` selects readable project and
+  user skills when the goal has no direct domain match. An empty goal selects
+  no specialist capability and must be clarified by the task contract.
+- Use the **Chai Discovery** cycle for capability selection: collect every readable
+  project and user skill surface, classify each capability, rank it against the
+  task intent, compose nested references in dependency order, and enforce the
+  read-only boundary before dispatch. This is a Meta-Architect workflow name;
+  it is not an external provider or dependency.
+- Prefer project-local skills over global skills when the capability name is the same.
+- Select only task-relevant skills; unrelated installed skills remain untouched.
+- Compose referenced skills in dependency order when the host can load them.
+- Before lane selection, load selected `SKILL.md` instructions in dependency order
+  into a bounded, read-only execution packet and persist its receipt under
+  `.ma/tasks/skill-execution-receipts/`.
+- Treat that loaded instruction context as workflow input, never as build evidence.
+- Do not mutate, copy, or claim ownership of third-party skill sources.
+- Claim a skill was used only when the vendor surface returns a host receipt.
+
+## Feedback loop
+
+- Apply **Kaizen** to every bounded attempt: plan the capability set, run the
+  owning lane, check fresh runtime evidence, and act on the failure by producing
+  a rerouted plan. The cycle is persisted in `.ma/learning/skill-kaizen.ndjson`;
+  it can improve the next attempt but cannot rewrite user skills, release state,
+  source evidence, or security boundaries.
+
+After each implementation step, use fresh tests, type checks, static checks, and runtime evidence. If verification fails, preserve the failure receipt, reroute the next bounded attempt toward the matching security, test, architecture, performance, or debugging capability, and retry only within the task contract. A passing generation without fresh execution evidence is not complete.
+
+The broker and loader are the MA-owned instruction execution boundary. They do not
+pretend that a vendor-native command was invoked: a vendor host receipt is still
+required for a native execution claim.

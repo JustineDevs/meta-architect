@@ -110,14 +110,38 @@ Use the plugin bundle when you need installable skill metadata or local marketpl
 ## Current user flow
 
 For the supported end-to-end workflow, install the package, configure the
-provider key in the shell or secret manager, initialize the project, and give
-Maestro one goal. The user does not manually select the gated lanes.
+provider once for your user, initialize the project, and give Maestro one
+goal. The user does not manually select the gated lanes.
 
 ```bash
 npm i -g @jstn-sdk/ma@latest
-export TYPESAFE_API_KEY="jv_live_your_key"
+ma auth typesafe
+# Enter the key once when prompted.
+# It is stored owner-only at ~/.config/meta-architect/provider.env.
 ma setup
 ma --madmax --high
+```
+
+Check the configured provider without revealing the key:
+
+```bash
+ma auth typesafe --status
+```
+
+For project-local dotenv configuration, create `.env.local` in the project
+root:
+
+```dotenv
+TYPESAFE_API_KEY=jv_live_your_key
+TYPESAFE_DEFAULT_MODEL=jev-latest
+```
+
+Meta-Architect reads `.env.local`, then `.env`, then the global credential
+file. Explicit environment variables take precedence. Keep dotenv files out
+of version control. To remove the saved user credential, run:
+
+```bash
+ma auth typesafe --clear
 ```
 
 ```text
@@ -126,8 +150,8 @@ $maestro Build a multi-tenant analytics API with authentication and tests.
 
 Maestro asks Jev for the next eligible action, runs the owning lane, verifies
 the result, records receipts, and continues until the task is complete or an
-approval boundary is reached. `TYPESAFE_API_KEY` is never written into the
-project.
+approval boundary is reached. The credential is never written into the
+project, `.ma/`, receipts, logs, or generated context.
 
 For a real-provider release check, run:
 

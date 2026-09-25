@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-architect.dev/schemas/skill-execution-reference.schema.json",
+  "title": "Meta-Architect Skill Execution Reference",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordType",
+    "status",
+    "receiptPath",
+    "order",
+    "instructionCount",
+    "sourceMutation",
+    "thirdPartyCommandExecution",
+    "hostReceiptRequiredForVendorClaim"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "0.1.0" },
+    "recordType": { "const": "skill_execution_receipt" },
+    "status": { "enum": ["loaded", "blocked"] },
+    "receiptPath": { "type": "string", "minLength": 1 },
+    "order": { "type": "array", "items": { "type": "string" } },
+    "instructionCount": { "type": "integer", "minimum": 0 },
+    "sourceMutation": { "const": false },
+    "thirdPartyCommandExecution": { "const": false },
+    "hostReceiptRequiredForVendorClaim": { "const": true }
+  }
+}

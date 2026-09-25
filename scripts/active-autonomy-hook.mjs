@@ -6,6 +6,7 @@ import {
   createDefaultActiveAutonomyCore,
   detectPassivePermissionHandoff,
 } from "../src/runtime/active-autonomy-core.js";
+import { classifyEngineeringPriority } from "../src/runtime/engineering-policy.js";
 import { resolveHookProfile } from "../src/runtime/hook-profiles.js";
 import { maskSensitiveText } from "../src/runtime/redaction-gateway.js";
 
@@ -157,6 +158,11 @@ const ignoredArtifactClasses = [
 ];
 const assistantText = extractAssistantText(payload);
 const userText = extractUserText(payload);
+const triage = classifyEngineeringPriority({
+  goal: payload.goal || userText || assistantText,
+  requestedPriority: payload.priority || payload.priorityClass || payload.triage?.priority,
+  risk: payload.risk || "medium",
+});
 const blocked =
   profile.block && detectPassivePermissionHandoff(assistantText, createDefaultActiveAutonomyCore());
 
@@ -193,6 +199,7 @@ const receiptPath = blocked
         : "false_positive_candidate",
       blocked: true,
       reason: result.reason,
+      triage,
       recommendedAction: "Rewrite the response to continue the safe branch and verify it.",
       suppressionPolicy: "No suppression without an explicit rationale.",
       createdAt: new Date().toISOString(),
@@ -209,6 +216,7 @@ if (!profile.readOnly)
     event: payload.type || payload.event || "unknown",
     decision: result.decision,
     stopReason: result.stopReason,
+    triage,
     assistantPreview: assistantText,
     userPreview: userText,
   });
@@ -221,6 +229,7 @@ process.stdout.write(
     ignoredArtifactClasses: broadScan ? [] : ignoredArtifactClasses,
     profile: profile.id,
     readOnly: profile.readOnly,
+    triage,
     ...(receiptPath ? { receiptPath } : {}),
   })}\n`,
 );

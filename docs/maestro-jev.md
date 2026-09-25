@@ -12,12 +12,19 @@ and must not be inferred from an API key, package, or prompt.
 
 ## Runtime contract
 
-Live routing requires a TypeSafe API key in the process environment:
+Live routing requires a TypeSafe API key. Configure it once for the current
+user:
 
 ```bash
-export TYPESAFE_API_KEY="jv_live_..."
+ma auth typesafe
 ma run '$maestro'
 ```
+
+The key is stored in the owner-only dotenv-compatible file
+`~/.config/meta-architect/provider.env`. Project `.env.local` and `.env` files
+are also supported. Precedence is explicit environment variables, `.env.local`,
+`.env`, then the global provider file. Use `ma auth typesafe --status` to check
+configuration without printing the key.
 
 Optional configuration:
 
@@ -57,10 +64,10 @@ MAESTRO_DECISION_PROVIDER=deterministic npm test
 This mode is not the live default and is not a substitute for validating a
 production Jev credential and endpoint.
 
-Run the real provider smoke test when `TYPESAFE_API_KEY` is available:
+Run the real provider smoke test after global or project dotenv configuration:
 
 ```bash
-TYPESAFE_API_KEY="$TYPESAFE_API_KEY" npm run test:maestro-live
+npm run test:maestro-live
 ```
 
 This performs one bounded Jev decision request and exits non-zero when the

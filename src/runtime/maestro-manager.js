@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { readJson, writeFileIfMissing, writeJson } from "../fs-utils.js";
 import { getRuntimeStatePath } from "../paths.js";
 import { getExpertLane } from "./expert-lanes.js";
+import { validateSkillCompositionPlan } from "./skill-capability-broker.js";
 
 const managerModes = new Set(["helper-only", "helper+gated", "team"]);
 const managerStates = new Set([
@@ -111,6 +112,10 @@ function normalizeRetry(retry = {}) {
   };
 }
 
+function normalizeCapabilityPlan(plan) {
+  return plan == null ? null : validateSkillCompositionPlan(plan);
+}
+
 function validateManagerRun(run) {
   if (!run || typeof run !== "object" || Array.isArray(run)) {
     throw new Error("Manager run must be an object");
@@ -125,6 +130,8 @@ function validateManagerRun(run) {
     throw new Error("Manager run requires triggeredBy");
   }
   run.taskId ??= null;
+  run.capabilityPlan ??= null;
+  run.capabilityPlan = normalizeCapabilityPlan(run.capabilityPlan);
   if (!(run.taskId === null || typeof run.taskId === "string")) {
     throw new Error("Manager run taskId must be null or a string");
   }
@@ -226,6 +233,7 @@ export function createManagerRun({
   pendingReview = null,
   retry = null,
   decision = null,
+  capabilityPlan = null,
 } = {}) {
   const now = new Date().toISOString();
   const normalizedDispatchPlan = normalizeDispatchPlan(dispatchPlan);
@@ -243,6 +251,7 @@ export function createManagerRun({
     pendingReview: normalizePendingReview(pendingReview),
     retry: normalizeRetry(retry),
     decision,
+    capabilityPlan: normalizeCapabilityPlan(capabilityPlan),
     startedAt: now,
     updatedAt: now,
     completedAt: null,

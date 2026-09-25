@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ma.jstn.site/schemas/engineering-policy.schema.json",
+  "title": "Meta-Architect Senior Engineering Policy",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "record_type",
+    "default",
+    "priorities",
+    "execution_blueprint",
+    "invariants"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "0.1.0" },
+    "record_type": { "const": "engineering_policy" },
+    "default": { "const": true },
+    "priorities": {
+      "type": "object",
+      "required": ["P0", "P1", "P2", "P3"],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^P[0-3]$": {
+          "type": "object",
+          "required": ["label", "description", "response"],
+          "properties": {
+            "label": { "type": "string" },
+            "description": { "type": "string" },
+            "response": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "execution_blueprint": {
+      "type": "array",
+      "const": ["understand", "design", "trim", "guardrails", "rollout"]
+    },
+    "invariants": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}

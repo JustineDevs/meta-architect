@@ -1,6 +1,9 @@
 import path from "node:path";
 import { ensureDir, readJson, writeJson } from "../fs-utils.js";
 import { getRuntimeSubsystemPath } from "../paths.js";
+import { createEngineeringPlan, validateEngineeringPlan } from "./engineering-policy.js";
+import { validateSkillCompositionPlan } from "./skill-capability-broker.js";
+import { validateSkillExecutionReference } from "./skill-execution.js";
 
 export const taskContractSchemaVersion = "0.1.0";
 
@@ -28,8 +31,15 @@ export function createTaskContract({
   stopCondition,
   persist = true,
   execution = null,
+  priority = null,
+  engineeringPlan = null,
+  skillPlan = null,
+  skillExecution = null,
 }) {
   if (!goal || !stopCondition) throw new Error("task contract requires goal and stopCondition");
+  const plan = engineeringPlan
+    ? validateEngineeringPlan(engineeringPlan)
+    : createEngineeringPlan({ goal, requestedPriority: priority, risk, verification });
   return validateTaskContract({
     schemaVersion: taskContractSchemaVersion,
     record_type: "task_contract",
@@ -42,6 +52,10 @@ export function createTaskContract({
     stop_condition: stopCondition,
     persist,
     execution: normalizeExecution(execution),
+    priority: plan.triage.priority,
+    engineering_plan: plan,
+    skill_plan: skillPlan,
+    skill_execution: skillExecution,
     created_at: new Date().toISOString(),
   });
 }
@@ -109,6 +123,17 @@ export function validateTaskContract(contract) {
   }
   if (!["low", "medium", "high"].includes(contract.risk))
     throw new Error(`Unsupported task contract risk: ${contract.risk}`);
+  if (contract.priority !== undefined && !/^P[0-3]$/.test(contract.priority))
+    throw new Error(`Unsupported task contract priority: ${contract.priority}`);
+  if (contract.engineering_plan !== undefined && contract.engineering_plan !== null)
+    validateEngineeringPlan(contract.engineering_plan);
+  if (contract.skill_plan !== undefined && contract.skill_plan !== null) {
+    if (typeof contract.skill_plan !== "object" || Array.isArray(contract.skill_plan))
+      throw new Error("task contract skill_plan must be an object or null");
+    validateSkillCompositionPlan(contract.skill_plan);
+  }
+  if (contract.skill_execution !== undefined && contract.skill_execution !== null)
+    validateSkillExecutionReference(contract.skill_execution);
   if (contract.execution !== null && contract.execution !== undefined) {
     const normalized = normalizeExecution(contract.execution);
     Object.assign(contract, { execution: normalized });

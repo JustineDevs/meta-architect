@@ -26,11 +26,11 @@ Each entry contains these required fields:
 | `test` | Regression or conformance test covering the behavior |
 | `live_runtime_proof` | What is proven locally and what still requires a real host |
 
-The current matrix contains **87 separate entries**:
+The current matrix contains **88 separate entries**:
 
 - 6 expert lanes: `arch`, `sage`, `flow`, `vet`, `vibe`, `build`
 - 5 support lanes: `align`, `diagnose`, `tdd`, `cleanup`, `maestro`
-- 21 runtime subsystems
+- 22 runtime subsystems
 - 55 vendor distribution surfaces
 
 The matrix deliberately records distribution proof separately from runtime proof. A vendor is only runtime-verified when its actual host command is installed, safely probed, and reported by `ma verify --agents-live`. Production evidence remains a separate release requirement.

@@ -94,6 +94,13 @@ export {
   validateCodeGraphRehearse,
 } from "./src/runtime/code-graph-rehearse.js";
 export {
+  codexCapabilityInventorySchemaVersion,
+  discoverCodexCapabilityInventory,
+  getCodexCapabilityInventoryPath,
+  persistCodexCapabilityInventory,
+  selectCodexCapabilitiesForTask,
+} from "./src/runtime/codex-capability-inventory.js";
+export {
   createContextEconomyPayload,
   createContextEconomyView,
   createDefaultContextEconomyCore,
@@ -119,6 +126,16 @@ export {
   loadCoreSourceIngest,
   validateCoreSourceIngest,
 } from "./src/runtime/core-source-ingest.js";
+export {
+  classifyEngineeringPriority,
+  createDefaultEngineeringPolicy,
+  createEngineeringPlan,
+  engineeringPolicySchemaVersion,
+  getEngineeringPolicyPath,
+  loadEngineeringPolicy,
+  seedEngineeringPolicyArtifacts,
+  validateEngineeringPlan,
+} from "./src/runtime/engineering-policy.js";
 export {
   createDefaultEnvironmentAwarenessCore,
   createDiscoveredEnvironmentAwarenessCore,
@@ -220,6 +237,14 @@ export {
   validatePromptStrategyCore,
 } from "./src/runtime/prompt-strategy-core.js";
 export {
+  clearProviderCredentials,
+  getProviderConfigStatus,
+  getProviderEnvPath,
+  parseProviderEnv,
+  resolveProviderEnvironment,
+  saveProviderCredentials,
+} from "./src/runtime/provider-config.js";
+export {
   createQuorumReviewReceipt,
   evaluateQuorumVotes,
   quorumDecisions,
@@ -245,6 +270,26 @@ export {
   loadSemanticRecordingCore,
   validateSemanticRecordingCore,
 } from "./src/runtime/semantic-recording-core.js";
+export {
+  brokerSkillsForTask,
+  chaiDiscoveryFramework,
+  createSkillCompositionPlan,
+  createSkillOutcomeFeedback,
+  getSkillCompositionPlanPath,
+  kaizenFramework,
+  persistSkillCompositionPlan,
+  recordSkillKaizenCycle,
+  rerouteSkillComposition,
+  selectBrokerCapabilities,
+  skillCompositionSchemaVersion,
+  validateSkillCompositionPlan,
+} from "./src/runtime/skill-capability-broker.js";
+export {
+  createSkillExecutionReference,
+  executeSkillCompositionPlan,
+  skillExecutionSchemaVersion,
+  validateSkillExecutionReference,
+} from "./src/runtime/skill-execution.js";
 export {
   agentRegistry,
   createDefaultSkillsRegistryExport,

@@ -1,8 +1,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { agentRegistry } from "../agents.js";
 import { ensureDir, readJson, writeFileIfMissing, writeJson } from "../fs-utils.js";
 import { getRepoRoot, getRuntimeSubsystemPath, packageRoot } from "../paths.js";
+import { parseSkillFrontmatter } from "../skill-frontmatter.js";
 
 export const environmentAwarenessSchemaVersion = "0.1.0";
 export const environmentCapabilityRecordType = "environment_capability";
@@ -71,12 +73,11 @@ const repoPluginSurfaces = [
 ];
 
 const globalSkillSurfaces = [
-  [".codex/skills", "host_native"],
-  [".agents/skills", "host_native"],
-  [".claude/skills", "host_native"],
-  [".cursor/skills", "host_native"],
-  [".config/opencode/skills", "host_native"],
-];
+  ".codex/skills",
+  ...new Set(
+    Object.values(agentRegistry).map((agent) => agent.globalSkillsDir.replace(/^~\//, "")),
+  ),
+].map((relativePath) => [relativePath, "host_native"]);
 
 function normalizeName(value) {
   return `${value ?? ""}`.trim();
@@ -138,6 +139,22 @@ async function discoverSkillSurface({ rootPath, sourcePath, sourceScope, owner, 
     const skillDir = path.join(rootPath, entry.name);
     const skillMdPath = path.join(skillDir, "SKILL.md");
     const hasSkillMd = await pathExists(skillMdPath);
+    let skillMetadata = null;
+    if (hasSkillMd) {
+      try {
+        const content = await fs.readFile(skillMdPath, "utf8");
+        const frontmatter = parseSkillFrontmatter(content);
+        const references = [...content.matchAll(/\$(?:[a-z][a-z0-9-]*)/gi)]
+          .map(([reference]) => reference.toLowerCase())
+          .filter((reference) => reference !== `$${entry.name}`);
+        skillMetadata = {
+          description: frontmatter.description,
+          references: [...new Set(references)].slice(0, 24),
+        };
+      } catch {
+        // An external skill remains discoverable even when its optional metadata is malformed.
+      }
+    }
     const ruleFiles =
       capabilityType === "rule"
         ? (await fs.readdir(skillDir).catch(() => [])).filter((file) => file.endsWith(".md"))
@@ -152,6 +169,7 @@ async function discoverSkillSurface({ rootPath, sourcePath, sourceScope, owner, 
         sourcePath: `${sourcePath}/${entry.name}`,
         entrypoint: hasSkillMd ? "SKILL.md" : ruleFiles[0],
         confidence: hasSkillMd ? "high" : "medium",
+        metadata: skillMetadata,
       }),
     );
   }
@@ -259,6 +277,7 @@ export function createEnvironmentCapability({
   sourcePath,
   entrypoint = null,
   confidence = "medium",
+  metadata = null,
 }) {
   if (!name || !capabilityType || !owner || !sourceScope || !sourcePath) {
     throw new Error("environment capability requires name, capabilityType, owner, scope, and path");
@@ -272,6 +291,7 @@ export function createEnvironmentCapability({
     source_path: sourcePath,
     entrypoint,
     confidence,
+    ...(metadata ? { metadata } : {}),
     records_as: "available_capability",
     never_records_as: "build_evidence",
     may_use_when: ["task_relevant", "lane_approved", "safe_read_only"],

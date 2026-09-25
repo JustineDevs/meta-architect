@@ -10,6 +10,8 @@ test("CLI exposes standard help, version, and command help", async () => {
   const help = await execFileAsync(process.execPath, [cli, "--help"], { encoding: "utf8" });
   assert.match(help.stdout, /Usage: ma <command>/);
   assert.match(help.stdout, /ma doctor \[--json\]/);
+  assert.match(help.stdout, /ma auth typesafe/);
+  assert.match(help.stdout, /ma codex inventory/);
 
   const version = await execFileAsync(process.execPath, [cli, "--version"], { encoding: "utf8" });
   assert.match(version.stdout.trim(), /^\d+\.\d+\.\d+/);

@@ -13,6 +13,10 @@ The primary trigger surfaces are:
 - `$vibe` — DX/UX review
 - `$build` — bounded implementation planning and build execution handoff
 
+## Senior execution default
+
+Every task is triaged as P0/P1/P2/P3 before mutation. The default execution contract is understand, design, trim, guardrails, and rollout. Durable task state must retain the priority, plan, definition of done, verification evidence, and rollback path. Do not treat a successful local command as completion without the required checks and receipts.
+
 ## Core rule
 
 No implementation should proceed as if it were approved unless the required architecture, evidence, logic, and security gates are satisfied.

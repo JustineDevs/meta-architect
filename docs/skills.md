@@ -10,11 +10,26 @@ The package does not ship a separate `$meta-architect` in-session skill. `$maest
 
 ## Jev decision core
 
-Live Maestro routing uses TypeSafe Jev as its typed decision provider. Configure the server-side key before running autonomous work:
+Live Maestro routing uses TypeSafe Jev as its typed decision provider. Configure
+the server-side key once for your user account:
 
 ```bash
-export TYPESAFE_API_KEY="jv_live_..."
-export TYPESAFE_DEFAULT_MODEL="jev-latest"
+ma auth typesafe
+ma auth typesafe --status
+```
+
+The credential is stored owner-only in
+`~/.config/meta-architect/provider.env` (or
+`$XDG_CONFIG_HOME/meta-architect/provider.env`). For project-local dotenv
+configuration, put `TYPESAFE_API_KEY` and optional provider settings in
+`.env.local`; `.env.local` overrides `.env`, and explicit process environment
+variables override both. Never commit either dotenv file.
+
+For CI or a single ephemeral command, an environment variable remains
+supported:
+
+```bash
+TYPESAFE_API_KEY="jv_live_..." npm run test:maestro-live
 ```
 
 Maestro sends a bounded state object and a typed `choice` question to
@@ -158,6 +173,30 @@ Every skill result must include:
 - `$build` -> `build_status`
 
 `$maestro` may dispatch a gated lane, but it does not own that lane's artifact or release-state field. Helper skills do not own release-state fields. They are publishable but non-gating, so they support the current lane and then hand work back to `$maestro` or the gated lane that owns the decision.
+
+## Discovery and improvement
+
+Maestro uses two explicit workflow contracts when it works with existing skills:
+
+- **Chai Discovery**: collect readable project-local and user-global skill surfaces,
+  classify their scope and type, rank them against the task, compose referenced
+  skills in dependency order, and record the host boundary. The resulting plan is
+  written to `.ma/context/skill-composition-plan.json`.
+- **Skill execution**: before Maestro dispatches a task, it reads every selected
+  `SKILL.md` in dependency order into a bounded, read-only instruction packet.
+  The operation writes a receipt under `.ma/tasks/skill-execution-receipts/` and
+  records the receipt reference in the task contract. `loaded` means the
+  instruction context was made available to the owning workflow; it does not
+  mean a vendor-native command was invoked.
+- **Kaizen**: after a lane runs, use fresh test, build, security, or runtime
+  evidence to check the result. A failed check produces a bounded reroute and a
+  new attempt; a completed attempt records the outcome without silently changing
+  policy. Cycles are appended to `.ma/learning/skill-kaizen.ndjson`.
+
+This lets a task combine unrelated installed skills when their descriptions or
+declared references make them relevant, while preserving ownership: Meta-Architect
+does not copy, modify, or claim third-party skills. A vendor host receipt is still
+required before a selected capability is reported as vendor-native execution.
 
 ## Operator note
 

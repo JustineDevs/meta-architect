@@ -194,6 +194,17 @@ const subsystemDefinitions = [
     "distribution proof only unless host probe passes",
   ],
   [
+    "skill-execution",
+    "$maestro",
+    ["selected skill composition plan", "local/global SKILL.md surfaces"],
+    ["ordered instruction context", "skill execution receipt"],
+    "read-only skill sources; `.ma/tasks/skill-execution-receipts`",
+    "skill execution receipt",
+    "src/runtime/skill-execution.js",
+    "test/skill-capability-broker.test.js",
+    "instruction loading is proven; vendor-native execution still requires a host receipt",
+  ],
+  [
     "plugin-broker",
     "$maestro",
     ["plugin manifest and installed hosts"],

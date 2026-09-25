@@ -71,6 +71,21 @@ export function createDefaultActiveAutonomyCore() {
       ],
       terminal_outcomes: ["finished", "blocked", "failed", "cancelled", "askuserQuestion"],
     },
+    senior_engineering_contract: {
+      triage_levels: ["P0", "P1", "P2", "P3"],
+      required_before_mutation: ["understand", "design", "trim"],
+      required_before_completion: ["guardrails", "rollout"],
+      default_definition_of_done: [
+        "changed behavior is implemented or a no-change reason is recorded",
+        "focused verification evidence is fresh",
+        "known risks and rollback path are recorded",
+      ],
+      rollout_rules: [
+        "monitor before promotion",
+        "external mutation requires approval",
+        "P0 work requires containment or rollback evidence",
+      ],
+    },
     runtime_enforcement: {
       hook_layer: "active_autonomy_runtime",
       stall_patterns: [
@@ -143,6 +158,9 @@ export function validateActiveAutonomyCore(value) {
     !value.completion_loop_contract?.completion_requires?.includes("fresh_verification_evidence")
   ) {
     throw new Error("active autonomy core requires fresh verification evidence");
+  }
+  if (!value.senior_engineering_contract?.triage_levels?.includes("P0")) {
+    throw new Error("active autonomy core requires senior engineering triage levels");
   }
   if (JSON.stringify(value).includes(".omx")) {
     throw new Error("active autonomy core must not expose OMX runtime paths");

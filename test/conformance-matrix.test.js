@@ -10,12 +10,12 @@ test("conformance matrix lists every lane, subsystem, and vendor surface separat
   assert.deepEqual(matrix.counts, {
     expert_lanes: 6,
     support_lanes: 5,
-    subsystems: 21,
+    subsystems: 22,
     vendor_surfaces: 55,
-    total: 87,
+    total: 88,
   });
   assert.equal(matrix.policy.distribution_does_not_imply_runtime, true);
-  assert.equal(matrix.entries.length, 87);
+  assert.equal(matrix.entries.length, 88);
   for (const entry of matrix.entries) {
     assert.ok(entry.owner);
     assert.ok(entry.inputs.length > 0);
