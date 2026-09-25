@@ -143,6 +143,25 @@ test("Jev routing sends typed choices and rejects choices outside the safe actio
   );
 });
 
+test("Jev routing selects the built-in model when only the credential is configured", async () => {
+  let request;
+  await decideMaestroLane({
+    managerAction,
+    env: { TYPESAFE_API_KEY: "jv_live_test" },
+    fetchImpl: async (_url, options) => {
+      request = JSON.parse(options.body);
+      return new Response(
+        JSON.stringify({
+          model: "jev-latest",
+          answers: { maestro_lane: { type: "choice", choice: "$arch" } },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    },
+  });
+  assert.equal(request.model, "jev-latest");
+});
+
 test("Jev routing loads a project dotenv credential without process exports", async (t) => {
   const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "ma-jev-dotenv-"));
   t.after(() => fs.rm(cwd, { recursive: true, force: true }));

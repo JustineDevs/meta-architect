@@ -133,12 +133,12 @@ root:
 
 ```dotenv
 TYPESAFE_API_KEY=jv_live_your_key
-TYPESAFE_DEFAULT_MODEL=jev-latest
 ```
 
 Meta-Architect reads `.env.local`, then `.env`, then the global credential
-file. Explicit environment variables take precedence. Keep dotenv files out
-of version control. To remove the saved user credential, run:
+file. Explicit environment variables take precedence. The `jev-latest` model
+is selected automatically, so no model setting is required. Keep dotenv files
+out of version control. To remove the saved user credential, run:
 
 ```bash
 ma auth typesafe --clear

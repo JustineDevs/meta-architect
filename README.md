@@ -49,12 +49,12 @@ For a project-local dotenv setup, create `.env.local` in the project root:
 
 ```dotenv
 TYPESAFE_API_KEY=jv_live_your_key
-TYPESAFE_DEFAULT_MODEL=jev-latest
 ```
 
 Keep `.env.local` out of version control. Meta-Architect reads `.env.local`,
 then `.env`, then the global credential file; explicit environment variables
-still take precedence. Check the resolved source without revealing the key:
+still take precedence. The default `jev-latest` model is selected automatically;
+no model setting is required. Check the resolved source without revealing the key:
 
 ```bash
 ma auth typesafe --status

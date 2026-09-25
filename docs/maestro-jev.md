@@ -26,7 +26,8 @@ are also supported. Precedence is explicit environment variables, `.env.local`,
 `.env`, then the global provider file. Use `ma auth typesafe --status` to check
 configuration without printing the key.
 
-Optional configuration:
+The model is selected automatically as `jev-latest`. No model configuration is
+required. Advanced deployments may override the endpoint, model, or timeout:
 
 ```bash
 export TYPESAFE_DEFAULT_MODEL="jev-latest"
