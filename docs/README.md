@@ -22,6 +22,7 @@ Meta-Architect documentation is organized by operator task.
 ## Packaging and installation
 
 - [Skills Publishing](./skills-publishing.md)
+- [ChatGPT Desktop and Work Integration](./chatgpt-integration.md)
 - published helper-skill and plugin-mirror expectations live in Skills Publishing
 - Linux-native distro package expectations live in the Release Spec and release-readiness docs
 - [MCP Setup](./mcp-setup.md)

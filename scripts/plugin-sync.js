@@ -25,14 +25,15 @@ async function copyDir(src, dest) {
     if (entry.isDirectory()) {
       await copyDir(srcPath, destPath);
     } else {
+      const stat = await fs.stat(srcPath);
       await fs.copyFile(srcPath, destPath);
-      await fs.chmod(destPath, 0o644);
+      await fs.chmod(destPath, stat.mode & 0o777);
     }
   }
 }
 
 async function linkOrCopyDir(src, dest) {
-  if (process.env.MA_PLUGIN_SYNC_MODE !== "copy") {
+  if (process.env.MA_PLUGIN_SYNC_MODE === "symlink") {
     try {
       await fs.symlink(path.relative(path.dirname(dest), src), dest, "dir");
       return "symlink";

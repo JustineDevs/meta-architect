@@ -11,6 +11,7 @@ const packageVersion = require("../package.json").version;
 
 const targets = [
   "codex",
+  "chatgpt-desktop",
   "claude-code",
   "cursor",
   "antigravity",
@@ -38,6 +39,7 @@ test("builds native or portable publish artifacts for every supported host", asy
     }
     for (const skillsPath of [
       ["codex", "skills"],
+      ["chatgpt-desktop", "skills"],
       ["claude-code", "plugins", "meta-architect", "skills"],
       ["cursor", "plugins", "meta-architect", "skills"],
       ["antigravity", "skills"],
@@ -54,6 +56,8 @@ test("builds native or portable publish artifacts for every supported host", asy
     await fs.access(
       path.join(root, "claude-code", "plugins", "meta-architect", ".claude-plugin", "plugin.json"),
     );
+    await fs.access(path.join(root, "codex", "plugin.json"));
+    await fs.access(path.join(root, "chatgpt-desktop", "plugin.json"));
     await fs.access(
       path.join(root, "cursor", "plugins", "meta-architect", ".cursor-plugin", "plugin.json"),
     );

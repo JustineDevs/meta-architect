@@ -131,6 +131,7 @@ function validateManagerRun(run) {
   }
   run.taskId ??= null;
   run.capabilityPlan ??= null;
+  run.decision ??= null;
   run.capabilityPlan = normalizeCapabilityPlan(run.capabilityPlan);
   if (!(run.taskId === null || typeof run.taskId === "string")) {
     throw new Error("Manager run taskId must be null or a string");

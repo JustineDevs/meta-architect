@@ -1263,6 +1263,9 @@ export async function repairRuntimeScratchpadArtifacts(artifactLabels = []) {
       case "context.universalPluginBrokerCore":
         await writeJson(getUniversalPluginBrokerCorePath(), defaultUniversalPluginBrokerCore);
         break;
+      case "context.obsidianBridge":
+        await writeJson(getObsidianBridgePath(), defaultObsidianBridge);
+        break;
       case "context.obsidianVaultOperations":
         await writeJson(getObsidianVaultOperationsPath(), defaultObsidianVaultOperations);
         break;

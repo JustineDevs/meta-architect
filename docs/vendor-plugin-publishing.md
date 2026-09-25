@@ -16,16 +16,21 @@ Pi consumes the existing `@jstn-sdk/ma` package; no second npm package is create
 
 The builder produces one directory per host. It copies the existing lane skills and adds only the host manifest, rules, context file, or package metadata required by that host. It never creates a second workflow or changes the canonical skills.
 
-ChatGPT is not included as a generated local plugin target. ChatGPT
-publication requires a deployed HTTPS MCP backend, authentication, privacy
-materials, and OpenAI review. See [ChatGPT Integration](./chatgpt-integration.md)
-for the exact readiness contract.
+ChatGPT Desktop is included as a generated portable plugin target. The target
+contains a root `plugin.json` and `skills/` directory and is discoverable
+through the repository marketplace. It provides the skills-only instruction
+surface; it does not turn the local `ma` runtime into a hosted service.
+
+Hosted ChatGPT Work execution still requires a separately deployed HTTPS MCP
+app, authentication, privacy materials, and workspace approval. See
+[ChatGPT Integration](./chatgpt-integration.md) for the exact boundary.
 
 ## Outputs
 
 | Target | Output | Mode |
 | --- | --- | --- |
 | `codex` | `.codex-plugin/`, `skills/`, app and MCP metadata | native |
+| `chatgpt-desktop` | portable `plugin.json` and `skills/` bundle | native |
 | `claude-code` | Claude marketplace plus plugin source | native |
 | `cursor` | Cursor marketplace plus plugin source and rules | native |
 | `antigravity` | `plugin.json`, `skills/`, `rules/` | native |
@@ -43,6 +48,7 @@ Portable means the generated bundle is usable as project context and skills, but
 
 ```bash
 npm test -- test/plugin-build.test.js
+npm run plugin:validate
 npm run plugin:verify
 ```
 

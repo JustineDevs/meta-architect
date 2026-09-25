@@ -50,3 +50,49 @@ test("support bundle installation records a version receipt and rolls back", asy
     await removeTestNamespace(root);
   }
 });
+
+test("support bundle installation adopts matching legacy assets without taking ownership", async () => {
+  const root = createTestNamespace("support-bundle-legacy-assets");
+  try {
+    const first = await installSupportBundle({ targetRoot: root });
+    assert.ok(first.installed.length > 0);
+    await fs.rm(path.join(root, ".ma-install-receipt.json"), { force: true });
+    await fs.rm(path.join(root, "asset-manifest.json"), { force: true });
+
+    const second = await installSupportBundle({ targetRoot: root });
+    assert.equal(second.conflicts.length, 0);
+    assert.ok(second.installed.length > 0);
+    assert.ok(second.installed.every((asset) => asset.adopted === true));
+
+    const rollback = await rollbackInstalledAssets({ targetRoot: root, kind: "support" });
+    assert.equal(rollback.status, "rolled-back");
+    await fs.access(path.join(root, "mcp", "servers.json"));
+  } finally {
+    await removeTestNamespace(root);
+  }
+});
+
+test("support bundle installation upgrades a legacy empty receipt with backups", async () => {
+  const root = createTestNamespace("support-bundle-legacy-receipt");
+  try {
+    const first = await installSupportBundle({ targetRoot: root });
+    const legacyReceiptPath = path.join(root, ".ma-install-receipt.json");
+    const legacyReceipt = JSON.parse(await fs.readFile(legacyReceiptPath, "utf8"));
+    legacyReceipt.assets = [];
+    legacyReceipt.installed = [];
+    legacyReceipt.managedPaths = [];
+    legacyReceipt.conflicts = first.installed.map((asset) => ({
+      name: asset.name,
+      dest: asset.dest,
+      reason: "existing-unmanaged-path",
+    }));
+    await fs.writeFile(legacyReceiptPath, `${JSON.stringify(legacyReceipt, null, 2)}\n`);
+
+    const upgraded = await installSupportBundle({ targetRoot: root });
+    assert.equal(upgraded.conflicts.length, 0);
+    assert.ok(upgraded.backups.length > 0);
+    assert.ok(upgraded.installed.length > 0);
+  } finally {
+    await removeTestNamespace(root);
+  }
+});
