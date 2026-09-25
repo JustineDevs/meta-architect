@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,29 +26,33 @@ jobs:
 
       - name: Create or update promotion PR
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN || github.token }}
         run: |
-          existing=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number')
+          existing=$(gh pr list --repo "$GITHUB_REPOSITORY" --base main --head dev --state open --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
             echo "Promotion PR #$existing already open."
-            exit 0
+            pr_number="$existing"
+          else
+            body="$(printf '%s\n\n%s\n' \
+              'Automated promotion PR from dev to main.' \
+              'All required CI, security, package, and review checks must pass before this production promotion is merged.')"
+
+            if gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --base main \
+              --head dev \
+              --title "chore(release): promote dev to main" \
+              --body "$body"; then
+              pr_number=$(gh pr list --repo "$GITHUB_REPOSITORY" --base main --head dev --state open --json number --jq '.[0].number')
+            else
+              pr_number=$(gh pr list --repo "$GITHUB_REPOSITORY" --base main --head dev --state open --json number --jq '.[0].number')
+              if [ -z "$pr_number" ]; then
+                echo "Unable to create the promotion PR. Configure the one-time RELEASE_BOT_TOKEN repository secret or permit Actions to create pull requests." >&2
+                exit 1
+              fi
+            fi
           fi
 
-          body="$(printf '%s\n\n%s\n' \
-            'Automated promotion PR from dev to main.' \
-            'All required CI, security, package, and review checks must pass before a maintainer merges this production promotion.')"
-
-          if gh pr create \
-            --base main \
-            --head dev \
-            --title "chore(release): promote dev to main" \
-            --body "$body"; then
-            exit 0
-          fi
-
-          existing=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number')
-          if [ -n "$existing" ]; then
-            echo "Promotion PR #$existing was created concurrently."
-            exit 0
-          fi
-          exit 1
+          echo "Promotion PR #$pr_number is ready. Queueing auto-merge when repository policy allows it."
+          gh pr merge --repo "$GITHUB_REPOSITORY" --auto --squash "$pr_number" || \
+            echo "Auto-merge is waiting for the repository's required review/signature policy."

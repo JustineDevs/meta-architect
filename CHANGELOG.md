@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.15.1
+
+- Isolates live regression runs from the operator's global Codex plugin inventory.
+- Refreshes package, plugin, documentation, and release evidence surfaces for `v0.15.1`.
+
 ## v0.15.0
 
 - Adds a real live regression workflow that validates setup, doctor, Jev-backed `$maestro`, autonomous task intake, bounded source mutation, verification, receipts, and temporary-workspace cleanup.

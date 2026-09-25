@@ -1,13 +1,13 @@
-# v0.15.0 Requirements & Rules
+# v0.15.1 Requirements & Rules
 
 ## Production definition
 
-Meta-Architect `v0.15.0` is production only when:
+Meta-Architect `v0.15.1` is production only when:
 1. the package/install surface works
 2. the in-session skill workflow from `$arch` through `$build` works
 3. the release evidence matches the actual package and git tag
 
-## What `v0.15.0` must have
+## What `v0.15.1` must have
 
 ### 1. Canonical package/runtime path
 
@@ -54,16 +54,16 @@ Canonical state files:
 
 ### 4. Required release evidence
 
-- `package.json` version `0.15.0`
-- git tag `v0.15.0`
+- `package.json` version `0.15.1`
+- git tag `v0.15.1`
 - `RELEASE.md`
 - `CHANGELOG.md`
-- `docs/qa/release-readiness-0.15.0.md`
-- `docs/qa/release-issue-gates-0.15.0.json`
+- `docs/qa/release-readiness-0.15.1.md`
+- `docs/qa/release-issue-gates-0.15.1.json`
 - green `npm run release:check`
-- GitHub release asset `meta-architect_0.15.0_all.deb`
-- GitHub release asset `meta-architect-0.15.0-1-any.pkg.tar.xz`
-- GitHub release asset `meta-architect-0.15.0-1.noarch.rpm`
+- GitHub release asset `meta-architect_0.15.1_all.deb`
+- GitHub release asset `meta-architect-0.15.1-1-any.pkg.tar.xz`
+- GitHub release asset `meta-architect-0.15.1-1.noarch.rpm`
 - green `npm run linux:packages:build`
 - green `npm run linux:packages:smoke`
 - green `npm run release:assets`
@@ -90,7 +90,7 @@ Canonical state files:
 - `npm run release:assets`
 - `npm run release:assets:generate` creates `dist/SHA256SUMS`, `dist/sbom.spdx.json`, and `dist/release-summary.json`; `release:assets` verifies them.
 - `dist/` is CI-generated and ignored by Git. GitHub Releases are the source of truth for downloadable packages; historical binaries are not retained in the repository.
-8. Create and push tag `v<version>`
+8. Merge the promotion PR. `.github/workflows/auto-release-tag.yml` creates and pushes `v<version>` from the resulting `main` commit idempotently.
 9. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
 10. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
    - Stable publish: `npm publish --access public`
@@ -104,6 +104,9 @@ Canonical state files:
 - `npm run release:advance` force-bumps the next patch line after a completed release
 - `.github/workflows/release-sync.yml` automates the sync path on `main`
 - `.github/workflows/release-advance.yml` advances the repo to the next patch line after a published release
+- `.github/workflows/promote-dev.yml` creates or reuses the single `dev` to `main` promotion PR and queues auto-merge when policy allows it
+- `.github/workflows/auto-release-tag.yml` tags the exact merged `main` commit, which starts the GitHub Release and npm publication workflows
+- If the repository disallows the default Actions token from creating pull requests, configure the one-time `RELEASE_BOT_TOKEN` repository secret. The token must be limited to pull-request and contents write access. Required reviews, signatures, and code scanning remain enforced.
 
 ### 6.2 Issue proof gates
 
@@ -111,7 +114,7 @@ Every open issue assigned to this release must be represented in the versioned r
 
 Production pass rule:
 - issue status must be `passed`
-- issue milestone must match `v0.15.0`
+- issue milestone must match `v0.15.1`
 - implementation evidence must be present
 - verification evidence must be present
 - production evidence must be present
