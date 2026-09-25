@@ -108,9 +108,3 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: gh workflow run npm-publish.yml --repo "$GITHUB_REPOSITORY" --ref main -f tag="$RELEASE_TAG"
-
-      - name: Dispatch GitHub Packages publication
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-        run: gh workflow run github-packages-publish.yml --repo "$GITHUB_REPOSITORY" --ref main -f tag="$RELEASE_TAG"
