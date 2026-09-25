@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
 
     steps:
       - name: Checkout
@@ -91,6 +92,7 @@ jobs:
       - name: Publish GitHub release asset
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           files: |
             dist/meta-architect-skills.tgz
             dist/*.deb
@@ -100,3 +102,15 @@ jobs:
             dist/sbom.spdx.json
             dist/release-summary.json
           body_path: RELEASE.md
+
+      - name: Dispatch npm publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: gh workflow run npm-publish.yml --repo "$GITHUB_REPOSITORY" --ref main -f tag="$RELEASE_TAG"
+
+      - name: Dispatch GitHub Packages publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: gh workflow run github-packages-publish.yml --repo "$GITHUB_REPOSITORY" --ref main -f tag="$RELEASE_TAG"
