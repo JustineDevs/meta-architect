@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
 import { decideMaestroLane } from "../src/runtime/maestro-decision-provider.js";
+import { getProviderConfigStatus } from "../src/runtime/provider-config.js";
 
-if (!process.env.TYPESAFE_API_KEY) {
+const providerStatus = await getProviderConfigStatus();
+if (!providerStatus.configured) {
   throw new Error(
-    "TYPESAFE_API_KEY is required for the live Maestro smoke test. Use `npm test` for deterministic offline tests.",
+    "A TypeSafe API key is required for the live Maestro smoke test. Run `ma auth typesafe`, add it to .env.local, or use `npm test` for deterministic offline tests.",
   );
 }
 

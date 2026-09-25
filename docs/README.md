@@ -13,6 +13,7 @@ Meta-Architect documentation is organized by operator task.
 - [Release Spec](./release-spec.md)
 - [Skills Reference](./skills.md)
 - [Maestro Decision Core](./maestro-jev.md)
+- [Senior Engineering Execution](./senior-engineering.md)
 - umbrella, gated lanes, and helper skill distinctions live in the Skills Reference
 - [Installed Support Bundle](./installed-sdk.md)
 - [Runtime retention](./runtime-retention.md)

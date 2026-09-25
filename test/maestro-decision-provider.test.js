@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 import {
   applyMaestroDecision,
@@ -93,6 +95,9 @@ test("Jev routing sends typed choices and rejects choices outside the safe actio
     runtimeSummary: { pendingMailboxCount: 0, invalidArtifacts: [], missingArtifacts: [] },
     idea: "Build a verified feature",
     managerAction,
+    instructionContext: [
+      { name: "architecture", content: "Use bounded contexts. API_KEY=do-not-send-this-value" },
+    ],
     env: { TYPESAFE_API_KEY: "jv_live_test", TYPESAFE_DEFAULT_MODEL: "jev-1.13.0" },
     fetchImpl: async (_url, options) => {
       request = JSON.parse(options.body);
@@ -116,6 +121,12 @@ test("Jev routing sends typed choices and rejects choices outside the safe actio
   assert.equal(decision.choice, "$arch");
   assert.equal(request.questions.maestro_lane.type, "choice");
   assert.deepEqual(Object.keys(request.questions.maestro_lane.criteria), ["$arch"]);
+  assert.equal(request.state.skill_instruction_context[0].name, "architecture");
+  assert.match(
+    request.state.skill_instruction_context[0].content,
+    /\[REDACTED\]|__MA_SECURE_ASSIGNMENT__/,
+  );
+  assert.doesNotMatch(request.state.skill_instruction_context[0].content, /do-not-send-this-value/);
   await assert.rejects(
     decideMaestroLane({
       releaseState: {},
@@ -130,4 +141,44 @@ test("Jev routing sends typed choices and rejects choices outside the safe actio
     }),
     /unavailable Maestro action/,
   );
+});
+
+test("Jev routing selects the built-in model when only the credential is configured", async () => {
+  let request;
+  await decideMaestroLane({
+    managerAction,
+    env: { TYPESAFE_API_KEY: "jv_live_test" },
+    fetchImpl: async (_url, options) => {
+      request = JSON.parse(options.body);
+      return new Response(
+        JSON.stringify({
+          model: "jev-latest",
+          answers: { maestro_lane: { type: "choice", choice: "$arch" } },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    },
+  });
+  assert.equal(request.model, "jev-latest");
+});
+
+test("Jev routing loads a project dotenv credential without process exports", async (t) => {
+  const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "ma-jev-dotenv-"));
+  t.after(() => fs.rm(cwd, { recursive: true, force: true }));
+  await fs.writeFile(path.join(cwd, ".env.local"), "TYPESAFE_API_KEY=jv_live_dotenv\n");
+
+  const decision = await decideMaestroLane({
+    managerAction,
+    cwd,
+    env: {},
+    fetchImpl: async (_url, options) => {
+      assert.equal(options.headers.Authorization, "Bearer jv_live_dotenv");
+      return new Response(
+        JSON.stringify({ answers: { maestro_lane: { type: "choice", choice: "$arch" } } }),
+        { status: 200 },
+      );
+    },
+  });
+  assert.equal(decision.provider, "jev");
+  assert.equal(decision.choice, "$arch");
 });

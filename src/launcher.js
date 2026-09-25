@@ -4,6 +4,7 @@ import { safeSpawnSync } from "./process-utils.js";
 
 const nativeCommands = new Set([
   "bootstrap",
+  "auth",
   "doctor",
   "setup",
   "migrate",
@@ -12,6 +13,7 @@ const nativeCommands = new Set([
   "skills",
   "core-ingest",
   "agent-compat",
+  "codex",
   "obsidian",
   "obsidian-index",
   "sdk-path",

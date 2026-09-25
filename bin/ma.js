@@ -32,6 +32,11 @@ import {
   runAutonomousTasks,
 } from "../src/runtime/autonomous-tasks.js";
 import { evaluateRuntimeBuildReadiness } from "../src/runtime/build-readiness.js";
+import {
+  discoverCodexCapabilityInventory,
+  persistCodexCapabilityInventory,
+  selectCodexCapabilitiesForTask,
+} from "../src/runtime/codex-capability-inventory.js";
 import { createConformanceMatrix } from "../src/runtime/conformance-matrix.js";
 import { ingestCoreSources } from "../src/runtime/core-source-ingest.js";
 import { verifyLiveAgentMatrix } from "../src/runtime/live-agent-verification.js";
@@ -48,6 +53,11 @@ import {
 } from "../src/runtime/obsidian-integration-core.js";
 import { installObsidianPlugin } from "../src/runtime/obsidian-plugin-bridge.js";
 import { refreshProjectIndex } from "../src/runtime/project-context.js";
+import {
+  clearProviderCredentials,
+  getProviderConfigStatus,
+  saveProviderCredentials,
+} from "../src/runtime/provider-config.js";
 import { purgeRedactionVault } from "../src/runtime/redaction-gateway.js";
 import { createRuntimeSummary, loadRuntimeSnapshot } from "../src/runtime/runtime-state.js";
 import { migrateSchemas } from "../src/runtime/schema-migrations.js";
@@ -79,6 +89,7 @@ function printUsage() {
   console.log("  ma");
   console.log("  ma bootstrap [--init-mcp]");
   console.log("  ma doctor [--json]");
+  console.log("  ma auth typesafe [--stdin|--status|--clear]");
   console.log("  ma welcome");
   console.log("  ma context refresh [--full|--json]");
   console.log("  ma migrate [--dry-run|--rollback|--json]");
@@ -92,6 +103,7 @@ function printUsage() {
   console.log("  ma skills");
   console.log("  ma core-ingest [--refresh]");
   console.log("  ma agent-compat adapters|detect|compile|validate [path]");
+  console.log("  ma codex inventory [--json] [--select <task>] [--no-write]");
   console.log(
     "  ma obsidian configure|list|read|create|update|delete|plugin-install [vault-path] [note-path] [content]",
   );
@@ -132,10 +144,75 @@ function printCommandHelp(command) {
     merge: "ma merge <source-branch> <target-branch> [--dry-run|--execute]",
     release: "ma release <origin-branch> <target-branch> [--dry-run|--execute]",
     "agent-compat": "ma agent-compat adapters|detect|compile|validate [path]",
+    codex: "ma codex inventory [--json] [--select <task>] [--no-write]",
     verify: "ma verify --architect|--agents-live [--json]",
+    auth: "ma auth typesafe [--stdin|--status|--clear]",
     task: "ma task add|bulk|list|run|cancel ...",
   };
   console.log(help[command] ?? `No command-specific help is available for '${command}'.`);
+}
+
+async function readTypeSafeApiKey(rest) {
+  if (rest.includes("--stdin")) {
+    const chunks = [];
+    for await (const chunk of process.stdin) chunks.push(chunk);
+    return Buffer.concat(chunks).toString("utf8").trim();
+  }
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    throw new Error("Use `ma auth typesafe --stdin` when configuring from a non-interactive shell");
+  }
+
+  process.stdout.write("TypeSafe API key (input hidden): ");
+  const stdin = process.stdin;
+  const wasRaw = stdin.isRaw;
+  stdin.setRawMode(true);
+  stdin.resume();
+  return new Promise((resolve, reject) => {
+    let value = "";
+    const finish = (error = null) => {
+      stdin.setRawMode(wasRaw ?? false);
+      stdin.pause();
+      stdin.off("data", onData);
+      process.stdout.write("\n");
+      if (error) reject(error);
+      else resolve(value);
+    };
+    const onData = (chunk) => {
+      for (const character of String(chunk)) {
+        if (character === "\u0003") return finish(new Error("Credential entry cancelled"));
+        if (character === "\r" || character === "\n") return finish();
+        if (character === "\u007f") value = value.slice(0, -1);
+        else if (character >= " ") value += character;
+      }
+    };
+    stdin.on("data", onData);
+  });
+}
+
+async function runAuthCommand(rest) {
+  if (rest[0] !== "typesafe") throw new Error("Usage: ma auth typesafe [--stdin|--status|--clear]");
+  if (rest.includes("--status")) {
+    const status = await getProviderConfigStatus();
+    console.log(
+      JSON.stringify(
+        {
+          ...status,
+          apiKey: status.configured ? "configured" : "missing",
+        },
+        null,
+        2,
+      ),
+    );
+    return;
+  }
+  if (rest.includes("--clear")) {
+    const target = await clearProviderCredentials();
+    console.log(`Removed TypeSafe credentials from ${target}`);
+    return;
+  }
+  const target = await saveProviderCredentials({ apiKey: await readTypeSafeApiKey(rest) });
+  console.log(`Saved TypeSafe credentials to ${target}`);
+  console.log("All new terminals and compatible project dotenv files can use the credential.");
 }
 
 function taskOption(rest, name) {
@@ -713,6 +790,11 @@ async function main() {
     return;
   }
 
+  if (command === "auth") {
+    await runAuthCommand(rest);
+    return;
+  }
+
   if (command === "migrate") {
     const result = await migrateSchemas(getRepoRoot(), {
       dryRun: rest.includes("--dry-run"),
@@ -751,6 +833,34 @@ async function main() {
   if (command === "skills") {
     for (const skill of listSkills()) {
       console.log(skill);
+    }
+    return;
+  }
+
+  if (command === "codex") {
+    if (rest[0] !== "inventory") {
+      throw new Error("Usage: ma codex inventory [--json] [--select <task>] [--no-write]");
+    }
+    const inventory = discoverCodexCapabilityInventory({ cwd: process.cwd() });
+    const selected = rest.includes("--select")
+      ? selectCodexCapabilitiesForTask(inventory, getOptionValue(rest, "--select") ?? "")
+      : null;
+    if (!rest.includes("--no-write")) await persistCodexCapabilityInventory(inventory);
+    const report = selected ? { ...inventory, selection: selected } : inventory;
+    if (rest.includes("--json")) {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      return;
+    }
+    console.log(`Codex capability inventory: ${inventory.codex.version || "unknown version"}`);
+    console.log(`Available: ${inventory.summary.available}/${inventory.summary.total}`);
+    console.log(
+      `Written: ${rest.includes("--no-write") ? "no" : ".ma/context/codex-capability-inventory.json"}`,
+    );
+    for (const capability of selected?.selected ??
+      inventory.capabilities.filter((item) => item.status === "available")) {
+      console.log(
+        `- ${capability.id}: ${capability.status}${capability.invocation ? ` (${capability.invocation})` : ""}`,
+      );
     }
     return;
   }

@@ -42,6 +42,9 @@ test("accepts durable tasks and runs dependency order with retry", async (t) => 
   const result = await runAutonomousTasks({
     execute: async (task) => {
       calls.push(task.id);
+      assert.equal(task.skillExecution?.status, "loaded");
+      assert.equal(task.contract.skill_execution?.status, "loaded");
+      assert.match(task.contract.skill_execution.receiptPath, /skill-execution-receipts/);
       if (task.id === "test" && attempts++ === 0) return { status: "failed", reason: "transient" };
       return { status: "completed", evidence: [`verified:${task.id}`] };
     },

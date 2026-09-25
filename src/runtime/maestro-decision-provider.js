@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { resolveProviderEnvironment } from "./provider-config.js";
+import { redactProviderBoundPayload } from "./redaction-gateway.js";
 
 const DEFAULT_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 const DEFAULT_MODEL = "jev-latest";
@@ -82,13 +84,14 @@ function validateDeterministicCandidate(candidate) {
   };
 }
 
-export function getMaestroDecisionProviderConfig(env = process.env) {
+export function getMaestroDecisionProviderConfig(env = process.env, resolvedEnv = null) {
+  const source = resolvedEnv ?? env;
   return {
-    provider: env.MAESTRO_DECISION_PROVIDER ?? "jev",
-    apiKey: env.TYPESAFE_API_KEY ?? null,
-    endpoint: env.TYPESAFE_ENDPOINT ?? DEFAULT_ENDPOINT,
-    model: env.TYPESAFE_DEFAULT_MODEL ?? DEFAULT_MODEL,
-    timeoutMs: Number.parseInt(env.TYPESAFE_TIMEOUT_MS ?? `${DEFAULT_TIMEOUT_MS}`, 10),
+    provider: source.MAESTRO_DECISION_PROVIDER ?? "jev",
+    apiKey: source.TYPESAFE_API_KEY ?? null,
+    endpoint: source.TYPESAFE_ENDPOINT ?? DEFAULT_ENDPOINT,
+    model: source.TYPESAFE_DEFAULT_MODEL ?? DEFAULT_MODEL,
+    timeoutMs: Number.parseInt(source.TYPESAFE_TIMEOUT_MS ?? `${DEFAULT_TIMEOUT_MS}`, 10),
   };
 }
 
@@ -97,10 +100,15 @@ export async function decideMaestroLane({
   runtimeSummary,
   idea,
   managerAction,
+  capabilityPlan = null,
+  instructionContext = [],
   fetchImpl = globalThis.fetch,
   env = process.env,
+  cwd = process.cwd(),
+  home,
 } = {}) {
-  const config = getMaestroDecisionProviderConfig(env);
+  const resolved = await resolveProviderEnvironment({ cwd, home, env });
+  const config = getMaestroDecisionProviderConfig(env, resolved.env);
   const candidates = normalizeCandidates(managerAction);
   if (config.provider === "deterministic") {
     return deterministicDecision(managerAction);
@@ -115,6 +123,15 @@ export async function decideMaestroLane({
   }
   if (typeof fetchImpl !== "function") throw new Error("Fetch is unavailable for Jev routing");
 
+  const boundedInstructionContext = (Array.isArray(instructionContext) ? instructionContext : [])
+    .filter((entry) => entry && typeof entry.name === "string" && typeof entry.content === "string")
+    .slice(0, 8)
+    .map((entry) => ({ name: entry.name, content: boundedText(entry.content, 4_000) }));
+  const providerContext = await redactProviderBoundPayload(
+    { skills: boundedInstructionContext },
+    { source: "maestro_skill_execution", purpose: "lane_decision" },
+  );
+
   const state = {
     goal: boundedText(idea, 1_500),
     release: releaseState,
@@ -123,6 +140,25 @@ export async function decideMaestroLane({
       invalidArtifacts: runtimeSummary?.invalidArtifacts?.length ?? 0,
       missingArtifacts: runtimeSummary?.missingArtifacts?.length ?? 0,
     },
+    available_capabilities: (capabilityPlan?.selected ?? []).map((capability) => ({
+      name: capability.name,
+      scope: capability.scope,
+      description: boundedText(capability.description, 500),
+      evidence_status: capability.evidenceStatus,
+      execution_boundary: capability.executionBoundary,
+    })),
+    codex_capabilities: (capabilityPlan?.codex_inventory?.selection?.selected ?? []).map(
+      (capability) => ({
+        id: capability.id,
+        kind: capability.kind,
+        name: capability.name,
+        description: boundedText(capability.description, 500),
+        invocation: capability.invocation,
+        score: capability.score,
+        evidence: capability.evidence,
+      }),
+    ),
+    skill_instruction_context: providerContext.sanitizedPayload.skills,
     eligible_actions: candidates,
   };
   const payload = {

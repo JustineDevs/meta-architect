@@ -38,9 +38,26 @@ Requires Node.js 20+ and a TypeSafe API key for autonomous Maestro routing.
 
 ```bash
 npm install --global @jstn-sdk/ma@latest
-export TYPESAFE_API_KEY="jv_live_your_key"
+ma auth typesafe
+# Enter the key once when prompted. It is stored owner-only at
+# ~/.config/meta-architect/provider.env (or $XDG_CONFIG_HOME/meta-architect/provider.env).
 ma setup
 ma --madmax --high
+```
+
+For a project-local dotenv setup, create `.env.local` in the project root:
+
+```dotenv
+TYPESAFE_API_KEY=jv_live_your_key
+```
+
+Keep `.env.local` out of version control. Meta-Architect reads `.env.local`,
+then `.env`, then the global credential file; explicit environment variables
+still take precedence. The default `jev-latest` model is selected automatically;
+no model setting is required. Check the resolved source without revealing the key:
+
+```bash
+ma auth typesafe --status
 ```
 
 Then give Maestro the project goal inside your AI coding agent:
@@ -50,9 +67,8 @@ $maestro I want to build: [your project idea]
 ```
 
 `ma setup` detects the active host, installs the compatible Meta-Architect
-surface, and writes project state to `.ma/`. Keep `TYPESAFE_API_KEY` in your
-shell environment or secret manager; Meta-Architect does not write it to the
-project.
+surface, and writes project state to `.ma/`. The credential is never written
+to `.ma/`, receipts, logs, or generated context.
 
 ### End-to-end example
 

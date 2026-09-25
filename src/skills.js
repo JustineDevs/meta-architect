@@ -69,6 +69,10 @@ import {
   repairRuntimeScratchpadArtifacts,
 } from "./runtime/runtime-state.js";
 import { migrateSchemas } from "./runtime/schema-migrations.js";
+import {
+  brokerSkillsForTask,
+  persistSkillCompositionPlan,
+} from "./runtime/skill-capability-broker.js";
 import { loadSourceRegistry } from "./runtime/source-registry.js";
 import { createTaskContract, writeTaskContract } from "./runtime/task-contracts.js";
 import { executeWorkspaceTask } from "./runtime/task-executor.js";
@@ -1702,12 +1706,28 @@ async function runMaestroUnlocked({
   taskContract = {},
   handoff = {},
   taskId = null,
+  skillExecutionContext = null,
 } = {}) {
   await assertLeaderAuthority();
+  const requestedGoal =
+    taskContract.goal ?? "Execute the next eligible Meta-Architect workflow step";
+  const skillPlan =
+    taskContract.skill_plan ??
+    taskContract.skillPlan ??
+    (await brokerSkillsForTask({
+      cwd: getRepoRoot(),
+      includeGlobal: true,
+      taskIntent: requestedGoal,
+    }));
+  await persistSkillCompositionPlan(skillPlan);
   const intakeContract = createTaskContract({
-    goal: taskContract.goal ?? "Execute the next eligible Meta-Architect workflow step",
+    goal: requestedGoal,
     contextUsed: taskContract.contextUsed ??
-      taskContract.context_used ?? [".ma/context/project-index.json", ".ma/context/agent-brief.md"],
+      taskContract.context_used ?? [
+        ".ma/context/project-index.json",
+        ".ma/context/agent-brief.md",
+        ".ma/context/skill-composition-plan.json",
+      ],
     assumptions: taskContract.assumptions ?? [
       "Source files and fresh verification output outrank generated context",
     ],
@@ -1721,6 +1741,11 @@ async function runMaestroUnlocked({
       "Stop when the selected lane is complete, blocked, or requires review",
     persist: taskContract.persist !== false,
     execution: taskContract.execution ?? null,
+    priority:
+      taskContract.priority ?? taskContract.priorityClass ?? taskContract.triage?.priority ?? null,
+    engineeringPlan: taskContract.engineering_plan ?? taskContract.engineeringPlan ?? null,
+    skillPlan,
+    skillExecution: taskContract.skill_execution ?? taskContract.skillExecution ?? null,
   });
   if (intakeContract.persist) {
     await writeTaskContract(`maestro-${Date.now()}`, intakeContract);
@@ -1940,6 +1965,8 @@ async function runMaestroUnlocked({
       runtimeSummary,
       idea,
       managerAction,
+      capabilityPlan: skillPlan,
+      instructionContext: skillExecutionContext?.instructions ?? [],
     });
     autonomousAction = applyMaestroDecision(managerAction, decision);
     autonomousAction.decision = decision;
@@ -1962,6 +1989,7 @@ async function runMaestroUnlocked({
     dispatchPlan: autonomousAction.dispatchPlan,
     pendingReview: autonomousAction.pendingReview ?? null,
     decision: autonomousAction.decision,
+    capabilityPlan: skillPlan,
   });
   let executionResult = null;
   registry.runs.push(managerRun);

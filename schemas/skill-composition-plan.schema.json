@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-architect.dev/schemas/skill-composition-plan.schema.json",
+  "title": "Meta-Architect Skill Composition Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "record_type",
+    "task_intent",
+    "selected",
+    "candidates",
+    "skipped",
+    "dependencies",
+    "conflicts",
+    "discovery",
+    "improvement",
+    "execution_policy",
+    "feedback_routes",
+    "records_as",
+    "never_records_as"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "0.1.0" },
+    "record_type": { "const": "skill_composition_plan" },
+    "task_intent": { "type": "string" },
+    "feedback": { "type": ["object", "null"] },
+    "selected": { "type": "array", "items": { "$ref": "#/$defs/candidate" } },
+    "candidates": { "type": "array", "items": { "$ref": "#/$defs/candidate" } },
+    "skipped": { "type": "array", "items": { "$ref": "#/$defs/candidate" } },
+    "dependencies": { "type": "array", "items": { "type": "object" } },
+    "conflicts": { "type": "array", "items": { "type": "object" } },
+    "discovery": {
+      "type": "object",
+      "required": [
+        "framework",
+        "stages",
+        "collected",
+        "scopes",
+        "capabilityTypes",
+        "intentTokens",
+        "ranked",
+        "composed",
+        "dependencies",
+        "boundary"
+      ],
+      "properties": {
+        "framework": { "const": "chai-discovery" },
+        "stages": { "type": "array", "items": { "type": "string" } },
+        "collected": { "type": "integer", "minimum": 0 },
+        "scopes": { "type": "array", "items": { "type": "string" } },
+        "capabilityTypes": { "type": "array", "items": { "type": "string" } },
+        "intentTokens": { "type": "array", "items": { "type": "string" } },
+        "ranked": { "type": "integer", "minimum": 0 },
+        "composed": { "type": "integer", "minimum": 0 },
+        "dependencies": { "type": "integer", "minimum": 0 },
+        "boundary": { "const": "available_capability_only" }
+      },
+      "additionalProperties": false
+    },
+    "improvement": {
+      "type": "object",
+      "required": [
+        "framework",
+        "cycle",
+        "iteration",
+        "phase",
+        "objective",
+        "observed",
+        "feedback",
+        "selectedForNextAttempt",
+        "nextAction",
+        "promotion"
+      ],
+      "properties": {
+        "framework": { "const": "kaizen" },
+        "cycle": { "const": "plan-do-check-act" },
+        "iteration": { "type": "integer", "minimum": 0 },
+        "phase": { "enum": ["plan", "act"] },
+        "objective": { "type": "string" },
+        "observed": { "enum": ["initial_discovery", "verification_feedback"] },
+        "feedback": { "type": ["object", "null"] },
+        "selectedForNextAttempt": { "type": "array", "items": { "type": "string" } },
+        "nextAction": { "type": "string" },
+        "promotion": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "execution_policy": {
+      "type": "object",
+      "required": [
+        "reuse_existing_skills",
+        "mutate_skill_sources",
+        "auto_execute_discovered_tools",
+        "skill_execution",
+        "third_party_execution_claim",
+        "verification_required_after_use"
+      ],
+      "properties": {
+        "reuse_existing_skills": { "const": true },
+        "mutate_skill_sources": { "const": false },
+        "auto_execute_discovered_tools": { "const": false },
+        "skill_execution": { "const": "load_instruction_context_in_dependency_order" },
+        "third_party_execution_claim": { "const": "only_with_host_receipt" },
+        "verification_required_after_use": { "const": true }
+      },
+      "additionalProperties": false
+    },
+    "feedback_routes": { "type": "array", "items": { "type": "string" } },
+    "records_as": { "const": "available_capability_plan" },
+    "never_records_as": { "const": "build_evidence" }
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "required": [
+        "name",
+        "capabilityType",
+        "owner",
+        "scope",
+        "sourcePath",
+        "executionBoundary",
+        "mutationAllowed",
+        "evidenceStatus"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "capabilityType": { "type": "string" },
+        "owner": { "type": "string" },
+        "scope": { "type": "string" },
+        "sourcePath": { "type": "string" },
+        "entrypoint": { "type": ["string", "null"] },
+        "description": { "type": ["string", "null"] },
+        "score": { "type": "number" },
+        "reason": { "type": "string" },
+        "executionBoundary": { "const": "available_capability_only" },
+        "mutationAllowed": { "const": false },
+        "evidenceStatus": { "const": "not_executed" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

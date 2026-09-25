@@ -6,12 +6,19 @@ import { getAgentInvocation } from "../agents.js";
 import { readJson, withRuntimeStateLock, writeFileIfMissing, writeJson } from "../fs-utils.js";
 import { getRuntimeSubsystemPath } from "../paths.js";
 import { writeJsonAtomically } from "../setup-lifecycle.js";
-import {
-  createDefaultEnvironmentAwarenessCore,
-  discoverEnvironmentCapabilities,
-  selectEnvironmentCapabilitiesForTask,
-} from "./environment-awareness-core.js";
+import { createEngineeringPlan, validateEngineeringPlan } from "./engineering-policy.js";
 import { appendMaestroEvent } from "./maestro-events.js";
+import {
+  brokerSkillsForTask,
+  createSkillOutcomeFeedback,
+  recordSkillKaizenCycle,
+  rerouteSkillComposition,
+} from "./skill-capability-broker.js";
+import {
+  createSkillExecutionReference,
+  executeSkillCompositionPlan,
+  validateSkillExecutionReference,
+} from "./skill-execution.js";
 import { createTaskContract, validateTaskContract } from "./task-contracts.js";
 import { executeWorkspaceTask, recoverWorkspaceExecution } from "./task-executor.js";
 
@@ -63,24 +70,46 @@ function normalizeTask(input) {
   const deadline = input?.deadline ?? null;
   if (deadline && Number.isNaN(Date.parse(deadline)))
     throw new Error("task deadline must be an ISO date");
-  const contract = input?.contract
-    ? validateTaskContract(input.contract)
-    : createTaskContract({
-        goal,
-        contextUsed: [
-          ".ma/context/project-index.json",
-          ".ma/context/environment-awareness-core.json",
-        ],
-        constraints: ["Stop for destructive, credential-gated, or external production actions"],
-        verification: ["ma doctor", "Maestro lane receipts"],
-        stopCondition: "Complete with verification evidence or record a blocker",
-        risk: input?.risk ?? "medium",
-        execution: input?.execution ?? null,
-      });
+  const suppliedContract = input?.contract ? validateTaskContract(input.contract) : null;
+  const verification = suppliedContract?.verification ?? ["ma doctor", "Maestro lane receipts"];
+  const risk = input?.risk ?? suppliedContract?.risk ?? "medium";
+  const engineeringPlan = input?.engineeringPlan
+    ? validateEngineeringPlan(input.engineeringPlan)
+    : suppliedContract?.engineering_plan
+      ? validateEngineeringPlan(suppliedContract.engineering_plan)
+      : createEngineeringPlan({
+          goal,
+          requestedPriority: input?.priorityClass ?? input?.triage?.priority ?? null,
+          risk,
+          changeType: input?.changeType ?? "code",
+          verification,
+          rollback: input?.rollback,
+          observability: input?.observability ?? [],
+        });
+  const contract =
+    suppliedContract ??
+    createTaskContract({
+      goal,
+      contextUsed: [
+        ".ma/context/project-index.json",
+        ".ma/context/environment-awareness-core.json",
+      ],
+      constraints: ["Stop for destructive, credential-gated, or external production actions"],
+      verification,
+      stopCondition: "Complete with verification evidence or record a blocker",
+      risk,
+      execution: input?.execution ?? null,
+      priority: engineeringPlan.triage.priority,
+      engineeringPlan,
+      skillPlan: input?.skillPlan ?? null,
+    });
   return {
     id,
     goal,
     priority,
+    priorityClass: engineeringPlan.triage.priority,
+    triage: engineeringPlan.triage,
+    engineeringPlan,
     dependencies,
     labels,
     deadline,
@@ -103,6 +132,8 @@ function normalizeTask(input) {
     selectedCapabilities: Array.isArray(input?.selectedCapabilities)
       ? input.selectedCapabilities
       : [],
+    skillPlan: input?.skillPlan ?? contract.skill_plan ?? null,
+    skillExecution: input?.skillExecution ?? contract.skill_execution ?? null,
   };
 }
 
@@ -125,6 +156,13 @@ export function validateTaskQueue(queue) {
     )
       throw new Error(`invalid task state: ${task.id}`);
     validateTaskContract(task.contract);
+    if (task.skillExecution !== undefined && task.skillExecution !== null) {
+      validateSkillExecutionReference(task.skillExecution);
+    }
+    if (task.priorityClass !== undefined && !/^P[0-3]$/.test(task.priorityClass))
+      throw new Error(`invalid engineering priority: ${task.id}`);
+    if (task.engineeringPlan !== undefined && task.engineeringPlan !== null)
+      validateEngineeringPlan(task.engineeringPlan);
     if (task.dependencies.some((dependency) => dependency === task.id))
       throw new Error(`task cannot depend on itself: ${task.id}`);
   }
@@ -344,9 +382,6 @@ export async function runAutonomousTasks({
     throw new Error("concurrency must be a positive integer");
   const queue = await loadTaskQueue();
   const taskById = new Map(queue.tasks.map((task) => [task.id, task]));
-  const capabilities = createDefaultEnvironmentAwarenessCore({
-    capabilities: await discoverEnvironmentCapabilities({ cwd, includeGlobal }),
-  });
   const runner =
     execute ??
     (async (task) => {
@@ -357,6 +392,7 @@ export async function runAutonomousTasks({
           taskId: task.id,
           taskContract: task.contract,
           handoff: { nextAction: task.goal },
+          skillExecutionContext: task.skillExecution,
         });
         if (maestroResult?.executionResult) {
           if (maestroResult.executionResult.status !== "completed")
@@ -452,10 +488,8 @@ export async function runAutonomousTasks({
     }
     const remaining = maxTasks - processed - running.size;
     for (const task of eligible.slice(0, Math.min(concurrency - running.size, remaining))) {
-      task.selectedCapabilities = selectEnvironmentCapabilitiesForTask(
-        capabilities,
-        task.goal,
-      ).selected;
+      task.skillPlan = await brokerSkillsForTask({ cwd, includeGlobal, taskIntent: task.goal });
+      task.selectedCapabilities = task.skillPlan.selected;
       task.invocation = task.vendor ? getAgentInvocation(task.vendor, "maestro") : null;
       if (hasUnsafeAction(task)) {
         const transition = await updateTaskQueueTask(task.id, (current) => {
@@ -491,6 +525,8 @@ export async function runAutonomousTasks({
         current.runnerPid = process.pid;
         current.runnerId = runnerId;
         current.selectedCapabilities = task.selectedCapabilities;
+        current.skillPlan = task.skillPlan;
+        current.contract.skill_plan = task.skillPlan;
         current.invocation = task.invocation;
         return true;
       });
@@ -502,24 +538,121 @@ export async function runAutonomousTasks({
       const promise = (async () => {
         const stopHeartbeat = startRunnerLeaseHeartbeat(runnerId);
         try {
-          const result = await runner(task);
+          const skillExecution = await executeSkillCompositionPlan({
+            plan: task.skillPlan,
+            taskId: task.id,
+            vendor: task.vendor,
+            cwd,
+          });
+          const executionTransition = await updateTaskQueueTask(task.id, (current) => {
+            if (current.status !== "running") return false;
+            const executionReference = createSkillExecutionReference(skillExecution);
+            current.skillExecution = executionReference;
+            current.contract.skill_execution = executionReference;
+            current.evidence = [...current.evidence, ...skillExecution.evidence];
+            return true;
+          });
+          if (executionTransition) Object.assign(task, executionTransition.task);
+          let result;
+          if (skillExecution.status === "blocked") {
+            result = {
+              status: "blocked",
+              reason: "Selected skill instructions could not be loaded",
+              evidence: skillExecution.evidence,
+            };
+            const patch = {
+              runnerPid: null,
+              runnerId: null,
+              status: "blocked",
+              blocker: result.reason,
+            };
+            const transition = await updateTaskQueueTask(task.id, (current) => {
+              if (current.status === "cancelled") return false;
+              Object.assign(current, patch);
+              return true;
+            });
+            if (transition) Object.assign(task, transition.task);
+            await recordSkillKaizenCycle({
+              taskId: task.id,
+              plan: task.skillPlan,
+              outcome: createSkillOutcomeFeedback({
+                status: result.status,
+                reason: result.reason,
+                failedChecks: ["skill-execution"],
+                evidence: result.evidence,
+                iteration: task.attempts,
+              }),
+            });
+            await emit({ taskId: task.id, status: task.status, blocker: task.blocker });
+          } else {
+            result = await runner({ ...task, skillExecution });
+          }
           const patch = { runnerPid: null, runnerId: null };
           if (result?.status === "blocked") {
+            await recordSkillKaizenCycle({
+              taskId: task.id,
+              plan: task.skillPlan,
+              outcome: createSkillOutcomeFeedback({
+                status: result.status,
+                reason: result.reason ?? "Runner reported a blocker",
+                failedChecks: result.failedChecks,
+                evidence: result.evidence,
+                iteration: task.attempts,
+              }),
+            });
             Object.assign(patch, {
               status: "blocked",
               blocker: result.reason ?? "Runner reported a blocker",
             });
           } else if (result?.status === "failed" && task.attempts < task.maxAttempts) {
+            const reroutedPlan = rerouteSkillComposition(task.skillPlan, {
+              reason: result.reason ?? "verification failed",
+              failedChecks: Array.isArray(result.failedChecks) ? result.failedChecks : [],
+            });
+            await recordSkillKaizenCycle({
+              taskId: task.id,
+              plan: reroutedPlan,
+              outcome: createSkillOutcomeFeedback({
+                status: result.status,
+                reason: result.reason ?? "Runner failed; task queued for retry",
+                failedChecks: result.failedChecks,
+                evidence: result.evidence,
+                iteration: task.attempts,
+              }),
+            });
             Object.assign(patch, {
               status: "queued",
               error: result.reason ?? "Runner failed; task queued for retry",
+              skillPlan: reroutedPlan,
+              selectedCapabilities: reroutedPlan.selected,
+              contract: { ...task.contract, skill_plan: reroutedPlan },
             });
           } else if (result?.status === "failed") {
+            await recordSkillKaizenCycle({
+              taskId: task.id,
+              plan: task.skillPlan,
+              outcome: createSkillOutcomeFeedback({
+                status: result.status,
+                reason: result.reason ?? "Runner failed after maximum attempts",
+                failedChecks: result.failedChecks,
+                evidence: result.evidence,
+                iteration: task.attempts,
+              }),
+            });
             Object.assign(patch, {
               status: "failed",
               error: result.reason ?? "Runner failed after maximum attempts",
             });
           } else {
+            await recordSkillKaizenCycle({
+              taskId: task.id,
+              plan: task.skillPlan,
+              outcome: createSkillOutcomeFeedback({
+                status: "completed",
+                evidence: result?.evidence,
+                iteration: task.attempts,
+              }),
+            });
             Object.assign(patch, {
               status: "completed",
               completedAt: new Date().toISOString(),
@@ -540,6 +673,22 @@ export async function runAutonomousTasks({
           task.status = task.attempts < task.maxAttempts ? "queued" : "failed";
           task.runnerPid = null;
           task.runnerId = null;
+          if (task.status === "queued") {
+            task.skillPlan = rerouteSkillComposition(task.skillPlan, {
+              reason: task.error,
+              failedChecks: [],
+            });
+            task.selectedCapabilities = task.skillPlan.selected;
+            await recordSkillKaizenCycle({
+              taskId: task.id,
+              plan: task.skillPlan,
+              outcome: createSkillOutcomeFeedback({
+                status: "failed",
+                reason: task.error,
+                iteration: task.attempts,
+              }),
+            });
+          }
           const transition = await updateTaskQueueTask(task.id, (current) => {
             if (current.status === "cancelled") return false;
             Object.assign(current, {
@@ -547,6 +696,13 @@ export async function runAutonomousTasks({
               error: task.error,
               runnerPid: null,
               runnerId: null,
+              ...(task.status === "queued"
+                ? {
+                    skillPlan: task.skillPlan,
+                    selectedCapabilities: task.selectedCapabilities,
+                    contract: { ...task.contract, skill_plan: task.skillPlan },
+                  }
+                : {}),
             });
             return true;
           });

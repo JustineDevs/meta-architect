@@ -14,11 +14,16 @@ that boundary in an isolated temporary Git repository:
    evidence file.
 8. Removes the temporary workspace before the process exits.
 
-Run locally with a server-side TypeSafe credential:
+Run locally after configuring a user-scoped credential with `ma auth typesafe`
+or a project `.env.local` file:
 
 ```bash
-TYPESAFE_API_KEY="$TYPESAFE_API_KEY" npm run live:regression
+npm run live:regression
 ```
+
+For CI, set the repository secret as `TYPESAFE_API_KEY` and pass it to the
+workflow process. Explicit environment variables continue to override dotenv
+and global configuration.
 
 The output defaults to `docs/qa/live-regression-<package-version>.json`. Use
 `--output <path>` for CI or a separate evidence location. The workflow is also

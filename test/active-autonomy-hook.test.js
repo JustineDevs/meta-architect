@@ -96,6 +96,19 @@ test("blocking hook emits a classified structured receipt", async (t) => {
   assert.equal(receipt.matchedFiles[0].line, 4);
 });
 
+test("active autonomy hook records P0 triage for production incidents", async (t) => {
+  const root = createTestNamespace("hook-triage");
+  t.after(() => removeTestNamespace(root));
+  const result = await runHook(
+    root,
+    { ...process.env, MA_ROOT: root },
+    { last_user_message: "Production outage is blocking customer logins" },
+  );
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.triage.priority, "P0");
+  assert.equal(output.triage.source, "policy");
+});
+
 test("audit previews redact secrets, identities, and local paths without raw values", async (t) => {
   const root = createTestNamespace("hook-preview-redaction");
   t.after(() => removeTestNamespace(root));

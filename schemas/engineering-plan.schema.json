@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-architect.dev/schemas/engineering-plan.schema.json",
+  "title": "Meta-Architect Senior Engineering Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "record_type",
+    "goal",
+    "change_type",
+    "triage",
+    "execution_blueprint",
+    "definition_of_done",
+    "verification",
+    "observability",
+    "rollback",
+    "safe_rollout",
+    "created_at"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "0.1.0" },
+    "record_type": { "const": "senior_engineering_plan" },
+    "goal": { "type": "string", "minLength": 1 },
+    "change_type": { "type": "string", "minLength": 1 },
+    "triage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["priority", "label", "rationale", "source", "response"],
+      "properties": {
+        "priority": { "enum": ["P0", "P1", "P2", "P3"] },
+        "label": { "type": "string", "minLength": 1 },
+        "rationale": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["explicit", "policy"] },
+        "response": { "type": "string", "minLength": 1 }
+      }
+    },
+    "execution_blueprint": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stage", "required", "evidence"],
+        "properties": {
+          "stage": { "enum": ["understand", "design", "trim", "guardrails", "rollout"] },
+          "required": { "const": true },
+          "evidence": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+        }
+      }
+    },
+    "definition_of_done": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "verification": { "type": "array", "items": { "type": "string" } },
+    "observability": { "type": "array", "items": { "type": "string" } },
+    "rollback": { "type": "string", "minLength": 1 },
+    "safe_rollout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_channel",
+        "require_canary_or_preview",
+        "monitor_before_promotion",
+        "external_mutation_requires_approval"
+      ],
+      "properties": {
+        "default_channel": { "enum": ["containment", "staged"] },
+        "require_canary_or_preview": { "type": "boolean" },
+        "monitor_before_promotion": { "const": true },
+        "external_mutation_requires_approval": { "const": true }
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

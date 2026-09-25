@@ -7,6 +7,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import { getProviderConfigStatus } from "../src/runtime/provider-config.js";
 import { createTestNamespace, removeTestNamespace } from "../src/test-fixtures.js";
 
 const execFileAsync = promisify(execFile);
@@ -98,8 +99,10 @@ async function seedReleaseCandidate(workspace) {
 }
 
 async function main() {
-  if (!process.env.TYPESAFE_API_KEY) {
-    throw new Error("TYPESAFE_API_KEY is required for the live regression workflow");
+  if (!(await getProviderConfigStatus()).configured) {
+    throw new Error(
+      "A TypeSafe API key is required for the live regression workflow. Run `ma auth typesafe`, add it to .env.local, or configure the CI secret.",
+    );
   }
 
   const { output } = parseArgs(process.argv.slice(2));

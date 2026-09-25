@@ -50,6 +50,7 @@ import {
   seedCoreSourceIngestArtifacts,
   validateCoreSourceIngest,
 } from "./core-source-ingest.js";
+import { seedEngineeringPolicyArtifacts } from "./engineering-policy.js";
 import {
   createDefaultEnvironmentAwarenessCore,
   getEnvironmentAwarenessCorePath,
@@ -177,6 +178,7 @@ const runtimeSubsystemSeeders = [
   seedActiveAutonomyCoreArtifacts,
   seedContextEconomyCoreArtifacts,
   seedEnvironmentAwarenessCoreArtifacts,
+  seedEngineeringPolicyArtifacts,
   seedCoreSourceIngestArtifacts,
   seedUniversalPluginBrokerCoreArtifacts,
   seedObsidianBridgeArtifacts,

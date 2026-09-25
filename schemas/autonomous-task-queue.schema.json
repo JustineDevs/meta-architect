@@ -30,6 +30,13 @@
           "id": { "type": "string", "minLength": 1 },
           "goal": { "type": "string", "minLength": 1 },
           "priority": { "enum": ["low", "normal", "high", "critical"] },
+          "priorityClass": { "enum": ["P0", "P1", "P2", "P3"] },
+          "triage": { "type": "object" },
+          "engineeringPlan": { "$ref": "engineering-plan.schema.json" },
+          "skillPlan": { "type": ["object", "null"] },
+          "skillExecution": {
+            "anyOf": [{ "type": "null" }, { "$ref": "skill-execution-reference.schema.json" }]
+          },
           "dependencies": { "type": "array", "items": { "type": "string" } },
           "labels": { "type": "array", "items": { "type": "string" } },
           "deadline": { "type": ["string", "null"], "format": "date-time" },
