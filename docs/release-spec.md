@@ -93,8 +93,8 @@ Canonical state files:
 8. Merge the promotion PR. `.github/workflows/auto-release-tag.yml` creates and pushes `v<version>` from the resulting `main` commit idempotently.
 9. Preferred publish path: publish from `.github/workflows/npm-publish.yml` on a supported cloud runner so provenance can be generated
 10. Local shell fallback when not publishing from GitHub Actions or GitLab CI/CD:
-   - Stable publish: `npm publish --access public`
-   - Prerelease publish: `npm publish --access public --tag <lane>`
+   - Stable publish: `npm publish --access public` through npm Trusted Publishing (GitHub OIDC)
+   - Prerelease publish: `npm publish --access public --tag <lane>` through npm Trusted Publishing (GitHub OIDC)
 11. Verify dist-tags with `npm view @jstn-sdk/ma version dist-tags time --json`
 12. Verify the GitHub release contains `dist/meta-architect-skills.tgz`, `meta-architect_<version>_all.deb`, `meta-architect-<version>-1-any.pkg.tar.xz`, and `meta-architect-<version>-1.noarch.rpm`
 
@@ -125,6 +125,7 @@ Production pass rule:
 ### 7. Provenance rule
 
 - `npm publish --provenance` is valid only from a supported cloud CI/CD provider
+- The npm package trusted publisher must be configured for GitHub user `JustineDevs`, repository `meta-architect`, and workflow `.github/workflows/npm-publish.yml`. The workflow intentionally does not depend on `NPM_TOKEN` or interactive OTP input.
 - local shell publishes are expected to fail with `Automatic provenance generation not supported for provider: null`
 - use the repository publish workflow when provenance is part of the release bar
 ## Package diagnostics
