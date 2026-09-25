@@ -49,6 +49,35 @@ Use the core repo when you want to develop Meta-Architect itself. Use the plugin
 
 ## Install and use
 
+### ChatGPT Desktop local marketplace
+
+This bundle uses the portable Agent Plugins format. It has a root
+`plugin.json` and a `skills/` directory, so ChatGPT Desktop can discover it
+through the repository marketplace without reading an absolute filesystem
+path.
+
+From the repository root:
+
+```bash
+npm run plugin:validate
+codex plugin marketplace add ./
+```
+
+Restart ChatGPT Desktop, open Plugins, select the local Meta-Architect
+marketplace, and install **Meta-Architect**. Then ask the installed plugin to
+use Maestro in normal language. Do not paste a link to
+`/home/justine/.codex/skills/maestro/SKILL.md` into ChatGPT.
+
+Build an uploadable portable artifact with:
+
+```bash
+npm run plugin:build -- --target chatgpt-desktop --output ./dist/vendor-plugins
+```
+
+This local plugin loads the skill instructions. Live Jev-backed Maestro
+execution still requires the local `ma` runtime or a separately deployed,
+authenticated MCP app.
+
 The plugin-facing bundle should be consumed alongside the repository’s documented packaging/install flow.
 
 ### Claude Code marketplace

@@ -18,6 +18,15 @@ const TARGETS = {
       "Copy this directory to a Codex plugin location or load it with the host plugin loader.",
     publish: "Publish the generated directory through the Codex plugin distribution flow.",
   },
+  "chatgpt-desktop": {
+    support: "native",
+    description:
+      "Portable Agent Plugins bundle for ChatGPT Desktop and Codex local marketplace discovery.",
+    install:
+      "Add the repository marketplace in Codex, restart ChatGPT Desktop, then install Meta-Architect from the Plugins Directory.",
+    publish:
+      "Distribute the portable plugin through a repository marketplace, workspace upload, or the public plugin submission flow.",
+  },
   "claude-code": {
     support: "native",
     description: "Claude Code marketplace repository containing a native plugin source.",
@@ -149,11 +158,18 @@ function cursorRule() {
 }
 
 async function buildCodex(output) {
+  await copyTree(path.join(sourcePluginRoot, "plugin.json"), path.join(output, "plugin.json"));
   await copyTree(path.join(sourcePluginRoot, ".codex-plugin"), path.join(output, ".codex-plugin"));
   await copySkills(path.join(output, "skills"));
   for (const file of [".app.json", ".mcp.json", "README.md"]) {
     await copyTree(path.join(sourcePluginRoot, file), path.join(output, file));
   }
+}
+
+async function buildChatgptDesktop(output) {
+  await copyTree(path.join(sourcePluginRoot, "plugin.json"), path.join(output, "plugin.json"));
+  await copySkills(path.join(output, "skills"));
+  await copyTree(path.join(sourcePluginRoot, "README.md"), path.join(output, "README.md"));
 }
 
 async function buildClaude(output) {
@@ -265,6 +281,7 @@ async function buildGoose(output) {
 
 const builders = {
   codex: buildCodex,
+  "chatgpt-desktop": buildChatgptDesktop,
   "claude-code": buildClaude,
   cursor: buildCursor,
   antigravity: buildAntigravity,

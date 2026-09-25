@@ -1,0 +1,4 @@
+interface:
+  display_name: "$sage"
+  short_description: "Evidence-backed stack and OSS validation"
+  default_prompt: "Use $sage to validate stack choices with official docs, upstream repos, and approved GitMCP-backed sources."

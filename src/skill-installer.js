@@ -46,24 +46,42 @@ async function pathExists(targetPath) {
   }
 }
 
-async function listFiles(root, current = root, output = []) {
+async function listFiles(root, current = root, output = [], { omitIndex = false } = {}) {
   const entries = await fs.readdir(current, { withFileTypes: true }).catch(() => []);
   for (const entry of entries) {
     if (entry.name === ".ma-install-receipt.json" || entry.name === ".ma-backups") continue;
+    if (omitIndex && current === root && entry.name === "index.json") continue;
     const absolute = path.join(current, entry.name);
-    if (entry.isDirectory()) await listFiles(root, absolute, output);
+    if (entry.isDirectory()) await listFiles(root, absolute, output, { omitIndex });
     else if (entry.isFile()) output.push(path.relative(root, absolute));
   }
   return output.sort();
 }
 
-async function treeHash(root) {
+async function treeHash(root, options = {}) {
   const hash = crypto.createHash("sha256");
-  for (const relative of await listFiles(root)) {
+  for (const relative of await listFiles(root, root, [], options)) {
     hash.update(relative);
     hash.update(await fs.readFile(path.join(root, relative)));
   }
   return hash.digest("hex");
+}
+
+async function contentHash(target, options = {}) {
+  const stat = await fs.stat(target);
+  if (stat.isDirectory()) return treeHash(target, options);
+  return crypto
+    .createHash("sha256")
+    .update(await fs.readFile(target))
+    .digest("hex");
+}
+
+async function contentMatches(source, destination, options = {}) {
+  try {
+    return (await contentHash(source, options)) === (await contentHash(destination, options));
+  } catch {
+    return false;
+  }
 }
 
 export async function readInstallReceipt(root, kind = "skills") {
@@ -212,6 +230,12 @@ export async function installSupportBundle({ targetRoot = getSupportBundleRoot()
   await fs.mkdir(targetRoot, { recursive: true });
   const previous = await readInstallReceipt(targetRoot, "support");
   const managed = new Set(previous?.managedPaths ?? []);
+  const legacyEmptyInstall =
+    previous?.record_type === "codex_support_bundle_install_receipt" &&
+    Array.isArray(previous.assets) &&
+    previous.assets.length === 0 &&
+    Array.isArray(previous.conflicts) &&
+    previous.conflicts.length > 0;
   const installed = [];
   const conflicts = [];
   const backups = [];
@@ -227,8 +251,25 @@ export async function installSupportBundle({ targetRoot = getSupportBundleRoot()
       continue;
     }
     const destination = path.join(targetRoot, asset.destination);
+    const contentOptions = {
+      omitIndex: destination.endsWith(path.join("plugins", "meta-architect", "skills")),
+    };
     if (await pathExists(destination)) {
-      if (!managed.has(asset.destination)) {
+      const legacyManaged =
+        legacyEmptyInstall &&
+        previous.conflicts.some((entry) => entry.name === asset.name && entry.dest === destination);
+      if (!managed.has(asset.destination) && !legacyManaged) {
+        if (await contentMatches(source, destination, contentOptions)) {
+          installed.push({
+            name: asset.name,
+            class: asset.class,
+            dest: destination,
+            relative: asset.destination,
+            hash: await contentHash(destination, contentOptions),
+            adopted: true,
+          });
+          continue;
+        }
         conflicts.push({ name: asset.name, dest: destination, reason: "existing-unmanaged-path" });
         continue;
       }
@@ -266,7 +307,7 @@ export async function installSupportBundle({ targetRoot = getSupportBundleRoot()
     {
       ...manifest,
       record_type: "codex_support_bundle_install_receipt",
-      managedPaths: installed.map((asset) => asset.relative),
+      managedPaths: installed.filter((asset) => !asset.adopted).map((asset) => asset.relative),
       conflicts,
       backups,
     },
@@ -286,6 +327,7 @@ export async function rollbackInstalledAssets({ targetRoot, kind = "skills" } = 
   for (const entry of receipt.installed ?? []) {
     const relative = entry.relative ?? path.basename(entry.dest);
     const dest = path.isAbsolute(entry.dest) ? entry.dest : path.join(root, relative);
+    if (entry.adopted) continue;
     if (!(await pathExists(dest))) continue;
     if (entry.hash && (await treeHash(dest)) !== entry.hash) {
       skipped.push({ path: dest, reason: "modified-after-install" });

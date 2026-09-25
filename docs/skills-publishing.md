@@ -34,9 +34,11 @@ The launcher defaults to `codex` and accepts `MA_AGENT=claude-code` or
 command, universal status, and installation detection. The runtime compatibility
 registry remains the source for the complete 55-target fanout matrix.
 
-Plugin skill folders are linked to the canonical source when the filesystem
-allows it. Set `MA_PLUGIN_SYNC_MODE=copy` for a portable copied mirror; both
-modes are verified for file-set, content, and permission drift.
+Plugin skill folders are materialized as a portable copied mirror by default.
+This is required for marketplace and Desktop installs, which do not preserve
+repository-local symlinks. Set `MA_PLUGIN_SYNC_MODE=symlink` only for a local
+development mirror; both modes are verified for file-set, content, and
+permission drift.
 
 ## Published surface types
 

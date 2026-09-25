@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "meta-architect",
+  "version": "0.15.1",
+  "description": "Portable Meta-Architect skills for architecture, evidence, review, and bounded autonomous coding workflows.",
+  "author": {
+    "name": "JustineDevs",
+    "url": "https://github.com/JustineDevs"
+  },
+  "homepage": "https://github.com/JustineDevs/meta-architect",
+  "repository": "https://github.com/JustineDevs/meta-architect.git",
+  "license": "MIT",
+  "keywords": ["codex", "chatgpt", "skills", "architecture", "workflow", "agent"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Meta-Architect",
+        "shortDescription": "Bounded workflow skills for AI coding agents.",
+        "longDescription": "Meta-Architect adds inspect, decide, execute, verify, and evidence steps around AI coding agents. Use Maestro as the single manager for safe next-step routing.",
+        "developerName": "JustineDevs",
+        "category": "Developer Tools",
+        "capabilities": ["Read"],
+        "websiteURL": "https://ma.jstn.site",
+        "defaultPrompt": [
+          "Use Meta-Architect Maestro to choose the next safe workflow step for this task.",
+          "Use Meta-Architect to inspect, verify, and record evidence for this change."
+        ],
+        "brandColor": "#111111"
+      }
+    }
+  }
+}

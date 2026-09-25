@@ -189,6 +189,30 @@ The repository includes a hosted Claude Code marketplace for the existing
 /plugin install meta-architect@meta-architect
 ```
 
+### ChatGPT Desktop local marketplace
+
+ChatGPT Desktop cannot resolve a direct link to a local Codex skill such as
+`[$maestro](/home/justine/.codex/skills/maestro/SKILL.md)`. Install the
+portable plugin through the repository marketplace instead:
+
+```bash
+npm run plugin:validate
+codex plugin marketplace add ./
+```
+
+Restart ChatGPT Desktop, open Plugins, select the local Meta-Architect
+marketplace, and install **Meta-Architect**. Use the installed plugin or its
+available `@` mention with a normal request such as:
+
+```text
+Use Meta-Architect Maestro to choose the next safe workflow step for this task.
+```
+
+The Desktop plugin packages the skills only. Live local `ma` and Jev
+execution still requires the local Codex/Node runtime; hosted ChatGPT Work
+execution requires a separately deployed authenticated MCP app. See the
+[ChatGPT integration guide](./docs/chatgpt-integration.md).
+
 <details>
 <summary><strong>🔌 All 33 plugins & features</strong></summary>
 
