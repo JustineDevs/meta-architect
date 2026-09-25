@@ -25,7 +25,8 @@ function unquote(value) {
         : trimmed.slice(1, -1);
     }
   }
-  return trimmed.replace(/\s+#.*$/, "").trim();
+  const commentIndex = trimmed.indexOf(" #");
+  return (commentIndex === -1 ? trimmed : trimmed.slice(0, commentIndex)).trim();
 }
 
 export function parseProviderEnv(content) {
@@ -33,9 +34,9 @@ export function parseProviderEnv(content) {
   for (const line of String(content ?? "").split(/\r?\n/)) {
     const candidate = line.trim();
     if (!candidate || candidate.startsWith("#")) continue;
-    const match = candidate.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    const match = candidate.match(/^(?:export[ \t]+)?([A-Za-z_][A-Za-z0-9_]*)[ \t]*=/);
     if (!match || !PROVIDER_ENV_KEYS.includes(match[1])) continue;
-    values[match[1]] = unquote(match[2]);
+    values[match[1]] = unquote(candidate.slice(match[0].length).trim());
   }
   return values;
 }
