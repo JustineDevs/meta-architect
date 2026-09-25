@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: auto-tag-production-release
@@ -27,7 +28,17 @@ jobs:
         with:
           node-version: 20
 
+      - name: Resolve release version
+        id: release_version
+        run: echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+
       - name: Create or verify the release tag
         env:
           RELEASE_REMOTE: origin
         run: node ./scripts/auto-release-tag.mjs
+
+      - name: Dispatch release workflow for the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: v${{ steps.release_version.outputs.version }}
+        run: gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$RELEASE_TAG" -f tag="$RELEASE_TAG"

@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build, for example v0.15.1"
+        required: true
+        type: string
 
 jobs:
   release:
@@ -14,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -27,10 +35,17 @@ jobs:
       - name: Require the tag to point at the production branch
         run: |
           git fetch origin main --quiet
-          test "$(git rev-parse origin/main)" = "${GITHUB_SHA}" || {
-            echo "Release tags must point at the current origin/main commit."
-            exit 1
-          }
+          if [ "${{ github.event_name }}" = "push" ]; then
+            test "$(git rev-parse origin/main)" = "${GITHUB_SHA}" || {
+              echo "Release tags must point at the current origin/main commit."
+              exit 1
+            }
+          else
+            git merge-base --is-ancestor "${GITHUB_SHA}" "origin/main" || {
+              echo "Dispatched release tags must point at an ancestor of origin/main."
+              exit 1
+            }
+          fi
 
       - name: Install Codex CLI for live acceptance
         run: |
