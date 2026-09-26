@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.15.2
+
+- Release line prepared automatically for v0.15.2.
+
 ## v0.15.1
 
 - Isolates live regression runs from the operator's global Codex plugin inventory.
