@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.15.3
+
+- Release line prepared automatically for v0.15.3.
+
 ## v0.15.2
 
 - Release line prepared automatically for v0.15.2.

@@ -1,4 +1,4 @@
-# Meta-Architect v0.15.2
+# Meta-Architect v0.15.3
 
 ## Summary
 
@@ -17,14 +17,14 @@ This release ships Meta-Architect as a Codex-native skills system with:
 - copy-ready AI-agent installation prompt plus linked package manifests and coverage evidence in the README
 - zero-dependency Maestro output rendering for terminal lane status
 - a real-provider live regression workflow covering setup, doctor, Jev-backed `$maestro`, autonomous source mutation, verification receipts, and cleanup
-- redacted release evidence at `docs/qa/live-regression-0.15.2.json`
-- package, skill bundle, and release surfaces aligned to `v0.15.2`
+- redacted release evidence at `docs/qa/live-regression-0.15.3.json`
+- package, skill bundle, and release surfaces aligned to `v0.15.3`
 
 Target package state:
-- npm package: `@jstn-sdk/ma@0.15.2`
+- npm package: `@jstn-sdk/ma@0.15.3`
 - npm registry state: verified by the release publication workflow, not asserted by this source file
-- publishability note: `0.15.1` is already published, so `0.15.2` is the next publishable package line
-- release tag: `v0.15.2`
+- publishability note: `0.15.2` is already published, so `0.15.3` is the next publishable package line
+- release tag: `v0.15.3`
 - GitHub release state: verified by the release workflow, not asserted by this source file
 
 ## Verification
@@ -34,7 +34,7 @@ Target package state:
 - `npm run linux:packages:smoke`
 - `npm run release:assets`
 - `npm run release:assets:generate` followed by `npm run release:assets` publishes and verifies `SHA256SUMS`, an SPDX SBOM, and `release-summary.json` alongside every asset.
-- `npm run live:regression -- --output docs/qa/live-regression-0.15.2.json` with `TYPESAFE_API_KEY` validates the real provider and mutation boundary before the release job publishes assets.
+- `npm run live:regression -- --output docs/qa/live-regression-0.15.3.json` with `TYPESAFE_API_KEY` validates the real provider and mutation boundary before the release job publishes assets.
 - Release binaries are generated in CI and published to the GitHub Release; `dist/` is intentionally not tracked, so stale versioned files cannot accumulate in Git.
 - `npm publish --dry-run --access public --ignore-scripts`
 - installed-package setup and launch smoke
@@ -50,11 +50,11 @@ This release is only considered real if:
 - helper skills stay non-gating and Meta-Architect-owned
 - the gated workflow remains coherent from `$arch` to `$build`
 - native playbooks and support-bundle references load correctly
-- release docs, changelog, package metadata, and workflows all remain aligned to `v0.15.2`
-- every `v0.15.2` issue in `docs/qa/release-issue-gates-0.15.2.json` is marked `passed` with implementation, verification, and production evidence
+- release docs, changelog, package metadata, and workflows all remain aligned to `v0.15.3`
+- every `v0.15.3` issue in `docs/qa/release-issue-gates-0.15.3.json` is marked `passed` with implementation, verification, and production evidence
 - the live regression evidence records a real Jev decision, completed source mutation, passing verification, completed execution receipt, and zero disallowed files
 
 Current release-readiness state:
-- `docs/qa/release-issue-gates-0.15.2.json` records all tracked `v0.15.2` issues as `passed` with implementation, verification, production proof, and labels
+- `docs/qa/release-issue-gates-0.15.3.json` records all tracked `v0.15.3` issues as `passed` with implementation, verification, production proof, and labels
 - local release gates passed before publish and must remain green for any follow-up PR
 - npm and GitHub publication: verify with the release workflow and registry/release checks after publishing
