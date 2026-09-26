@@ -1,0 +1,4 @@
+interface:
+  display_name: "$build"
+  short_description: "Build-readiness decision and next implementation step"
+  default_prompt: "Use $build to decide whether implementation is ready, what remains blocked, and what the next build slice should be."

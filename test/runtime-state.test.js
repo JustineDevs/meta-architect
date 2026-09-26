@@ -799,6 +799,10 @@ test("maestro auto-heal repairs scratchpad artifacts and resumes bounded progres
       experience_status: "GREEN",
     });
     await fs.writeFile(path.join(tempRoot, ".ma", "guidance", "merged.json"), "{}\n");
+    await fs.writeFile(
+      path.join(tempRoot, ".ma", "context", "obsidian-bridge.json"),
+      `${JSON.stringify({ schemaVersion: "0.1.0" })}\n`,
+    );
 
     await skills.runMaestro({ autoHeal: true, parallel: true });
 
@@ -806,10 +810,14 @@ test("maestro auto-heal repairs scratchpad artifacts and resumes bounded progres
     const healedGuidance = JSON.parse(
       await fs.readFile(path.join(tempRoot, ".ma", "guidance", "merged.json"), "utf8"),
     );
+    const healedObsidianBridge = JSON.parse(
+      await fs.readFile(path.join(tempRoot, ".ma", "context", "obsidian-bridge.json"), "utf8"),
+    );
     const maestroState = JSON.parse(await fs.readFile(getMaestroStatePath(tempRoot), "utf8"));
     const maestroEvents = await loadMaestroEvents(tempRoot);
 
     assert.equal(healedGuidance.schemaVersion, "0.1.0");
+    assert.equal(healedObsidianBridge.graph_link_policy.enabled_by_default, true);
     assert.equal(releaseState.build_status, "READY");
     assert.equal(maestroState.runtime_tracks.track_heal_sync.status, "COMPLETED");
     assert.equal(
