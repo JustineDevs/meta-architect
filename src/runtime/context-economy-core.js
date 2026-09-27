@@ -80,11 +80,33 @@ export function createDefaultContextEconomyCore() {
 }
 
 function compactPlainText(text) {
-  return text
-    .split(/\s+/)
-    .filter((word) => !removableWords.has(word.toLowerCase().replace(/[^a-z]/g, "")))
+  const words = [];
+  let word = "";
+  for (const character of text) {
+    if (character.trim() === "") {
+      if (word) words.push(word);
+      word = "";
+    } else {
+      word += character;
+    }
+  }
+  if (word) words.push(word);
+
+  return words
+    .filter((candidate) => {
+      let lettersOnly = "";
+      for (const character of candidate.toLowerCase()) {
+        if (character >= "a" && character <= "z") lettersOnly += character;
+      }
+      return !removableWords.has(lettersOnly);
+    })
     .join(" ")
-    .replace(/\s+([,.;:!?])/g, "$1")
+    .replaceAll(" ,", ",")
+    .replaceAll(" .", ".")
+    .replaceAll(" ;", ";")
+    .replaceAll(" :", ":")
+    .replaceAll(" !", "!")
+    .replaceAll(" ?", "?")
     .trim();
 }
 

@@ -19,6 +19,9 @@ This release ships Meta-Architect as a Codex-native skills system with:
 - a real-provider live regression workflow covering setup, doctor, Jev-backed `$maestro`, autonomous source mutation, verification receipts, and cleanup
 - redacted release evidence at `docs/qa/live-regression-0.15.2.json`
 - package, skill bundle, and release surfaces aligned to `v0.15.2`
+- all six open CodeQL findings resolved, including polynomial-regex denial-of-service paths and incomplete installer URL host validation
+- GitHub CodeQL Action upgraded from v3 to v4 through Dependabot PR #129
+- manually dispatched release validation fixed to verify the explicitly selected tag
 
 Target package state:
 - npm package: `@jstn-sdk/ma@0.15.2`
@@ -30,6 +33,8 @@ Target package state:
 ## Verification
 
 - `npm run release:check`
+- CodeQL findings reviewed and remediated for the release commit
+- Dependabot CodeQL Action v4 update included in the release commit
 - `npm run linux:packages:build`
 - `npm run linux:packages:smoke`
 - `npm run release:assets`

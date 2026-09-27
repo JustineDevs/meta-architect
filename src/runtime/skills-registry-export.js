@@ -310,13 +310,31 @@ export async function detectProjectAgentRoot(agentType, cwd = getRepoRoot()) {
 }
 
 export function sanitizeSkillName(name) {
-  return `${name}`
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/\.+/g, ".")
-    .replace(/^\.+/, "")
-    .replace(/^-+|-+$/g, "");
+  let result = "";
+  let pendingSeparator = false;
+  let previousWasDot = false;
+  for (const character of `${name}`.trim().toLowerCase()) {
+    const allowed =
+      (character >= "a" && character <= "z") ||
+      (character >= "0" && character <= "9") ||
+      character === "." ||
+      character === "_" ||
+      character === "-";
+    if (allowed) {
+      if (character === "." && previousWasDot) continue;
+      if (pendingSeparator && result) result += "-";
+      result += character;
+      pendingSeparator = false;
+      previousWasDot = character === ".";
+    } else if (result) {
+      pendingSeparator = true;
+      previousWasDot = false;
+    }
+  }
+  while (result.startsWith(".")) result = result.slice(1);
+  while (result.startsWith("-")) result = result.slice(1);
+  while (result.endsWith("-")) result = result.slice(0, -1);
+  return result;
 }
 
 export function resolveSkillInstallPlan({

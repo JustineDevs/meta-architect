@@ -71,18 +71,32 @@ export function createCodeGraphTouchpoint(filePath, imports = []) {
 
 export function extractStaticImports(sourceText) {
   const imports = new Set();
-  const patterns = [
-    /import\s+(?:[^'"]+\s+from\s+)?["']([^"']+)["']/g,
-    /export\s+[^'"]+\s+from\s+["']([^"']+)["']/g,
-    /await\s+import\(["']([^"']+)["']\)/g,
-    /import\(["']([^"']+)["']\)/g,
-    /require\(["']([^"']+)["']\)/g,
-  ];
+  for (const line of sourceText.split("\n")) {
+    const trimmed = line.trim();
+    const isImportLine =
+      trimmed.startsWith("import ") ||
+      trimmed.startsWith("import{") ||
+      trimmed.startsWith("export ") ||
+      trimmed.startsWith("export{") ||
+      trimmed.includes(" require(") ||
+      trimmed.includes("import(");
+    if (!isImportLine) {
+      continue;
+    }
 
-  for (const pattern of patterns) {
-    for (const match of sourceText.matchAll(pattern)) {
-      if (match[1]) {
-        imports.add(match[1]);
+    let quote = null;
+    let value = "";
+    for (const character of line) {
+      if (quote === null && (character === '"' || character === "'")) {
+        quote = character;
+        value = "";
+      } else if (quote !== null && character === quote) {
+        if (value) {
+          imports.add(value);
+        }
+        quote = null;
+      } else if (quote !== null) {
+        value += character;
       }
     }
   }
