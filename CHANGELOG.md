@@ -2,7 +2,10 @@
 
 ## v0.15.2
 
-- Release line prepared automatically for v0.15.2.
+- Hardened runtime import, slug, and context parsing against polynomial regular-expression denial-of-service paths flagged by CodeQL.
+- Replaced installer host substring validation with exact parsed URL-host validation.
+- Updated GitHub CodeQL Action from v3 to v4 through Dependabot PR #129.
+- Fixed manually dispatched release validation to verify the selected tag instead of the workflow ref.
 
 ## v0.15.1
 

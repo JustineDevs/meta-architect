@@ -14,11 +14,24 @@ export function getRalphProgressPath() {
 }
 
 function slugify(value) {
-  return `${value}`
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  let result = "";
+  let pendingSeparator = false;
+  for (const character of `${value}`.trim().toLowerCase()) {
+    const allowed =
+      (character >= "a" && character <= "z") ||
+      (character >= "0" && character <= "9") ||
+      character === "." ||
+      character === "_" ||
+      character === "-";
+    if (allowed) {
+      if (pendingSeparator && result) result += "-";
+      result += character;
+      pendingSeparator = false;
+    } else if (result) {
+      pendingSeparator = true;
+    }
+  }
+  return result;
 }
 
 export function createRalphPrdContract({
