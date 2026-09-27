@@ -2,7 +2,7 @@
 
 This plugin bundle packages the Meta-Architect skill surfaces for consumers that want an installable plugin-style distribution instead of working directly from the source repository.
 
-Current release line: `v0.15.2` · package: `@jstn-sdk/ma@0.15.2`
+Current release line: `v0.15.3` · package: `@jstn-sdk/ma@0.15.3`
 
 ## What the plugin contains
 
@@ -185,13 +185,13 @@ project, `.ma/`, receipts, logs, or generated context.
 For a real-provider release check, run:
 
 ```bash
-npm run live:regression -- --output docs/qa/live-regression-0.15.2.json
+npm run live:regression -- --output docs/qa/live-regression-0.15.3.json
 ```
 
 The redacted evidence records setup, doctor, provider selection, source
 mutation, verification, execution receipt, and cleanup. See the canonical
 [package README](../../README.md), [live regression guide](../../docs/live-regression.md),
-and [release readiness record](../../docs/qa/release-readiness-0.15.2.md) for
+and [release readiness record](../../docs/qa/release-readiness-0.15.3.md) for
 the complete contract.
 
 Primary related surfaces:
@@ -239,7 +239,7 @@ When consuming the plugin:
 The plugin version should track the release scope of the core repo.
 
 For this repository:
-- plugin scope is aligned to Meta-Architect `v0.15.2`
+- plugin scope is aligned to Meta-Architect `v0.15.3`
 - any breaking contract change should be versioned intentionally
 
 The plugin is one distribution surface of the same product, not a separate product line.
