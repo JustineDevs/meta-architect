@@ -71,7 +71,7 @@ jobs:
 
       - name: Validate release bundle
         env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: npm run release:check
 
       - name: Build Linux native packages
