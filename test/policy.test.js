@@ -14,7 +14,7 @@ test("feature branches cannot release directly to prod", () => {
 
 test("dev and release branches are valid release origins", () => {
   assert.equal(validateReleaseOrigin("dev"), true);
-  assert.equal(validateReleaseOrigin("release/0.15.2"), true);
+  assert.equal(validateReleaseOrigin("release/0.15.3"), true);
 });
 
 test("merge target policy only allows feature branches into dev", () => {
