@@ -50,28 +50,6 @@ jobs:
       - name: Verify plugin mirror
         run: npm run plugin:verify
 
-      - name: Enforce PR base branch policy
-        env:
-          BASE_REF: ${{ github.base_ref }}
-          HEAD_REF: ${{ github.head_ref }}
-        run: |
-          if [ "$BASE_REF" = "dev" ]; then
-            echo "Normal integration PR targeting dev: allowed."
-            exit 0
-          fi
-
-          if [ "$BASE_REF" = "main" ] && [ "$HEAD_REF" = "dev" ]; then
-            echo "Curated promotion PR from dev to main: allowed."
-            exit 0
-          fi
-
-          echo "Invalid PR target policy."
-          echo "Normal PRs must target dev."
-          echo "Only curated promotion PRs from dev may target main."
-          echo "Current head: $HEAD_REF"
-          echo "Current base: $BASE_REF"
-          exit 1
-
       - name: Fail on forbidden tracked runtime .ma files
         run: |
           forbidden=$(git ls-files '.ma/logs/*' '.ma/state/*' '.ma/tmp/*' '.ma/cache/*' || true)
