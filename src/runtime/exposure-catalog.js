@@ -28,7 +28,14 @@ function normalizePackageNameFromLockPath(lockPath) {
 
 function compareSemver(a, b) {
   const parse = (value) =>
-    `${value}`.split(".").map((part) => Number.parseInt(part.replace(/[^0-9].*$/, ""), 10) || 0);
+    `${value}`.split(".").map((part) => {
+      let digits = "";
+      for (const character of part) {
+        if (character < "0" || character > "9") break;
+        digits += character;
+      }
+      return Number.parseInt(digits, 10) || 0;
+    });
   const left = parse(a);
   const right = parse(b);
   const maxLength = Math.max(left.length, right.length);
