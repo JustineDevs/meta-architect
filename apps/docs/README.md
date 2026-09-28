@@ -16,10 +16,11 @@ npm run dev
 Open `http://localhost:3000/docs`.
 
 The documentation covers the same supported workflow as the package README:
-install `@jstn-sdk/ma`, configure TypeSafe once with `ma auth typesafe` (or
-use a project-local `.env.local` file), run `ma setup`, launch the host, and
-give `$maestro` one goal. See the package root README for the canonical
-installation variants and release links.
+install `@jstn-sdk/ma`, optionally configure TypeSafe once with `ma auth
+typesafe` for live Jev routing, run `ma setup`, launch the host, and give
+`$maestro` one goal. Without TypeSafe, Maestro uses bounded local routing. See
+the package root README for the canonical installation variants and release
+links.
 
 ## Provider configuration
 
