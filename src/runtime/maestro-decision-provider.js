@@ -64,10 +64,11 @@ function validateResponse(body, candidateIds) {
   };
 }
 
-function deterministicDecision(managerAction) {
+function localDecision(managerAction, { provider = "deterministic", fallbackReason = null } = {}) {
   const candidates = normalizeCandidates(managerAction);
   return {
-    provider: "deterministic",
+    provider,
+    ...(fallbackReason ? { fallbackReason } : {}),
     decisionId: stableDecisionId(candidates),
     ...validateDeterministicCandidate(candidates[0]),
     candidates,
@@ -110,16 +111,17 @@ export async function decideMaestroLane({
   const resolved = await resolveProviderEnvironment({ cwd, home, env });
   const config = getMaestroDecisionProviderConfig(env, resolved.env);
   const candidates = normalizeCandidates(managerAction);
-  if (config.provider === "deterministic") {
-    return deterministicDecision(managerAction);
+  if (config.provider === "deterministic" || config.provider === "local") {
+    return localDecision(managerAction, { provider: config.provider });
   }
   if (config.provider !== "jev") {
     throw new Error(`Unsupported Maestro decision provider: ${config.provider}`);
   }
   if (!config.apiKey) {
-    throw new Error(
-      "Maestro requires TYPESAFE_API_KEY for Jev routing. Set MAESTRO_DECISION_PROVIDER=deterministic only for explicit offline tests.",
-    );
+    return localDecision(managerAction, {
+      provider: "local",
+      fallbackReason: "typesafe_credentials_missing",
+    });
   }
   if (typeof fetchImpl !== "function") throw new Error("Fetch is unavailable for Jev routing");
 

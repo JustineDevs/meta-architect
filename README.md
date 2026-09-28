@@ -130,9 +130,9 @@ ma status
 ma doctor
 ```
 
-Maestro stops for missing credentials, destructive operations, deployments,
-or explicit approval gates. Interrupted work resumes from the persisted `.ma/`
-state.
+Maestro uses the bounded local policy when TypeSafe credentials are missing,
+and stops for destructive operations, deployments, or explicit approval gates.
+Interrupted work resumes from the persisted `.ma/` state.
 
 ### AI agent installation prompt
 

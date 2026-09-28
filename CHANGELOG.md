@@ -2,6 +2,9 @@
 
 ## v0.15.3
 
+- Makes TypeSafe optional for core workflows: Maestro uses bounded local
+  routing when no credential is configured, while preserving explicit Jev
+  evidence and fail-closed behavior for live provider errors.
 - Carries the architecture-style review and domain-specific evidence dossiers into the
   `$sage`, `$flow`, `$vet`, `$vibe`, and `$build` lanes with pinned source provenance.
 - Adds a bounded, machine-readable architecture and system-design glossary plus a

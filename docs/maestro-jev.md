@@ -12,8 +12,9 @@ and must not be inferred from an API key, package, or prompt.
 
 ## Runtime contract
 
-Live routing requires a TypeSafe API key. Configure it once for the current
-user:
+Live routing uses a TypeSafe API key when one is configured. Without a key,
+Maestro automatically uses its bounded local policy so the workflow remains
+usable offline. Configure TypeSafe once for live Jev routing:
 
 ```bash
 ma auth typesafe
@@ -51,19 +52,28 @@ Local Meta-Architect code remains authoritative for:
 - audit receipts and durable manager state.
 
 Jev chooses one action from the locally eligible set. A response outside that
-set, a malformed response, an HTTP error, or a timeout fails the Maestro run
-closed. Jev cannot invent a lane, bypass a gate, or mutate release state.
+set, a malformed response, an HTTP error, or a timeout fails the live Jev
+request closed. Jev cannot invent a lane, bypass a gate, or mutate release
+state. Missing credentials do not fail the workflow: the local policy chooses
+the first eligible action and records `provider: "local"` with
+`fallbackReason: "typesafe_credentials_missing"`.
 
 ## Explicit offline tests
 
-The deterministic policy is retained only as an explicit test/offline provider:
+The local policy is also available explicitly:
+
+```bash
+MAESTRO_DECISION_PROVIDER=local ma run '$maestro'
+```
+
+The legacy deterministic alias remains available for tests:
 
 ```bash
 MAESTRO_DECISION_PROVIDER=deterministic npm test
 ```
 
-This mode is not the live default and is not a substitute for validating a
-production Jev credential and endpoint.
+Local mode is not a substitute for validating a production Jev credential and
+endpoint. It is safe, bounded, and honest about not using the provider.
 
 Run the real provider smoke test after global or project dotenv configuration:
 

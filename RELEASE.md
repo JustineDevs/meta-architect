@@ -2,6 +2,10 @@
 
 ## Summary
 
+TypeSafe is optional for the core local workflow. When no credential is
+configured, Maestro uses the bounded local policy and records that Jev was not
+used; live Jev routing remains available when configured.
+
 This release ships Meta-Architect as a Codex-native skills system with:
 - canonical install `npm i -g @openai/codex@latest @jstn-sdk/ma@latest`
 - optional helper launch `ma --madmax --high`

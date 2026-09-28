@@ -48,7 +48,7 @@ For a task or batch, keep the manager loop active across turns:
 5. Persist checkpoints, receipts, and the next trigger after every transition so an interrupted process can resume safely.
 6. Continue unaffected batch tasks when one task is blocked, then return a batch summary with terminal states and unresolved blockers.
 
-Routine local work continues without asking for another prompt. Stop only for credentials, destructive actions, production or external mutations, explicit approval gates, unsafe commands, unavailable required providers, or missing verification evidence.
+Routine local work continues without asking for another prompt. Live Jev credentials are optional: without them, the runtime uses its bounded local policy and records that Jev was not used. Stop only for destructive actions, production or external mutations, explicit approval gates, unsafe commands, unavailable required providers, or missing verification evidence.
 
 ## Output
 
@@ -67,17 +67,19 @@ this skill does not by itself call TypeSafe, Jev, or any other decision provider
 Never claim that TypeSafe, Jev, JEV, or a model was used from the presence of a
 skill, an API key, a package, a configuration default, or a typed workflow state.
 
-Only claim provider usage when the current runtime contains fresh evidence in
+Only claim Jev provider usage when the current runtime contains fresh evidence in
 `.ma/state/manager-runs.json` or the Maestro event log showing a successful
 decision with `provider: "jev"`, its decision id, and the selected eligible
 action. A failed request, missing key, timeout, malformed response, or merely
 configured provider is not usage evidence.
 
-When no such evidence exists, report: `provider use: not verified`. If the user
-asks whether TypeSafe or Jev was used, inspect the persisted runtime evidence
-first. If the user invoked `/maestro` inside a host without running the local
-Maestro runtime, explain that the skill was loaded but no provider call was
-verified; do not fill the gap with an assumption.
+When no such evidence exists, report: `provider use: not verified`. If the
+runtime fell back to local policy, report `decision provider: local` and
+`provider use: not verified`. If the user asks whether TypeSafe or Jev was used,
+inspect the persisted runtime evidence first. If the user invoked `/maestro`
+inside a host without running the local Maestro runtime, explain that the skill
+was loaded but no provider call was verified; do not fill the gap with an
+assumption.
 
 ## Rules
 

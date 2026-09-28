@@ -124,7 +124,7 @@ const architectureStyleCatalog = Object.freeze([
 ]);
 const workflowTemplates = {
   "maestro.skill.md":
-    "# `$maestro`\n\nThe autonomous Meta-Architect workflow. Inspect runtime state, ask the configured Jev decision provider to choose one eligible action, execute it through the owning lane, and persist the decision and evidence. Users do not need to select the next lane manually.\n",
+    "# `$maestro`\n\nThe autonomous Meta-Architect workflow. Inspect runtime state, use live Jev routing when TypeSafe credentials are configured, otherwise use the bounded local policy, execute one eligible action through the owning lane, and persist the decision and evidence. Users do not need to select the next lane manually.\n",
   "arch.skill.md":
     "# `$arch`\n\nProduces blueprint architecture, stack rationale, subsystem design, and tradeoffs.\n",
   "sage.skill.md":

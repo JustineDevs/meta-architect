@@ -32,8 +32,10 @@ The package does not ship a separate `$meta-architect` in-session skill. `$maest
 
 ## Jev decision core
 
-Live Maestro routing uses TypeSafe Jev as its typed decision provider. Configure
-the server-side key once for your user account:
+Live Maestro routing uses TypeSafe Jev as its typed decision provider when a key
+is configured. If no key is available, Maestro automatically uses its bounded
+local policy so setup, lane execution, verification, and receipts still work.
+Configure the server-side key once for live Jev routing:
 
 ```bash
 ma auth typesafe
@@ -57,9 +59,12 @@ TYPESAFE_API_KEY="jv_live_..." npm run test:maestro-live
 Maestro sends a bounded state object and a typed `choice` question to
 `https://api.typesafe.ai/v1/systemone`. Jev can select only from actions that the
 local release state has already proven safe. It cannot bypass prerequisites,
-change release ownership, or execute arbitrary text. Missing credentials fail
-with an actionable error. Tests and explicitly offline environments may opt into
-the deterministic policy with `MAESTRO_DECISION_PROVIDER=deterministic`.
+change release ownership, or execute arbitrary text. Missing credentials select
+the local policy and record `provider: "local"` with `provider use: not
+verified`. A request failure after Jev has been selected still fails closed.
+Tests and explicitly offline environments may select local routing with
+`MAESTRO_DECISION_PROVIDER=local`; the legacy
+`MAESTRO_DECISION_PROVIDER=deterministic` alias remains supported.
 
 ## Real usage path
 
