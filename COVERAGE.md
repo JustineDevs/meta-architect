@@ -1,8 +1,8 @@
 # Meta-Architect Coverage Matrix
 
-Target release: `v0.15.2`
-Last verified: 2026-06-03
-Package: `@jstn-sdk/ma@0.15.2`
+Target release: `v0.15.3`
+Last verified: 2026-09-28
+Package: `@jstn-sdk/ma@0.15.3`
 
 This file is the canonical operator-facing coverage map for the current release line.
 It records what MA can prove today through repository tests, runtime artifacts, package dry-runs, and release gates.
@@ -21,12 +21,12 @@ It records what MA can prove today through repository tests, runtime artifacts, 
 | Core skill surface | DONE | `skills/`, `skills/index.json`, `npm run skills:validate` |
 | Helper skill surface | DONE | `$align`, `$diagnose`, `$tdd`, `$cleanup` contracts in `skills/`, plugin mirror, and Helper Orchestration Core |
 | Build gate enforcement | DONE | `src/build-gate.js`, `test/build-gate.test.js`, `test/cli-smoke.test.js` |
-| Release issue gates | DONE | `src/release-issue-gates.js`, `docs/qa/release-issue-gates-0.15.2.json`, `test/release-issue-gates.test.js` |
+| Release issue gates | DONE | `src/release-issue-gates.js`, `docs/qa/release-issue-gates-0.15.3.json`, `test/release-issue-gates.test.js` |
 | Live GitMCP probe support | DONE | `src/mcp-live-client.js`, `src/skills.js`, `test/mcp-config.test.js` |
 | MCP policy and exposure control | DONE | `src/runtime/mcp-policy.js`, `src/runtime/exposure-catalog.js`, `test/mcp-policy.test.js`, `test/exposure-catalog.test.js` |
 | Plugin mirror discipline | DONE | `scripts/plugin-sync.js`, `npm run plugin:verify`, package dry-run |
 | Package dry-run | DONE | `npm run pack:inspect` |
-| Release check pipeline | DONE | `npm run release:check` |
+| Release check pipeline | NOT VERIFIED | `npm run release:check` is currently blocked by unrelated MCP UI bundle lint, formatting, and accessibility findings in the worktree. |
 
 ## Runtime and workflow coverage
 
@@ -88,17 +88,12 @@ It records what MA can prove today through repository tests, runtime artifacts, 
 
 Canonical public skills:
 
-- `maestro`
-- `arch`
-- `sage`
-- `flow`
-- `vet`
-- `vibe`
-- `build`
-- `align`
-- `diagnose`
-- `tdd`
-- `cleanup`
+<table>
+  <tr><th>Layer</th><th>Skills</th></tr>
+  <tr><td>Manager</td><td><code>maestro</code></td></tr>
+  <tr><td>Gated lanes</td><td><code>arch</code>, <code>sage</code>, <code>flow</code>, <code>vet</code>, <code>vibe</code>, <code>build</code></td></tr>
+  <tr><td>Helpers</td><td><code>align</code>, <code>diagnose</code>, <code>tdd</code>, <code>cleanup</code></td></tr>
+</table>
 
 Coverage state:
 
@@ -145,16 +140,18 @@ Coverage state:
 | `test/workspace-intelligence-runtime.test.js` | capability composition, semantic receipts, workspace effectiveness |
 | `test/workspace-virtualizer.test.js` | bounded verification sandbox receipts |
 
-Current automated verification count:
+Current automated verification status:
 
-- 36 test files executed by `npm test`
-- 36/36 passing on the latest full release verification run
+- Targeted documentation, plugin, skills, release, and link checks pass.
+- A fresh full `npm test` run was not completed within the verification window.
+- Do not treat this matrix as proof that the full release check is green until
+  `npm run release:check` completes successfully.
 
 ## Packaging and plugin coverage
 
 | Surface | Status | Mechanism |
 | --- | --- | --- |
-| npm package identity | DONE | `@jstn-sdk/ma@0.15.2` |
+| npm package identity | DONE | `@jstn-sdk/ma@0.15.3` |
 | public scoped package config | DONE | `publishConfig.access = public` |
 | package files allowlist | DONE | `package.json > files` |
 | production ignore policy | DONE | `.npmignore` plus `npm pack --dry-run` |
@@ -176,8 +173,8 @@ Current automated verification count:
 | `docs/getting-started.md` onboarding | DONE | source checkout, helper path, gates, runtime artifacts |
 | `docs/skills.md` skill reference | DONE | trigger-by-trigger contract guide |
 | `docs/mcp-setup.md` evidence policy | DONE | GitMCP endpoint semantics and bridge guidance |
-| `docs/release-spec.md` release policy | DONE | `v0.15.2` aligned |
-| `docs/qa/release-readiness-0.15.2.md` | DONE | current QA evidence |
+| `docs/release-spec.md` release policy | DONE | `v0.15.3` aligned |
+| `docs/qa/release-readiness-0.15.3.md` | DONE | current QA evidence |
 | `scripts/release-verify.js` | DONE | checks install docs, demo doc, issue gates, package metadata, `.npmignore` |
 
 ## Known limits
@@ -192,7 +189,7 @@ These are explicit operating limits, not stale gaps:
 
 ## Current truth statement
 
-Meta-Architect currently covers the `v0.15.2` release bar for:
+Meta-Architect currently covers the `v0.15.3` release bar for:
 
 - canonical install and launch
 - Codex-hosted runtime entry

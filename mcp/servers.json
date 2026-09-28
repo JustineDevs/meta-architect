@@ -84,6 +84,36 @@
       "category": "prompt-techniques",
       "repo": "NirDiamant/Prompt_Engineering",
       "endpoint": "https://gitmcp.io/NirDiamant/Prompt_Engineering"
+    },
+    {
+      "kind": "gitmcp-evidence",
+      "category": "software-architecture-styles",
+      "repo": "software-architecture-guild/software-architecture-guild.github.io",
+      "endpoint": "https://gitmcp.io/software-architecture-guild/software-architecture-guild.github.io"
+    },
+    {
+      "kind": "gitmcp-evidence",
+      "category": "reliability-and-security",
+      "repo": "google/building-secure-and-reliable-systems",
+      "endpoint": "https://gitmcp.io/google/building-secure-and-reliable-systems"
+    },
+    {
+      "kind": "gitmcp-evidence",
+      "category": "application-security-verification",
+      "repo": "OWASP/ASVS",
+      "endpoint": "https://gitmcp.io/OWASP/ASVS"
+    },
+    {
+      "kind": "gitmcp-evidence",
+      "category": "accessibility",
+      "repo": "w3c/wcag",
+      "endpoint": "https://gitmcp.io/w3c/wcag"
+    },
+    {
+      "kind": "gitmcp-evidence",
+      "category": "software-supply-chain",
+      "repo": "slsa-framework/slsa",
+      "endpoint": "https://gitmcp.io/slsa-framework/slsa"
     }
   ]
 }

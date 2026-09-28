@@ -1,9 +1,9 @@
 # Meta-Architect documentation
 
-The public documentation site for Meta-Architect `v0.15.0` is a Fumadocs
-application backed by MDX in `content/docs`. The repository-level `docs/`
-directory remains the engineering record; this app is the clear product guide
-for users and operators.
+The public documentation site for Meta-Architect is a Fumadocs application
+backed by MDX in `content/docs`. The repository-level `docs/` directory
+remains the engineering record; this app is the evergreen product guide for
+users and operators.
 
 ## Development
 
@@ -50,3 +50,4 @@ credential.
   in `reference/`, and maintenance material in `operations/`.
 - Every guide states prerequisites, expected result, and verification.
 - Keep examples copyable and explain only the decision the reader needs.
+- Keep release-specific evidence in the repository-level `docs/` directory.

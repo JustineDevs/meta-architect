@@ -13,13 +13,12 @@ only when development metadata is unavailable.
 
 `mcp/local-capabilities.json` is separate from `mcp/servers.json`. It is the allowlist for Meta-Architect's packaged local capabilities:
 
-- `_state`
-- `memory`
-- `trace`
-- `team_run`
-- `code_intel`
-- `playbooks`
-- `context`
+<table>
+  <tr><th>Capability</th><th>Boundary</th></tr>
+  <tr><td><code>_state</code>, <code>memory</code>, <code>trace</code></td><td>Read-only runtime state and evidence context.</td></tr>
+  <tr><td><code>team_run</code>, <code>code_intel</code></td><td>Bounded local orchestration and code intelligence.</td></tr>
+  <tr><td><code>playbooks</code>, <code>context</code></td><td>Packaged guidance and project context reads.</td></tr>
+</table>
 
 `playbooks` is a read-only packaged capability. It does not point at external MCP servers and it does not repurpose `mcp/collections.json`.
 
@@ -44,19 +43,15 @@ Canonical `$sage` order:
 
 The following external discovery surfaces are part of the Meta-Architect discovery standard:
 
-- `https://ossium.live/home`
-  - use for trending OSS, curated repositories, YC-backed repos, GSoC orgs, and contribution leads
-- `https://trendshift.io/`
-  - use for rising GitHub repository engagement, topic-driven exploration, and trend signals
-- `https://devhunt.org/`
-  - use for newly launched developer tools and discovery of current dev-tool products
-- `https://libraries.io/`
-  - use for package, ecosystem, license, and dependency metadata
-  - caution: Libraries.io says its public data is scraped and "not validated, corrected, or curated for accuracy"
-- `https://openhub.net/`
-  - use for project activity, contributor, popularity, and comparative OSS project signals
-- `https://www.opensourceprojects.dev/`
-  - use for curated open-source project discovery, detailed project writeups, and higher-signal project scouting
+<table>
+  <tr><th>Surface</th><th>Use</th></tr>
+  <tr><td><a href="https://ossium.live/home">Ossium</a></td><td>Trending OSS, curated repositories, YC-backed repos, GSoC orgs, and contribution leads.</td></tr>
+  <tr><td><a href="https://trendshift.io/">Trendshift</a></td><td>Rising GitHub engagement, topic exploration, and trend signals.</td></tr>
+  <tr><td><a href="https://devhunt.org/">DevHunt</a></td><td>New developer tools and current product discovery.</td></tr>
+  <tr><td><a href="https://libraries.io/">Libraries.io</a></td><td>Package, ecosystem, license, and dependency metadata. Its public data is not guaranteed to be validated or curated.</td></tr>
+  <tr><td><a href="https://openhub.net/">OpenHub</a></td><td>Project activity, contributor, popularity, and comparison signals.</td></tr>
+  <tr><td><a href="https://www.opensourceprojects.dev/">Open Source Projects</a></td><td>Curated project discovery and higher-signal project scouting.</td></tr>
+</table>
 
 Use it for:
 - discovering candidate repositories
@@ -100,10 +95,13 @@ When no bridge is configured:
 
 ## Separation of concerns
 
-- `mcp/servers.json` remains for repo-specific GitMCP evidence sources
-- `mcp/collections.json` remains GitMCP-oriented evidence categorization for this release
-- `mcp/local-capabilities.json` is the first-party in-process capability registry
-- `mcp/native-playbooks.json` is internal native curation metadata, not an upstream mirror or user-edited evidence source list
+<table>
+  <tr><th>File</th><th>Responsibility</th></tr>
+  <tr><td><code>mcp/servers.json</code></td><td>Repository-specific GitMCP evidence sources.</td></tr>
+  <tr><td><code>mcp/collections.json</code></td><td>GitMCP-oriented evidence categorization.</td></tr>
+  <tr><td><code>mcp/local-capabilities.json</code></td><td>First-party in-process capability registry.</td></tr>
+  <tr><td><code>mcp/native-playbooks.json</code></td><td>Internal curation metadata, not an upstream mirror or user-edited source list.</td></tr>
+</table>
 
 ## Current semantic source routing
 
@@ -127,14 +125,17 @@ They do not count as `build_evidence` unless `$sage`, `$vet`, or another owning 
 The setup-owned local MCP registry exposes read-only context evidence through
 the `context` capability. Its resources are:
 
-- `context://project-index` — source-truth project fingerprint and file metadata.
-- `context://freshness` — incremental refresh status and changed-file evidence.
-- `context://learning` — validated learning-loop state.
-- `context://obsidian` — validated vault index and operation receipts when configured.
-- `context://hooks` — hook configuration and audit evidence.
-- `context://commands` — source-derived command map.
-- `context://agent-brief` — bounded first-read generated context.
-- `context://architecture` — bounded generated architecture map.
+<table>
+  <tr><th>Resource</th><th>Evidence</th></tr>
+  <tr><td><code>context://project-index</code></td><td>Project fingerprint and file metadata.</td></tr>
+  <tr><td><code>context://freshness</code></td><td>Refresh status and changed-file evidence.</td></tr>
+  <tr><td><code>context://learning</code></td><td>Validated learning-loop state.</td></tr>
+  <tr><td><code>context://obsidian</code></td><td>Vault index and operation receipts when configured.</td></tr>
+  <tr><td><code>context://hooks</code></td><td>Hook configuration and audit evidence.</td></tr>
+  <tr><td><code>context://commands</code></td><td>Source-derived command map.</td></tr>
+  <tr><td><code>context://agent-brief</code></td><td>Bounded first-read generated context.</td></tr>
+  <tr><td><code>context://architecture</code></td><td>Bounded generated architecture map.</td></tr>
+</table>
 
 Every response includes `record_type`, `authority`, `source`, and `available`
 metadata. Missing optional artifacts return an unavailable result; writes are

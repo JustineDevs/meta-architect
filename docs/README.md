@@ -1,40 +1,67 @@
-# Docs Index
+# Documentation index
 
-Meta-Architect documentation is organized by operator task.
+Use the public site for the shortest user path. Use this directory for the
+repository-level contracts, release evidence, and implementation notes.
 
-## Start here
+## 1. Start here
 
-- [Getting Started](./getting-started.md)
-- [Production Demo Guide](../DEMO.md)
-- [Real Demo Runbook](./demo/REAL_DEMO_RUNBOOK.md)
-- [Demo Story](./demo/DEMO_STORY.md)
-- [Prospect Checklist](./demo/PROSPECT_CHECKLIST.md)
-- [Coverage Matrix](../COVERAGE.md)
-- [Release Spec](./release-spec.md)
-- [Skills Reference](./skills.md)
-- [Maestro Decision Core](./maestro-jev.md)
-- [Senior Engineering Execution](./senior-engineering.md)
-- umbrella, gated lanes, and helper skill distinctions live in the Skills Reference
-- [Installed Support Bundle](./installed-sdk.md)
-- [Runtime retention](./runtime-retention.md)
-- [External architect review](./architect-review.md)
+<table>
+  <tr><th>Guide</th><th>Purpose</th></tr>
+  <tr><td><a href="./getting-started.md">Getting started</a></td><td>Install, set up, and run the first gated workflow.</td></tr>
+  <tr><td><a href="./onboarding.md">Onboarding</a></td><td>Compact contributor and operator path.</td></tr>
+  <tr><td><a href="./skills.md">Skills reference</a></td><td>Umbrella, gated lanes, and non-gating helpers.</td></tr>
+  <tr><td><a href="./mcp-setup.md">MCP setup</a></td><td>Evidence sources and first-party read-only capabilities.</td></tr>
+</table>
 
-## Packaging and installation
+## 2. Operate the workflow
 
-- [Skills Publishing](./skills-publishing.md)
-- [ChatGPT Desktop and Work Integration](./chatgpt-integration.md)
-- published helper-skill and plugin-mirror expectations live in Skills Publishing
-- Linux-native distro package expectations live in the Release Spec and release-readiness docs
-- [MCP Setup](./mcp-setup.md)
-- [Continuity Graph](./continuity-graph.md)
-- [Plugin Bundle](../plugins/meta-architect/README.md)
+<table>
+  <tr><th>Guide</th><th>Guide</th><th>Guide</th></tr>
+  <tr><td><a href="./maestro-jev.md">Maestro decision core</a></td><td><a href="./autonomous-tasks.md">Autonomous tasks</a></td><td><a href="./setup-lifecycle.md">Setup lifecycle</a></td></tr>
+  <tr><td><a href="./continuity-graph.md">Continuity graph</a></td><td><a href="./runtime-retention.md">Runtime retention</a></td><td><a href="./project-context.md">Project context</a></td></tr>
+  <tr><td><a href="./installed-sdk.md">Installed support bundle</a></td><td></td><td></td></tr>
+</table>
 
-## QA and readiness
+## 3. Integrate and publish
 
-- [Release Readiness 0.15.2](./qa/release-readiness-0.15.2.md)
-- [Release Issue Gates 0.15.2](./qa/release-issue-gates-0.15.2.json)
+<table>
+  <tr><th>Guide</th><th>Guide</th><th>Guide</th></tr>
+  <tr><td><a href="./codex-integration.md">Codex integration</a></td><td><a href="./chatgpt-integration.md">ChatGPT integration</a></td><td><a href="./skills-publishing.md">Skills publishing</a></td></tr>
+  <tr><td><a href="./vendor-plugin-publishing.md">Vendor plugin publishing</a></td><td><a href="../plugins/meta-architect/README.md">Plugin bundle</a></td><td><a href="./release-spec.md">Release specification</a></td></tr>
+</table>
 
-## Repo structure references
+## 4. Verify and secure
 
-- [README.md](../README.md)
-- [CONTRIBUTING.md](../CONTRIBUTING.md)
+<table>
+  <tr><th>Guide</th><th>Guide</th><th>Guide</th></tr>
+  <tr><td><a href="./conformance-matrix.md">Conformance matrix</a></td><td><a href="./live-regression.md">Live regression workflow</a></td><td><a href="./quality.md">Quality</a></td></tr>
+  <tr><td><a href="./ossf-best-practices.md">Security evidence</a></td><td><a href="./disk-optimization.md">Disk-bounded test runs</a></td><td><a href="./architect-review.md">External architect review</a></td></tr>
+</table>
+
+## 5. Demonstrate the product
+
+<table>
+  <tr><th>Guide</th><th>Guide</th><th>Guide</th></tr>
+  <tr><td><a href="../DEMO.md">Production demo</a></td><td><a href="./demo/REAL_DEMO_RUNBOOK.md">Real demo runbook</a></td><td><a href="./demo/DEMO_STORY.md">Demo story</a></td></tr>
+  <tr><td><a href="./demo/PROSPECT_CHECKLIST.md">Prospect checklist</a></td><td><a href="../COVERAGE.md">Coverage matrix</a></td><td></td></tr>
+</table>
+
+## 6. Release evidence
+
+<table>
+  <tr><th>Record</th><th>Record</th><th>Record</th></tr>
+  <tr><td><a href="./qa/release-readiness-0.15.3.md">Release readiness for 0.15.3</a></td><td><a href="./qa/release-issue-gates-0.15.3.json">Release issue gates for 0.15.3</a></td><td><a href="../CHANGELOG.md">Current changelog</a></td></tr>
+</table>
+
+Release-readiness files and live-regression JSON are evidence records. They are
+not evergreen setup instructions and must be read with their release version.
+
+## 7. Repository policies
+
+<table>
+  <tr><th>Policy</th><th>Policy</th><th>Policy</th><th>Policy</th></tr>
+  <tr><td><a href="../README.md">README</a></td><td><a href="../CONTRIBUTING.md">Contributing</a></td><td><a href="../SECURITY.md">Security policy</a></td><td><a href="../CODE_OF_CONDUCT.md">Code of conduct</a></td></tr>
+</table>
+
+The dated ADRs, QA snapshots, and integration reports remain available for
+traceability. They are historical records, not current compatibility claims.

@@ -105,6 +105,12 @@ test("maestro advances one bounded manager action per call and stops on unchange
     path.join(tempRoot, ".ma", "specs", "evidence.md"),
     "utf8",
   );
+  const technologyMatrix = JSON.parse(
+    await fs.readFile(
+      path.join(tempRoot, ".ma", "context", "technology-capability-matrix.json"),
+      "utf8",
+    ),
+  );
   const implementationPlan = await fs.readFile(
     path.join(tempRoot, ".ma", "plans", "implementation.md"),
     "utf8",
@@ -149,6 +155,9 @@ test("maestro advances one bounded manager action per call and stops on unchange
   assert.match(architectureSpec, /## Decision/);
   assert.match(architectureSpec, /## Rejected Alternatives/);
   assert.match(evidenceSpec, /## Evidence Grade/);
+  assert.match(evidenceSpec, /## Technology Inventory/);
+  assert.equal(Array.isArray(technologyMatrix.technologies), true);
+  assert.match(evidenceSpec, /Technology-specific capabilities and variables remain blocked/);
   assert.match(evidenceSpec, /## Exact Upstream Mapping/);
   assert.match(
     architectureSpec,
@@ -156,6 +165,11 @@ test("maestro advances one bounded manager action per call and stops on unchange
   );
   assert.match(implementationPlan, /Validate evidence through approved GitMCP sources/);
   assert.match(architectureSpec, /## Runtime Context/);
+  assert.match(architectureSpec, /## Architecture Style Review/);
+  assert.match(
+    architectureSpec,
+    /software-architecture-guild\/software-architecture-guild\.github\.io/,
+  );
   assert.match(maestroPlan, /## Runtime Context/);
   assert.equal(guidanceIndex.sources.length, 1);
   assert.equal(guidanceIndex.sources[0].id, "ponytail");

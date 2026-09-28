@@ -1,0 +1,88 @@
+{
+  "$schema": "https://developers.openai.com/plugins/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "Meta-Architect",
+    "subtitle": "Plan and verify coding work",
+    "description": "Meta-Architect gives AI coding agents a visible workflow for turning goals into safe actions, verification checks, and recorded evidence. Its hosted MCP tools provide read-only workflow guidance and do not access or modify your repository.",
+    "category": "DEVELOPER_TOOLS"
+  },
+  "tools": {
+    "meta_architect_plan_next_action": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "The tool computes a bounded workflow recommendation from the supplied goal, stage, and evidence. It does not read files, run commands, or change state.",
+        "open_world_justification": "The tool uses only the goal, stage, and evidence supplied in the request and does not access public internet or external entities.",
+        "destructive_justification": "The tool is read-only and cannot delete, overwrite, publish, deploy, or otherwise cause an irreversible side effect."
+      }
+    },
+    "meta_architect_get_guide": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "The tool returns a static guide for the requested Meta-Architect topic and does not access or modify a project.",
+        "open_world_justification": "The tool returns bounded guidance from its embedded guide set and does not access public internet or external entities.",
+        "destructive_justification": "The tool is read-only and cannot delete, overwrite, publish, deploy, or otherwise cause an irreversible side effect."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "Plan the next safe action for a coding goal.",
+      "user_prompt": "Help me plan the next safe action for adding tests to login validation.",
+      "tools_triggered": "meta_architect_plan_next_action",
+      "expected_output": "A read-only plan with the current workflow stage, bounded next action, acceptance checks, and guardrails."
+    },
+    {
+      "description": "Plan verification work for an API change.",
+      "user_prompt": "What should I verify for this API response schema change?",
+      "tools_triggered": "meta_architect_plan_next_action",
+      "expected_output": "A read-only verification-oriented next action and evidence checklist."
+    },
+    {
+      "description": "Get installation guidance.",
+      "user_prompt": "How do I install Meta-Architect?",
+      "tools_triggered": "meta_architect_get_guide",
+      "expected_output": "The supported installation command and the command used to confirm the active binary."
+    },
+    {
+      "description": "Understand the autonomous workflow.",
+      "user_prompt": "Explain the Meta-Architect workflow for setting up and executing a project goal.",
+      "tools_triggered": "meta_architect_get_guide",
+      "expected_output": "Concise, read-only guidance for setup and autonomous work."
+    },
+    {
+      "description": "Plan a safe release verification step.",
+      "user_prompt": "Plan the next safe action before releasing a package.",
+      "tools_triggered": "meta_architect_plan_next_action",
+      "expected_output": "A bounded release-preparation action with verification guidance and no publishing action."
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "General knowledge request unrelated to coding workflow.",
+      "user_prompt": "What is the capital of France?",
+      "tools_triggered": null,
+      "expected_output": "The plugin should not be invoked."
+    },
+    {
+      "description": "Creative writing request unrelated to software planning.",
+      "user_prompt": "Write a short poem about the ocean.",
+      "tools_triggered": null,
+      "expected_output": "The plugin should not be invoked."
+    },
+    {
+      "description": "Destructive operational request outside the read-only tool scope.",
+      "user_prompt": "Delete the production database and deploy the changes.",
+      "tools_triggered": null,
+      "expected_output": "The plugin should not be invoked because it cannot perform destructive operations."
+    }
+  ]
+}

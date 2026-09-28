@@ -2,9 +2,31 @@
 
 Meta-Architect ships three in-session skill layers:
 
-- umbrella autonomous manager: `$maestro`
-- gated execution lanes: `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`
-- non-gating helper skills: `$align`, `$diagnose`, `$tdd`, `$cleanup`
+<table>
+  <tr><th>Layer</th><th>Skills</th><th>Purpose</th></tr>
+  <tr><td>Manager</td><td><code>$maestro</code></td><td>Chooses the next locally eligible action.</td></tr>
+  <tr><td>Gated lanes</td><td><code>$arch</code>, <code>$sage</code>, <code>$flow</code>, <code>$vet</code>, <code>$vibe</code>, <code>$build</code></td><td>Own release-state decisions and artifacts.</td></tr>
+  <tr><td>Helpers</td><td><code>$align</code>, <code>$diagnose</code>, <code>$tdd</code>, <code>$cleanup</code></td><td>Support work without moving release gates.</td></tr>
+</table>
+
+The `$arch` lane also uses the [Software Architecture Guild reference](./reference/software-architecture-guild.md)
+by default when comparing architecture styles. It records the selected style,
+tradeoffs, rejected alternatives, and source citation before handing off to
+`$sage`.
+
+Architecture vocabulary is kept in the bounded [system design glossary](./reference/system-design-glossary.md).
+The glossary makes recurring design terms explicit without pretending that
+definitions replace project-specific reasoning or source evidence.
+
+<table>
+  <tr><th>Lane</th><th>Default dossier</th><th>Purpose</th></tr>
+  <tr><td><code>$arch</code></td><td><a href="./reference/software-architecture-guild.md">Architecture styles</a></td><td>Choose and justify the simplest applicable style.</td></tr>
+  <tr><td><code>$sage</code></td><td><a href="./reference/technology-evidence.md">Technology evidence</a></td><td>Inventory the stack, map capabilities and variables, then pin upstream facts before approving a technology.</td></tr>
+  <tr><td><code>$flow</code></td><td><a href="./reference/reliability-and-recovery.md">Reliability and recovery</a></td><td>Make failure, retry, and recovery behavior explicit.</td></tr>
+  <tr><td><code>$vet</code></td><td><a href="./reference/security-verification.md">Security verification</a></td><td>Map threats to verifiable controls.</td></tr>
+  <tr><td><code>$vibe</code></td><td><a href="./reference/accessibility-and-usability.md">Accessibility and usability</a></td><td>Verify accessible, understandable journeys.</td></tr>
+  <tr><td><code>$build</code></td><td><a href="./reference/supply-chain-readiness.md">Supply-chain readiness</a></td><td>Verify artifact provenance and release boundaries.</td></tr>
+</table>
 
 The package does not ship a separate `$meta-architect` in-session skill. `$maestro` is the autonomous decision surface: it evaluates the current task and evidence, chooses one locally eligible action, dispatches the owning lane, and records the result. The user does not need to name the next lane.
 
@@ -141,36 +163,41 @@ ma sdk-path
 when you want the exact active path.
 
 Relevant packaged assets there include:
-- `mcp/`
-- `sprint/`
-- `prompts/`
-- `scripts/`
-- `plugins/meta-architect/`
-- `templates/`
-- native skill references such as `skills/maestro/references/`, `skills/sage/references/`, `skills/vet/references/`, `skills/align/references/`, and `skills/cleanup/references/`
-- runtime scratchpad state such as `.ma/state/manager-runs.json` and `.ma/state/maestro-state.json` when local execution is active
+<table>
+  <tr><th>Asset</th><th>Purpose</th></tr>
+  <tr><td><code>mcp/</code>, <code>sprint/</code>, <code>prompts/</code>, <code>scripts/</code></td><td>Packaged workflow and verification support.</td></tr>
+  <tr><td><code>plugins/meta-architect/</code>, <code>templates/</code></td><td>Host-facing plugin and project templates.</td></tr>
+  <tr><td><code>skills/*/references/</code></td><td>Native references used by selected skill surfaces.</td></tr>
+  <tr><td><code>.ma/state/</code></td><td>Runtime scratchpad state when local execution is active.</td></tr>
+</table>
 
 This exists so Meta-Architect can use relevant packaged files without guessing paths.
 
 ## Shared output contract
 
 Every skill result must include:
-- `decision`
-- `status`
-- `evidence`
-- `blockers`
-- `next_allowed_triggers`
+<table>
+  <tr><th>Field</th><th>Meaning</th></tr>
+  <tr><td><code>decision</code></td><td>Decision made by the owning workflow.</td></tr>
+  <tr><td><code>status</code></td><td>Current result state.</td></tr>
+  <tr><td><code>evidence</code></td><td>Proof supporting the result.</td></tr>
+  <tr><td><code>blockers</code></td><td>Conditions preventing the next step.</td></tr>
+  <tr><td><code>next_allowed_triggers</code></td><td>Safe follow-up actions.</td></tr>
+</table>
 
 ## Status ownership
 
-- `$maestro` -> umbrella workflow management, next-step recommendation, and bounded helper/gate handoff
-- project brief -> architecture input
-- `$arch` -> `architecture_status`
-- `$sage` -> `evidence_status`
-- `$flow` -> `logic_status`
-- `$vet` -> `security_status`
-- `$vibe` -> `experience_status`
-- `$build` -> `build_status`
+<table>
+  <tr><th>Owner</th><th>Owned responsibility</th></tr>
+  <tr><td><code>$maestro</code></td><td>Workflow management and bounded handoff.</td></tr>
+  <tr><td>Project brief</td><td>Architecture input.</td></tr>
+  <tr><td><code>$arch</code></td><td><code>architecture_status</code></td></tr>
+  <tr><td><code>$sage</code></td><td><code>evidence_status</code></td></tr>
+  <tr><td><code>$flow</code></td><td><code>logic_status</code></td></tr>
+  <tr><td><code>$vet</code></td><td><code>security_status</code></td></tr>
+  <tr><td><code>$vibe</code></td><td><code>experience_status</code></td></tr>
+  <tr><td><code>$build</code></td><td><code>build_status</code></td></tr>
+</table>
 
 `$maestro` may dispatch a gated lane, but it does not own that lane's artifact or release-state field. Helper skills do not own release-state fields. They are publishable but non-gating, so they support the current lane and then hand work back to `$maestro` or the gated lane that owns the decision.
 

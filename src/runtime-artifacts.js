@@ -248,6 +248,12 @@ function renderArchitectureSpec({ idea, blueprint, runtimeSummary }) {
     "",
     ...blueprint.suggestedStack.map((item) => `- ${item}`),
     "",
+    "## Architecture Style Review",
+    "",
+    `Catalog: ${(blueprint.architectureStyleCatalog ?? []).join(", ") || "not recorded"}`,
+    `Selection rule: ${blueprint.architectureStyleSelectionRule ?? "not recorded"}`,
+    `Reference: ${blueprint.architectureReference?.repo ?? "not recorded"}`,
+    "",
     ...renderListSection("Rejected Alternatives", blueprint.rejectedAlternatives ?? []),
     "## Intended Outcome",
     "",
@@ -257,7 +263,14 @@ function renderArchitectureSpec({ idea, blueprint, runtimeSummary }) {
   ].join("\n");
 }
 
-function renderEvidenceSpec({ idea, sourceEntries, verified, blockers, runtimeSummary }) {
+function renderEvidenceSpec({
+  idea,
+  sourceEntries,
+  technologyMatrix,
+  verified,
+  blockers,
+  runtimeSummary,
+}) {
   const status = verified ? "VERIFIED" : sourceEntries.length > 0 ? "PARTIAL" : "MISSING";
   const evidenceGrade = verified ? "VERIFIED" : sourceEntries.length > 0 ? "PARTIAL" : "MISSING";
   const lines = [
@@ -279,6 +292,18 @@ function renderEvidenceSpec({ idea, sourceEntries, verified, blockers, runtimeSu
     idea,
     "",
     ...renderKeyValueSection("Evidence Grade", [["grade", evidenceGrade]]),
+    "## Technology Inventory",
+    "",
+    ...(technologyMatrix?.technologies?.length
+      ? technologyMatrix.technologies.map(
+          (technology) =>
+            `- ${technology.name}@${technology.versionSpec} (${technology.dependencyType}) — capability evidence: ${technology.evidence.status}; recommendation: ${technology.recommendation.status}`,
+        )
+      : ["No project technology matrix was available; run `ma context refresh`."]),
+    "",
+    `Project variables observed in package scripts: ${(technologyMatrix?.projectConfigurationVariables ?? []).join(", ") || "none detected"}`,
+    "Technology-specific capabilities and variables remain blocked until `$sage` maps them to official evidence.",
+    "",
     "## Exact Upstream Mapping",
     "",
     ...(sourceEntries.length === 0
@@ -654,13 +679,21 @@ export async function writeArchitectureArtifacts({ idea, blueprint, runtimeSumma
 export async function writeEvidenceSpec({
   idea,
   sourceEntries,
+  technologyMatrix = null,
   verified,
   blockers,
   runtimeSummary = null,
 }) {
   await writeArtifact(
     "specs/evidence.md",
-    renderEvidenceSpec({ idea, sourceEntries, verified, blockers, runtimeSummary }),
+    renderEvidenceSpec({
+      idea,
+      sourceEntries,
+      technologyMatrix,
+      verified,
+      blockers,
+      runtimeSummary,
+    }),
   );
 }
 

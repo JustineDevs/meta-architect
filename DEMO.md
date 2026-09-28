@@ -1,7 +1,7 @@
 # Meta-Architect Demo Guide
 
 Last verified: 2026-06-03
-Release line: `v0.15.2`
+Release line: `v0.15.3`
 Package: `@jstn-sdk/ma`
 
 This demo uses a real existing project: this Meta-Architect repository.
@@ -96,7 +96,7 @@ Scenario: make this repository release-ready without bypassing architecture, evi
 Terminal helper path:
 
 ```bash
-ma idea "Prepare Meta-Architect v0.15.2 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare Meta-Architect v0.15.3 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
 ma run '$maestro'
 ma status --maestro-view
 ```
@@ -217,7 +217,7 @@ npm pack --dry-run --ignore-scripts --cache ./.npm-cache
 Expected package proof:
 
 - package name is `@jstn-sdk/ma`
-- version line is `0.15.2`
+- version line is `0.15.3`
 - `npm run demo:smoke` creates a realistic Northstar Logistics workspace and Obsidian vault under `/tmp/ma-real-demo-*`
 - the smoke writes `.ma/evidence/real-demo-smoke-proof.json` in that temporary workspace
 - `DEMO.md` is included
@@ -229,9 +229,10 @@ Expected package proof:
 
 For a buyer-facing walkthrough, use the real demo kit:
 
-- [Real Demo Runbook](./docs/demo/REAL_DEMO_RUNBOOK.md)
-- [Demo Story](./docs/demo/DEMO_STORY.md)
-- [Prospect Checklist](./docs/demo/PROSPECT_CHECKLIST.md)
+<table>
+  <tr><th>Demo resource</th><th>Demo resource</th><th>Demo resource</th></tr>
+  <tr><td><a href="./docs/demo/REAL_DEMO_RUNBOOK.md">Real demo runbook</a></td><td><a href="./docs/demo/DEMO_STORY.md">Demo story</a></td><td><a href="./docs/demo/PROSPECT_CHECKLIST.md">Prospect checklist</a></td></tr>
+</table>
 
 The strongest single command:
 
@@ -252,7 +253,7 @@ What it proves:
 
 | Surface | Current reality |
 | --- | --- |
-| Release line | `v0.15.2` |
+| Release line | `v0.15.3` |
 | Package | `@jstn-sdk/ma` |
 | Public skills | 11 (`maestro`, `arch`, `sage`, `flow`, `vet`, `vibe`, `build`, `align`, `diagnose`, `tdd`, `cleanup`) |
 | Runtime namespace | `.ma/` |

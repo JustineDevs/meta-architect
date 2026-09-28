@@ -1,0 +1,4 @@
+interface:
+  display_name: "$arch"
+  short_description: "Architecture-first product and system design"
+  default_prompt: "Use $arch to produce architecture, stack rationale, subsystem boundaries, tradeoffs, and a phased delivery plan."

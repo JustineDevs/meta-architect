@@ -16,8 +16,8 @@ Move from completed bounded implementation to a controlled merge and release pat
 
 ## Exit criteria
 
-- merge follows `feature/* -> dev`
-- release follows `dev|release/* -> main`
+- merge follows `dev -> main`
+- release follows `dev -> main`
 
 ## Failure conditions
 

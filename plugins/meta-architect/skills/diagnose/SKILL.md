@@ -22,3 +22,21 @@ Produce:
 - Prefer the smallest reproducible boundary that can confirm or kill a hypothesis.
 - Keep release-state ownership with the gated lane that is blocked.
 - Escalate assumptions clearly when evidence is still incomplete.
+
+## Procedure
+
+1. Restate the observed symptom, expected behavior, scope, and first failing boundary.
+2. Build a short hypothesis tree ordered by likelihood and impact.
+3. Run the smallest read-only probe that distinguishes the leading hypotheses.
+4. Record exact evidence, including versions, routes, inputs, and failure output.
+5. Recommend one repair owner and one verification step; do not make unrelated edits.
+
+## Quality bar
+
+- Separate a symptom from a root cause and a contributing condition.
+- Never infer success from a stale UI state, cached artifact, or unverified deployment.
+- If evidence is insufficient, state the next probe instead of inventing certainty.
+
+## Example
+
+For a plugin skill marked “Error,” inspect the archive root, manifest, skill path, front matter, and server discovery separately before changing the skill text.

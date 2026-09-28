@@ -7,6 +7,15 @@ description: "Use when the user wants evidence-backed technology choices, OSS ev
 
 Use this skill inside Codex to verify or challenge stack choices with real sources. `$sage` remains the evidence gate even as Meta-Architect absorbs more native curation and reference packs.
 
+Read `.ma/context/technology-capability-matrix.json` before making a stack
+recommendation. Treat each detected dependency as an inventory entry, not as
+proof of capability. Populate the entry's capability claims and
+technology-specific configuration variables only after mapping them to an
+official document or pinned upstream source.
+The generated `.ma/specs/evidence.md` must expose that inventory and its
+verification state so a reviewer can see which technologies were considered,
+which variables are project-wide, and which claims remain blocked.
+
 ## Output
 
 Produce:
@@ -39,3 +48,34 @@ Produce:
 - Prefer primary sources over summaries when validating technical details.
 - Do not treat discovery listings alone as VERIFIED evidence; promote candidates to upstream repos and official docs before approving them.
 - If the evidence is weak or contradictory, say so clearly and keep the recommendation conditional.
+
+## Procedure
+
+1. Turn the architecture decision into concrete claims that need verification.
+2. Prefer official documentation, upstream repositories, specifications, and release notes.
+3. Check version, license, maintenance, security, compatibility, and operational constraints.
+4. Map each source to the exact claim it supports and flag stale or conflicting evidence.
+5. Update the technology capability matrix with the verified capability,
+   variable, compatibility, security, and migration claims.
+6. Recommend one option with tradeoffs only when the matrix entry is verified,
+   then hand the validated decision to `$flow`.
+
+## Default evidence dossier
+
+Use [`docs/reference/technology-evidence.md`](../../docs/reference/technology-evidence.md)
+to keep each choice tied to an exact upstream source, version or commit,
+license, maintenance signal, compatibility constraint, security record, and
+migration cost. The dossier organizes evidence; it never turns a discovery
+listing into approval.
+
+## Quality bar
+
+- Discovery listings are leads, never approval evidence.
+- A source-backed fact is kept separate from an inference or recommendation.
+- Version-sensitive claims include the date or version checked.
+- A technology with unknown capabilities or variables remains blocked; package
+  presence alone never unlocks a recommendation.
+
+## Example
+
+When evaluating an MCP SDK, verify its supported protocol revision, skill-extension support, deployment model, and production lifecycle from primary sources before selecting it.

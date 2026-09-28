@@ -9,6 +9,7 @@ import {
   loadProjectIndex,
   refreshProjectIndex,
   validateProjectIndex,
+  validateTechnologyCapabilityMatrix,
 } from "../src/runtime/project-context.js";
 import { createTestNamespace, removeTestNamespace } from "../src/test-fixtures.js";
 
@@ -49,6 +50,15 @@ test("project context builds a privacy-safe fingerprint and preserves overrides"
   assert.equal(first.packageManager, "npm");
   assert.equal(first.commands.test.includes("secret"), false);
   assert.equal(first.commands.test.includes("[REDACTED]"), true);
+  const matrix = first.project.technologyCapabilityMatrix;
+  validateTechnologyCapabilityMatrix(matrix);
+  assert.equal(matrix.technologies.length, 2);
+  assert.equal(matrix.technologies.find((entry) => entry.name === "next").versionSpec, "1.0.0");
+  assert.deepEqual(matrix.projectConfigurationVariables, ["API_TOKEN"]);
+  assert.deepEqual(matrix.technologies[0].configurationVariables.technologySpecificUsed, []);
+  assert.equal(matrix.technologies[0].configurationVariables.unknown, true);
+  assert.equal(matrix.technologies[0].recommendation.status, "blocked");
+  await fs.access(path.join(root, ".ma", "context", "technology-capability-matrix.json"));
   assert.equal(
     first.sourceFiles.some((file) => file.path.includes(".env")),
     false,
@@ -66,6 +76,10 @@ test("project context builds a privacy-safe fingerprint and preserves overrides"
   assert.match(
     await fs.readFile(path.join(root, ".ma", "context", "agent-brief.md"), "utf8"),
     /First-read/,
+  );
+  assert.match(
+    await fs.readFile(path.join(root, ".ma", "context", "agent-brief.md"), "utf8"),
+    /technology-capability-matrix\.json/,
   );
   await fs.access(path.join(root, ".ma", "context", "architecture.md"));
   const edited = JSON.parse(await fs.readFile(indexPath, "utf8"));
@@ -106,6 +120,76 @@ test("context authority resolves current source over stale memory and vault note
     { authority: "source_truth", freshness: { stale: false }, value: "current source" },
   ]);
   assert.equal(winner.value, "current source");
+});
+
+test("technology matrix keeps unverified recommendations blocked", () => {
+  assert.throws(
+    () =>
+      validateTechnologyCapabilityMatrix({
+        schemaVersion: "1.0.0",
+        recordType: "technology_capability_matrix",
+        authority: "repository-filesystem",
+        source: "package.json",
+        projectConfigurationVariables: [],
+        policy: {
+          unverifiedClaimsBlockRecommendation: true,
+          recommendedVariablesRequireOfficialSource: true,
+        },
+        technologies: [
+          {
+            name: "example",
+            versionSpec: "1.0.0",
+            dependencyType: "runtime",
+            detectedIn: ["package.json"],
+            capabilityClaims: [],
+            configurationVariables: {
+              technologySpecificUsed: [],
+              recommended: [],
+              unknown: true,
+            },
+            evidence: {
+              status: "missing",
+              sources: [],
+              requiredClaims: ["license"],
+            },
+            recommendation: { status: "approved", rationale: "not verified" },
+          },
+        ],
+      }),
+    /unverified technology recommendation/,
+  );
+
+  const matrix = {
+    schemaVersion: "1.0.0",
+    recordType: "technology_capability_matrix",
+    authority: "repository-filesystem",
+    source: "package.json",
+    projectConfigurationVariables: [],
+    policy: {
+      unverifiedClaimsBlockRecommendation: true,
+      recommendedVariablesRequireOfficialSource: true,
+    },
+    technologies: [
+      {
+        name: "example",
+        versionSpec: "1.0.0",
+        dependencyType: "runtime",
+        detectedIn: ["package.json"],
+        capabilityClaims: [],
+        configurationVariables: {
+          technologySpecificUsed: [],
+          recommended: ["EXAMPLE_MODE"],
+          unknown: true,
+        },
+        evidence: { status: "partial", sources: [], requiredClaims: ["license"] },
+        recommendation: { status: "blocked", rationale: null },
+      },
+    ],
+  };
+  assert.throws(
+    () => validateTechnologyCapabilityMatrix(matrix),
+    /unverified technology variables/,
+  );
 });
 
 test("context quality distinguishes complete, partial, minimal, stale, and inferred states", () => {

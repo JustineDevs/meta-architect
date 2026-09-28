@@ -13,7 +13,8 @@
       "!**/.ma/logs",
       "!**/.ma/state",
       "!**/.ma/metrics.json",
-      "!**/.ma/tmux-hook.json"
+      "!**/.ma/tmux-hook.json",
+      "!mcp/meta-architect-mcp/mcp-env.d.ts"
     ]
   },
   "formatter": {

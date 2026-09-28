@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to build, for example v0.15.1"
+        description: "Release tag to build, for example v0.15.3"
         required: true
         type: string
 

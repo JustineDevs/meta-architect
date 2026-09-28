@@ -443,7 +443,7 @@ async function printStatus(releaseState, { json = false } = {}) {
     releaseState.merge_status !== "MERGED_TO_DEVELOPMENT"
   ) {
     console.log("Next allowed triggers:");
-    console.log("ma merge <feature/*> dev");
+    console.log("ma merge dev main");
     return;
   }
   console.log("Next allowed triggers:");
@@ -483,9 +483,7 @@ async function runBuild() {
     for (const branch of suggestedBranches) {
       console.log(`- ${branch}`);
     }
-    console.log("Optional worktree commands:");
-    console.log("git worktree add ../implementation feature/implementation");
-    console.log("git worktree add ../verification feature/verification");
+    console.log("Work on the shared dev branch; main is reserved for release promotion.");
     console.log("Run `ma run '$build'` again to start the bounded build execution substep.");
     return;
   }
@@ -499,14 +497,14 @@ async function runBuild() {
   }
 
   console.log("Build gate completed the bounded execution substep.");
-  console.log("Next step: ma merge <feature/*> dev");
+  console.log("Next step: ma merge dev main");
 }
 
 async function runMerge(sourceBranch, targetBranch, mode = "approval") {
   const releaseState = await loadReleaseState();
 
   if (!validateMergeTarget(sourceBranch, targetBranch)) {
-    throw new Error("Merge policy violation: only feature/* -> dev is allowed");
+    throw new Error("Merge policy violation: only dev -> main is allowed");
   }
 
   if (!canMarkBuildDone(releaseState)) {
@@ -560,7 +558,7 @@ async function runRelease(originBranch, targetBranch, mode = "approval") {
   }
 
   if (rejectsDirectProdPromotion(originBranch) || !validateReleaseOrigin(originBranch)) {
-    throw new Error("Release policy violation: only dev or approved release/* can promote to main");
+    throw new Error("Release policy violation: only dev can promote to main");
   }
 
   if (releaseState.merge_status !== "MERGED_TO_DEVELOPMENT") {

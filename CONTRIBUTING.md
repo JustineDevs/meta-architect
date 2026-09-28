@@ -201,12 +201,14 @@ Repository branch strategy:
 
 - `main` = release-facing protected branch
 - `dev` = normal integration branch
-- `feature/*` = short-lived contribution branches
+- No additional persistent developer branches are part of the repository strategy.
+- `automation/*` refs are workflow-owned, ephemeral PR branches. Do not create
+  or use them for development.
 
 Default contributor workflow:
 
-- branch from `dev`
-- open focused PRs targeting `dev`
+- make changes on `dev`
+- open focused PRs targeting `dev` when review is required
 - avoid unrelated formatting churn
 - keep release changes separate from feature changes when possible
 - do not open ordinary feature PRs directly to `main`
@@ -248,6 +250,7 @@ If a PR changes skills, release automation, package metadata, or `.github/workfl
 - Normal contribution PRs must target `dev`.
 - `main` is reserved for curated promotion PRs, normally `dev -> main`.
 - If you open a PR to `main`, explain why it is a release-facing exception.
+- Do not introduce `feature/*`, `release/*`, `development`, or `prod` branches.
 
 ## Release-sensitive changes
 

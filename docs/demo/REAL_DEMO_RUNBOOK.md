@@ -99,7 +99,8 @@ Then show the generated JSON proof and the static runbook/story docs. This keeps
 
 Send these after the demo:
 
-- [Demo Story](./DEMO_STORY.md)
-- [Prospect Checklist](./PROSPECT_CHECKLIST.md)
-- [Repository Demo Guide](../../DEMO.md)
-- [Coverage Matrix](../../COVERAGE.md)
+<table>
+  <tr><th>Follow-up</th><th>Follow-up</th></tr>
+  <tr><td><a href="./DEMO_STORY.md">Demo story</a></td><td><a href="./PROSPECT_CHECKLIST.md">Prospect checklist</a></td></tr>
+  <tr><td><a href="../../DEMO.md">Repository demo guide</a></td><td><a href="../../COVERAGE.md">Coverage matrix</a></td></tr>
+</table>

@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "1.0.0",
+  "recordType": "system_design_glossary",
+  "authority": "reference_catalog",
+  "policy": {
+    "styleSelectionRequiresRequirements": true,
+    "termDefinitionsAreNotEvidence": true,
+    "unlistedTermsRequireExplicitQualification": true
+  },
+  "terms": [
+    {
+      "id": "bounded-context",
+      "term": "Bounded context",
+      "definition": "A boundary within which a domain model and its terminology have one consistent meaning.",
+      "concerns": ["domain ownership", "integration boundaries"]
+    },
+    {
+      "id": "component-boundary",
+      "term": "Component boundary",
+      "definition": "A responsibility and interface boundary that limits coupling between deployable or modular parts.",
+      "concerns": ["coupling", "ownership", "change isolation"]
+    },
+    {
+      "id": "data-ownership",
+      "term": "Data ownership",
+      "definition": "The explicit authority responsible for creating, changing, retaining, and deleting a data set.",
+      "concerns": ["consistency", "privacy", "lifecycle"]
+    },
+    {
+      "id": "layered-architecture",
+      "term": "Layered architecture",
+      "definition": "A composition organized into layers with controlled dependency direction and responsibility separation.",
+      "styles": ["layered"],
+      "concerns": ["simplicity", "dependency direction"]
+    },
+    {
+      "id": "modular-monolith",
+      "term": "Modular monolith",
+      "definition": "A single deployable with enforceable internal modules and explicit interfaces.",
+      "styles": ["modular"],
+      "concerns": ["delivery speed", "boundary enforcement", "operational simplicity"]
+    },
+    {
+      "id": "pipeline-architecture",
+      "term": "Pipeline architecture",
+      "definition": "A sequence of processing stages where each stage transforms data for the next stage.",
+      "styles": ["pipeline"],
+      "concerns": ["throughput", "ordering", "backpressure"]
+    },
+    {
+      "id": "microkernel-architecture",
+      "term": "Microkernel architecture",
+      "definition": "A minimal core extended by replaceable plugins or adapters.",
+      "styles": ["microkernel"],
+      "concerns": ["extensibility", "plugin isolation"]
+    },
+    {
+      "id": "service-oriented-architecture",
+      "term": "Service-oriented architecture",
+      "definition": "A system composed of coarse-grained services communicating through explicit contracts.",
+      "styles": ["service-oriented"],
+      "concerns": ["contract ownership", "coordination", "operational cost"]
+    },
+    {
+      "id": "event-driven-architecture",
+      "term": "Event-driven architecture",
+      "definition": "A system where producers publish events and consumers react asynchronously to facts about state changes.",
+      "styles": ["event-driven"],
+      "concerns": ["ordering", "delivery", "eventual consistency"]
+    },
+    {
+      "id": "space-based-architecture",
+      "term": "Space-based architecture",
+      "definition": "A system that distributes processing and state across nodes to reduce centralized bottlenecks.",
+      "styles": ["space-based"],
+      "concerns": ["elasticity", "partitioning", "consistency"]
+    },
+    {
+      "id": "orchestration-driven-architecture",
+      "term": "Orchestration-driven architecture",
+      "definition": "A system where a coordinator explicitly controls a multi-step workflow across participants.",
+      "styles": ["orchestration-driven"],
+      "concerns": ["workflow state", "retries", "coordination"]
+    },
+    {
+      "id": "microservices-architecture",
+      "term": "Microservices architecture",
+      "definition": "Independently deployable services organized around bounded business capabilities.",
+      "styles": ["microservices"],
+      "concerns": ["independent evolution", "distributed failure", "operational cost"]
+    },
+    {
+      "id": "c4-model",
+      "term": "C4 model",
+      "definition": "A hierarchical notation for communicating context, containers, components, and code-level structure.",
+      "concerns": ["communication", "architecture views"]
+    },
+    {
+      "id": "domain-driven-design",
+      "term": "Domain-driven design",
+      "definition": "A modeling approach that aligns software boundaries and language with domain concepts and business capabilities.",
+      "concerns": ["domain modeling", "team boundaries"]
+    },
+    {
+      "id": "cqrs",
+      "term": "CQRS",
+      "definition": "A separation of command/write models from query/read models when their responsibilities or scaling needs differ.",
+      "concerns": ["model divergence", "consistency", "operational complexity"]
+    },
+    {
+      "id": "event-sourcing",
+      "term": "Event sourcing",
+      "definition": "A persistence approach that records state changes as an append-only event history from which state is reconstructed.",
+      "concerns": ["auditability", "schema evolution", "replay"]
+    },
+    {
+      "id": "cap-theorem",
+      "term": "CAP theorem",
+      "definition": "A distributed-system trade-off between consistency, availability, and partition tolerance during network partitions.",
+      "concerns": ["consistency", "availability", "partition behavior"]
+    },
+    {
+      "id": "eventual-consistency",
+      "term": "Eventual consistency",
+      "definition": "A consistency model in which replicas converge when updates stop and communication succeeds.",
+      "concerns": ["user expectations", "conflict resolution", "read-after-write"]
+    },
+    {
+      "id": "idempotency",
+      "term": "Idempotency",
+      "definition": "The property that repeating an operation produces the same intended effect as performing it once.",
+      "concerns": ["retries", "duplicate delivery", "payments"]
+    },
+    {
+      "id": "backpressure",
+      "term": "Backpressure",
+      "definition": "A mechanism that limits producers or queues when consumers cannot safely keep up.",
+      "concerns": ["throughput", "memory", "latency"]
+    },
+    {
+      "id": "zero-trust-boundary",
+      "term": "Zero-trust boundary",
+      "definition": "A boundary where every request is authenticated, authorized, minimized, and evaluated without implicit network trust.",
+      "concerns": ["identity", "authorization", "least privilege"]
+    },
+    {
+      "id": "multi-tenancy",
+      "term": "Multi-tenancy",
+      "definition": "A deployment model where one system serves multiple customers while preserving tenant isolation and policy boundaries.",
+      "concerns": ["isolation", "quotas", "data residency"]
+    },
+    {
+      "id": "observability",
+      "term": "Observability",
+      "definition": "The ability to infer internal system behavior from structured logs, metrics, traces, and meaningful operational events.",
+      "concerns": ["diagnosis", "SLOs", "incident response"]
+    },
+    {
+      "id": "rollback-strategy",
+      "term": "Rollback strategy",
+      "definition": "A tested way to return a change or deployment to a known safe state without losing required data or evidence.",
+      "concerns": ["release safety", "migration reversibility", "recovery"]
+    }
+  ]
+}
