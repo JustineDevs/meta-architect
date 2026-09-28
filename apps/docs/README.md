@@ -1,6 +1,6 @@
 # Meta-Architect documentation
 
-The public documentation site for Meta-Architect `v0.15.0` is a Fumadocs
+The public documentation site for Meta-Architect `v0.15.2` is a Fumadocs
 application backed by MDX in `content/docs`. The repository-level `docs/`
 directory remains the engineering record; this app is the clear product guide
 for users and operators.
@@ -14,6 +14,10 @@ npm run dev
 ```
 
 Open `http://localhost:3000/docs`.
+
+The existing Vercel `docs` project builds this app from the repository
+`apps/docs` root. Keep that project root aligned with this directory when
+running a preview or production deployment.
 
 The documentation covers the same supported workflow as the package README:
 install `@jstn-sdk/ma`, configure TypeSafe once with `ma auth typesafe` (or
