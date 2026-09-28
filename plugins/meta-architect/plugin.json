@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "meta-architect",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "Portable Meta-Architect skills for architecture, evidence, review, and bounded autonomous coding workflows.",
   "author": {
     "name": "JustineDevs",

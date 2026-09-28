@@ -38,7 +38,29 @@ jobs:
         with:
           node-version: 20
 
+      - name: Check current package publication
+        id: publication
+        shell: bash
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          published="$(npm view "@jstn-sdk/ma@${version}" version 2>/dev/null || true)"
+
+          if [ "$published" = "$version" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "@jstn-sdk/ma@${version} is published on npm; release sync may advance the line."
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### Release sync paused"
+              echo
+              echo "The current package version `@jstn-sdk/ma@${version}` is not published on npm yet."
+              echo "Publish it before generating the next release-line version."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice title=Release sync paused::@jstn-sdk/ma@${version} is not published on npm yet."
+          fi
+
       - name: Run release sync
+        if: steps.publication.outputs.ready == 'true'
         id: sync
         run: node ./scripts/release-sync.js --from-ref "${{ github.event.before }}" --to-ref "${{ github.sha }}" --github-output "$GITHUB_OUTPUT"
 

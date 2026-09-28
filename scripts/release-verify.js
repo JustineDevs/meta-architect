@@ -103,10 +103,20 @@ function verifyInstallerIntegrity() {
   const checksum = readText("scripts/install.sh.sha256").trim().split(/\s+/)[0];
   const actual = crypto.createHash("sha256").update(installer).digest("hex");
   assert(checksum === actual, "scripts/install.sh.sha256: checksum does not match installer");
-  assert(
-    !installer.includes("raw.githubusercontent.com") && !installer.includes("jsdelivr"),
-    "scripts/install.sh: must not fetch mutable installer sources at runtime",
-  );
+  const urlCandidates = installer.match(/https?:\/\/[^\s"'`<>]+/g) ?? [];
+  const forbiddenHosts = new Set(["raw.githubusercontent.com", "cdn.jsdelivr.net"]);
+  for (const candidate of urlCandidates) {
+    let parsed;
+    try {
+      parsed = new URL(candidate);
+    } catch {
+      continue;
+    }
+    assert(
+      !forbiddenHosts.has(parsed.hostname.toLowerCase()),
+      "scripts/install.sh: must not fetch mutable installer sources at runtime",
+    );
+  }
 }
 
 function verifyDemoDoc({ version, gitTag }) {
