@@ -87,3 +87,5 @@ playground/tmp/
 # Misc
 *.pid
 *.seed
+.vercel
+.env*

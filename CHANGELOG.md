@@ -1,11 +1,36 @@
 # Changelog
 
+## v0.15.3
+
+- Makes TypeSafe optional for core workflows: Maestro uses bounded local
+  routing when no credential is configured, while preserving explicit Jev
+  evidence and fail-closed behavior for live provider errors.
+- Carries the architecture-style review and domain-specific evidence dossiers into the
+  `$sage`, `$flow`, `$vet`, `$vibe`, and `$build` lanes with pinned source provenance.
+- Adds a bounded, machine-readable architecture and system-design glossary plus a
+  technology capability matrix so lane decisions can distinguish verified,
+  unsupported, blocked, and unknown claims.
+- Hardens the read-only MCP server contract with structured tool output schemas,
+  explicit safety annotations, host/origin restrictions, and a version-aligned server surface.
+- Synchronizes the hosted MCP skill mirror and standard nested skill bundle with the
+  canonical lane skills, and adds a post-deploy MCP version-drift verifier.
+- Fixes package-size inspection across npm dry-run JSON shapes and prevents symlinked
+  support-bundle assets from creating false ownership conflicts during installation.
+- Makes Linux RPM artifacts deterministic across build distributions and validates the
+  Debian, Pacman, and RPM release asset set for this version.
+- Aligns the npm package, docs site, plugin manifests, MCP server, skills bundle, and
+  release automation to `v0.15.3`.
+
 ## v0.15.2
 
 - Hardened runtime import, slug, and context parsing against polynomial regular-expression denial-of-service paths flagged by CodeQL.
 - Replaced installer host substring validation with exact parsed URL-host validation.
 - Updated GitHub CodeQL Action from v3 to v4 through Dependabot PR #129.
 - Fixed manually dispatched release validation to verify the selected tag instead of the workflow ref.
+- Aligned repository, docs index, plugin, MCP, demo, and publishing navigation around table-based resource grids.
+- Split plugin and MCP documentation by domain so each README describes only its own distribution surface.
+- Adds a default `$arch` architecture-style review using the Software Architecture Guild reference, with GitMCP source mapping, pinned attribution, tradeoff recording, and citations.
+- Adds domain-specific evidence dossiers for `$sage`, `$flow`, `$vet`, `$vibe`, and `$build`, backed by pinned upstream sources for technology evidence, reliability, security verification, accessibility, and supply-chain readiness.
 
 ## v0.15.1
 

@@ -1,10 +1,12 @@
 # Meta-Architect Plugin Bundle
 
-This plugin bundle packages the Meta-Architect skill surfaces for consumers that want an installable plugin-style distribution instead of working directly from the source repository.
+This directory is the installable Meta-Architect plugin surface. It packages
+the skills and plugin metadata needed by supported agent hosts. It is not the
+repository README, CLI runtime, or MCP server documentation.
 
-Current release line: `v0.15.2` · package: `@jstn-sdk/ma@0.15.2`
+Current release line: `v0.15.3` · package: `@jstn-sdk/ma@0.15.3`
 
-## What the plugin contains
+## What this plugin contains
 
 - plugin metadata:
   - `.codex-plugin/plugin.json`
@@ -14,47 +16,28 @@ Current release line: `v0.15.2` · package: `@jstn-sdk/ma@0.15.2`
 - one umbrella autonomous manager: `$maestro`
 - fixed gated lanes: `$arch`, `$sage`, `$flow`, `$vet`, `$vibe`, `$build`
 - non-gating helper skills: `$align`, `$diagnose`, `$tdd`, `$cleanup`
-- packaged native reference files mirrored under the relevant skill folders
-- a release-scoped version line aligned to the repo
-- the same `$maestro` autonomous workflow documented by the package README
+- the bundled MCP metadata in [`.mcp.json`](./.mcp.json)
 
-## What the plugin does not contain
+The plugin version follows the repository release line. The current release is
+`v0.15.3`.
+
+## What this plugin does not contain
 
 This plugin is **not** the full source repository.
 
-It does not attempt to ship:
-- repository `.github/` workflows
-- contributor-facing repo templates
-- local runtime `.ma` state
-- every source file in the repository
-- the entire release engineering toolchain
+The plugin does not include the full Meta-Architect source repository, the
+local `.ma/` runtime state, provider credentials, CI workflows, or release
+automation. Use the repository package for the CLI runtime and the MCP server
+project for hosted MCP behavior.
 
-It is an installable skill bundle, not a complete clone of the repo.
+<a id="setup"></a>
 
-## How it differs from core repo source
-
-Core repo source contains:
-- implementation code
-- packaging scripts
-- CI/release workflows
-- contributor docs
-- missions
-- templates
-
-Plugin bundle contains:
-- the installable skill-facing product layer
-- plugin metadata that describes the bundle to consumers
-
-Use the core repo when you want to develop Meta-Architect itself. Use the plugin bundle when you want to consume the packaged skill surface.
-
-## Install and use
+## 🧩 Setup
 
 ### ChatGPT Desktop local marketplace
 
-This bundle uses the portable Agent Plugins format. It has a root
-`plugin.json` and a `skills/` directory, so ChatGPT Desktop can discover it
-through the repository marketplace without reading an absolute filesystem
-path.
+This bundle uses the portable Agent Plugins format. It has plugin metadata and
+a `skills/` directory, so supported hosts can discover its skill surfaces.
 
 From the repository root:
 
@@ -65,8 +48,9 @@ codex plugin marketplace add ./
 
 Restart ChatGPT Desktop, open Plugins, select the local Meta-Architect
 marketplace, and install **Meta-Architect**. Then ask the installed plugin to
-use Maestro in normal language. Do not paste a link to
-`/home/justine/.codex/skills/maestro/SKILL.md` into ChatGPT.
+use Maestro in normal language. The canonical skill source is the
+[remote GitHub `$maestro` skill](https://github.com/JustineDevs/meta-architect/blob/main/plugins/meta-architect/skills/maestro/SKILL.md);
+do not paste local filesystem paths into ChatGPT.
 
 Build an uploadable portable artifact with:
 
@@ -77,8 +61,6 @@ npm run plugin:build -- --target chatgpt-desktop --output ./dist/vendor-plugins
 This local plugin loads the skill instructions. Live Jev-backed Maestro
 execution still requires the local `ma` runtime or a separately deployed,
 authenticated MCP app.
-
-The plugin-facing bundle should be consumed alongside the repository’s documented packaging/install flow.
 
 ### Claude Code marketplace
 
@@ -91,114 +73,8 @@ This repository is the hosted marketplace. In Claude Code, add it and install th
 
 The same plugin can be tested locally with `claude --plugin-dir ./plugins/meta-architect`.
 
-Recommended CLI install for macOS, Linux, WSL, and Git-Bash:
-
-```bash
-# One-line install (POSIX shells only; use WSL/Git-Bash on Windows)
-curl -fsSLo install.sh https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh && curl -fsSLo install.sh.sha256 https://cdn.jsdelivr.net/gh/JustineDevs/meta-architect@latest/scripts/install.sh.sha256 && sed 's#scripts/install.sh#install.sh#' install.sh.sha256 | sha256sum -c - && sh install.sh
-```
-
-Canonical package/runtime path:
-
-Debian-family install:
-
-```bash
-sudo apt install ./meta-architect_<version>_all.deb
-```
-
-Arch-family install:
-
-```bash
-sudo pacman -U ./meta-architect-<version>-1-any.pkg.tar.xz
-```
-
-Fedora/openSUSE install:
-
-```bash
-sudo dnf install ./meta-architect-<version>-1.noarch.rpm
-```
-
-npm fallback/default supported path:
-
-```bash
-# Install
-npm i -g @openai/codex@latest @jstn-sdk/ma@latest
-
-# Launch
-ma --madmax --high
-
-# Remove Meta-Architect only
-npm uninstall -g @jstn-sdk/ma
-
-# Remove Meta-Architect and Codex
-npm uninstall -g @jstn-sdk/ma @openai/codex
-```
-
-Use the plugin bundle when you need installable skill metadata or local marketplace discovery. Use the package and Codex skill flow when you want the full Meta-Architect product experience.
-
-## Current user flow
-
-For the supported end-to-end workflow, install the package, configure the
-provider once for your user, initialize the project, and give Maestro one
-goal. The user does not manually select the gated lanes.
-
-```bash
-npm i -g @jstn-sdk/ma@latest
-ma auth typesafe
-# Enter the key once when prompted.
-# It is stored owner-only at ~/.config/meta-architect/provider.env.
-ma setup
-ma --madmax --high
-```
-
-Check the configured provider without revealing the key:
-
-```bash
-ma auth typesafe --status
-```
-
-For project-local dotenv configuration, create `.env.local` in the project
-root:
-
-```dotenv
-TYPESAFE_API_KEY=jv_live_your_key
-```
-
-Meta-Architect reads `.env.local`, then `.env`, then the global credential
-file. Explicit environment variables take precedence. The `jev-latest` model
-is selected automatically, so no model setting is required. Keep dotenv files
-out of version control. To remove the saved user credential, run:
-
-```bash
-ma auth typesafe --clear
-```
-
-```text
-$maestro Build a multi-tenant analytics API with authentication and tests.
-```
-
-Maestro asks Jev for the next eligible action, runs the owning lane, verifies
-the result, records receipts, and continues until the task is complete or an
-approval boundary is reached. The credential is never written into the
-project, `.ma/`, receipts, logs, or generated context.
-
-For a real-provider release check, run:
-
-```bash
-npm run live:regression -- --output docs/qa/live-regression-0.15.2.json
-```
-
-The redacted evidence records setup, doctor, provider selection, source
-mutation, verification, execution receipt, and cleanup. See the canonical
-[package README](../../README.md), [live regression guide](../../docs/live-regression.md),
-and [release readiness record](../../docs/qa/release-readiness-0.15.2.md) for
-the complete contract.
-
-Primary related surfaces:
-- [docs/skills-publishing.md](../../docs/skills-publishing.md)
-- [skills/](../../skills/)
-
-If you are working from the repository directly, validate and package with:
+If you are maintaining the plugin from the repository, validate and package
+with:
 
 ```bash
 npm run skills:manifest
@@ -210,47 +86,41 @@ npm run skills:install -- --path ./dist/installed-skills
 ```
 
 Consumer expectation:
-- the plugin ships the same public skill contracts as the canonical `skills/` directory
-- `$maestro` remains the only umbrella surface in the plugin bundle and acts as the bounded autonomous manager for the in-session workflow
-- helper skills are installable mirrors, but they remain non-gating and do not create new release gates
-- it does not define a looser or simplified product contract
+- the plugin ships the public skill contracts from the bundled `skills/` directory
+- `$maestro` remains the umbrella workflow surface
+- helper skills remain non-gating
+- host configuration and credentials remain user-owned
 
-## MCP wiring expectations
+## Plugin resources
 
-The plugin metadata in `.mcp.json` is only a starting point.
+<table>
+  <tr><th>Manifest</th><th>Manifest</th></tr>
+  <tr><td><a href="./.app.json">.app.json</a></td><td><a href="./.codex-plugin/plugin.json">Codex manifest</a></td></tr>
+  <tr><td><a href="./.claude-plugin/plugin.json">Claude manifest</a></td><td><a href="./.mcp.json">MCP metadata</a></td></tr>
+</table>
 
-Consumers are expected to:
-- replace placeholder or generic collection notes with real repo-specific GitMCP endpoints
-- align MCP wiring with their own environment
-- preserve the same evidence policy used by the core repo
+<div align="center">
+  <h2>Plugin resources</h2>
+  <table>
+    <tr>
+      <td><a href="../../docs/getting-started.md">Getting started</a></td>
+      <td><a href="../../docs/skills.md">Skills reference</a></td>
+      <td><a href="../../docs/skills-publishing.md">Skills publishing</a></td>
+    </tr>
+    <tr>
+      <td><a href="../../docs/mcp-setup.md">MCP setup</a></td>
+      <td><a href="../../docs/chatgpt-integration.md">ChatGPT integration</a></td>
+      <td><a href="../../docs/release-spec.md">Release spec</a></td>
+    </tr>
+    <tr>
+      <td><a href="../../SECURITY.md">Security reporting</a></td>
+      <td><a href="../../docs/ossf-best-practices.md">OpenSSF evidence</a></td>
+      <td><a href="../../CONTRIBUTING.md">Contributing</a></td>
+    </tr>
+  </table>
+</div>
 
-Do not assume the plugin alone provides a fully wired live MCP environment.
-
-## Safe consumer guidance
-
-When consuming the plugin:
-- use committed `skills/` content as the contract source
-- validate installed skill folders
-- do not treat local runtime `.ma` state as part of the distributable plugin
-- preserve the gate/evidence semantics documented in the repo
-
-## Version and release relation
-
-The plugin version should track the release scope of the core repo.
-
-For this repository:
-- plugin scope is aligned to Meta-Architect `v0.15.2`
-- any breaking contract change should be versioned intentionally
-
-The plugin is one distribution surface of the same product, not a separate product line.
-
-## Related surfaces
-
-- [README.md](../../README.md)
-- [docs/skills.md](../../docs/skills.md)
-- [docs/skills-publishing.md](../../docs/skills-publishing.md)
-- [docs/mcp-setup.md](../../docs/mcp-setup.md)
-- [.app.json](./.app.json)
-- [.codex-plugin/plugin.json](./.codex-plugin/plugin.json)
-- [.claude-plugin/plugin.json](./.claude-plugin/plugin.json)
-- [.mcp.json](./.mcp.json)
+<div align="center">
+  <h2>License</h2>
+  <p><a href="../../LICENSE">MIT</a>. Built by <a href="https://github.com/JustineDevs">@JustineDevs</a>.</p>
+</div>

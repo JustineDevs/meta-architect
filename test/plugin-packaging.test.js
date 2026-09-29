@@ -21,9 +21,9 @@ test("portable plugin manifest and repo marketplace validate", async () => {
 });
 
 test("unsupported absolute skill links produce a ChatGPT Desktop remediation", () => {
-  const invocation = "[$maestro](/home/justine/.codex/skills/maestro/SKILL.md)";
+  const invocation = "[$maestro](/home/example/.codex/skills/maestro/SKILL.md)";
   assert.deepEqual(findUnsupportedLocalSkillReferences(invocation), [
-    "/home/justine/.codex/skills/maestro/SKILL.md",
+    "/home/example/.codex/skills/maestro/SKILL.md",
   ]);
   assert.throws(() => assertSupportedSkillInvocation(invocation), {
     message: /ChatGPT Desktop cannot resolve a Codex CLI filesystem link.*marketplace/,
@@ -42,7 +42,7 @@ test("absolute local marketplace paths are rejected", async () => {
         plugins: [
           {
             name: "meta-architect",
-            source: { source: "local", path: "/home/justine/.codex/skills/maestro" },
+            source: { source: "local", path: "/home/example/.codex/skills/maestro" },
           },
         ],
       }),

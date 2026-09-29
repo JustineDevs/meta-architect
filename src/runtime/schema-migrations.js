@@ -7,7 +7,10 @@ export const runtimeSchemaVersion = "0.1.0";
 // These artifacts own their schema contract and must not be coerced into the
 // runtime schema. Generic runtime migration is intentionally fail-closed for
 // unknown contracts.
-const schemaOwnedFiles = new Set(["mcp/source-registry.json"]);
+const schemaOwnedFiles = new Set([
+  "mcp/source-registry.json",
+  ".ma/context/technology-capability-matrix.json",
+]);
 
 const SCAN_ROOTS = [".ma/context", ".ma/learning", ".ma/hooks/receipts", ".ma/obsidian", "mcp"];
 const ROOT_FILES = [".ma/setup-receipt.json"];

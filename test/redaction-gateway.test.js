@@ -23,7 +23,7 @@ test("redaction gateway masks sensitive provider-bound text and persists local v
       "Contact developer@meta-architect.io",
       "Use postgres://admin:secret@localhost:5432/prod_db",
       "Token sk-abcdefghijklmnopqrstuvwxyz123456",
-      "API_TOKEN=raw-secret-value /home/justine/private/project.txt",
+      "API_TOKEN=raw-secret-value /home/example/private/project.txt",
     ].join(" ");
 
     const result = await gateway.redactProviderBoundText(rawText, {
@@ -58,7 +58,7 @@ test("redaction gateway masks sensitive provider-bound text and persists local v
         prompt: "Email developer@meta-architect.io",
         url: "https://example.com/api/v1",
         preview:
-          "Open /Users/justine/projects/meta-architect/.ma/release.json after https://example.com/api/v1",
+          "Open /Users/example/projects/meta-architect/.ma/release.json after https://example.com/api/v1",
         tokens: ["sk-abcdefghijklmnopqrstuvwxyz123456", "developer@meta-architect.io"],
         nested: {
           token: "sk-abcdefghijklmnopqrstuvwxyz123456",

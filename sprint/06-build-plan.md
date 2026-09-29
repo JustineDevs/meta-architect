@@ -12,8 +12,8 @@ Evaluate all required gates and prepare bounded implementation work.
 
 - blocked or ready decision entry
 - `build_status = READY` on success
-- suggested `feature/*` branches
-- optional `git worktree add` commands
+- suggested `dev` integration branch
+- main-branch promotion guidance
 
 ## Exit criteria
 

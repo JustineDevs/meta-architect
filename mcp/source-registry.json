@@ -40,6 +40,46 @@
       "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
     },
     {
+      "id": "software-architecture-guild-reference",
+      "role": "reference",
+      "repo": "software-architecture-guild/software-architecture-guild.github.io",
+      "endpoint": "https://gitmcp.io/software-architecture-guild/software-architecture-guild.github.io",
+      "allowedLanes": ["arch", "sage", "flow", "vibe"],
+      "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
+    },
+    {
+      "id": "google-secure-reliable-systems-reference",
+      "role": "reference",
+      "repo": "google/building-secure-and-reliable-systems",
+      "endpoint": "https://gitmcp.io/google/building-secure-and-reliable-systems",
+      "allowedLanes": ["flow", "build"],
+      "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
+    },
+    {
+      "id": "owasp-asvs-authoritative",
+      "role": "authoritative",
+      "repo": "OWASP/ASVS",
+      "endpoint": "https://gitmcp.io/OWASP/ASVS",
+      "allowedLanes": ["vet", "sage"],
+      "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
+    },
+    {
+      "id": "wcag-authoritative",
+      "role": "authoritative",
+      "repo": "w3c/wcag",
+      "endpoint": "https://gitmcp.io/w3c/wcag",
+      "allowedLanes": ["vibe"],
+      "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
+    },
+    {
+      "id": "slsa-authoritative",
+      "role": "authoritative",
+      "repo": "slsa-framework/slsa",
+      "endpoint": "https://gitmcp.io/slsa-framework/slsa",
+      "allowedLanes": ["build", "vet"],
+      "requiredClaims": ["source_identity", "content_match", "commit_pin", "license"]
+    },
+    {
       "id": "awesome-discovery",
       "role": "discovery",
       "repo": "sindresorhus/awesome",

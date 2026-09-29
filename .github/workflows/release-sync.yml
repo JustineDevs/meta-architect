@@ -72,7 +72,8 @@ jobs:
         with:
           commit-message: "chore(release): sync release line to v${{ steps.sync.outputs.version }}"
           branch: "automation/release-sync-v${{ steps.sync.outputs.version }}"
-          delete-branch: true
+          # Keep the generated release-sync ref as an auditable release artifact.
+          delete-branch: false
           title: "chore(release): sync release line to v${{ steps.sync.outputs.version }}"
           body: |
             Automated release-line sync for watched release-relevant changes on `main`.

@@ -1,4 +1,7 @@
-# Release Readiness 0.1.5
+# Historical Release Readiness 0.1.5
+
+> Historical QA record. This file documents the 0.1.5 release line and is
+> retained for traceability. It is not the current release checklist.
 
 ## Production bar
 

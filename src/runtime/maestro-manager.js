@@ -585,7 +585,7 @@ export function chooseMaestroManagerAction({
         gated: [],
         team: {
           title: "Complete the current bounded implementation slice",
-          objective: "Finish the ready build slice and prepare a development merge.",
+          objective: "Finish the ready build slice and prepare the dev-to-main promotion.",
           verificationOwner: "leader",
           staffing: ["implementation", "verification"],
           launchHints: [
@@ -607,7 +607,7 @@ export function chooseMaestroManagerAction({
         gated: [],
         team: {
           title: "Prepare the release promotion handoff",
-          objective: "Coordinate verification and controlled promotion to prod.",
+          objective: "Coordinate verification and controlled promotion to main.",
           verificationOwner: "leader",
           staffing: ["release", "verification"],
           launchHints: [

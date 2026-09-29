@@ -1,21 +1,13 @@
 export function validateReleaseOrigin(originBranch) {
-  if (originBranch === "dev") {
-    return true;
-  }
-
-  if (originBranch.startsWith("release/")) {
-    return true;
-  }
-
-  return false;
+  return originBranch === "dev";
 }
 
 export function rejectsDirectProdPromotion(originBranch) {
-  return originBranch.startsWith("feature/");
+  return originBranch !== "dev";
 }
 
 export function validateMergeTarget(sourceBranch, targetBranch) {
-  return sourceBranch.startsWith("feature/") && targetBranch === "dev";
+  return sourceBranch === "dev" && targetBranch === "main";
 }
 
 export function canMarkBuildDone(releaseState) {

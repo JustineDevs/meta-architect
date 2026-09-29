@@ -1,12 +1,8 @@
 {
-  "name": "meta-architect",
-  "version": "0.15.2",
-  "collections": [
-    "sindresorhus/awesome",
-    "dzharii/awesome-typescript",
-    "rust-unofficial/awesome-rust",
-    "sbilly/awesome-security",
-    "awesome-selfhosted/awesome-selfhosted"
-  ],
-  "notes": "Replace with repo-specific gitmcp.io endpoints in consuming environments."
+  "mcpServers": {
+    "meta-architect": {
+      "type": "http",
+      "url": "https://ma.jstn.site/mcp"
+    }
+  }
 }

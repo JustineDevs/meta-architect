@@ -1,9 +1,9 @@
 # Meta-Architect documentation
 
-The public documentation site for Meta-Architect `v0.15.2` is a Fumadocs
+The public documentation site for Meta-Architect `v0.15.3` is a Fumadocs
 application backed by MDX in `content/docs`. The repository-level `docs/`
-directory remains the engineering record; this app is the clear product guide
-for users and operators.
+directory remains the engineering record; this app is the evergreen product
+guide for users and operators.
 
 ## Development
 
@@ -20,10 +20,11 @@ The existing Vercel `docs` project builds this app from the repository
 running a preview or production deployment.
 
 The documentation covers the same supported workflow as the package README:
-install `@jstn-sdk/ma`, configure TypeSafe once with `ma auth typesafe` (or
-use a project-local `.env.local` file), run `ma setup`, launch the host, and
-give `$maestro` one goal. See the package root README for the canonical
-installation variants and release links.
+install `@jstn-sdk/ma`, optionally configure TypeSafe once with `ma auth
+typesafe` for live Jev routing, run `ma setup`, launch the host, and give
+`$maestro` one goal. Without TypeSafe, Maestro uses bounded local routing. See
+the package root README for the canonical installation variants and release
+links.
 
 ## Provider configuration
 
@@ -54,3 +55,4 @@ credential.
   in `reference/`, and maintenance material in `operations/`.
 - Every guide states prerequisites, expected result, and verification.
 - Keep examples copyable and explain only the decision the reader needs.
+- Keep release-specific evidence in the repository-level `docs/` directory.

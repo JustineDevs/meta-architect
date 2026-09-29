@@ -7,15 +7,14 @@ Meta-Architect has two distinct OpenAI surfaces:
 2. The local `ma` runtime and Jev-backed Maestro execution, which require a
    local Codex/Node environment or a separately deployed MCP app.
 
-Do not use a direct filesystem link such as:
+Do not use a direct filesystem link. The canonical remote source is:
 
 ```text
-[$maestro](/home/justine/.codex/skills/maestro/SKILL.md)
+https://github.com/JustineDevs/meta-architect/blob/main/plugins/meta-architect/skills/maestro/SKILL.md
 ```
 
-That path is meaningful only to the local Codex CLI filesystem. ChatGPT
-Desktop resolves installed plugin copies through a marketplace and does not
-load arbitrary absolute skill paths from chat messages.
+ChatGPT Desktop resolves installed plugin copies through a marketplace and
+does not load arbitrary filesystem paths from chat messages.
 
 ## ChatGPT Desktop installation
 
@@ -38,7 +37,12 @@ codex plugin marketplace list
 
 Restart ChatGPT Desktop. Open Plugins, choose the local Meta-Architect
 marketplace, and install **Meta-Architect**. The app installs a copy into its
-plugin cache; it does not depend on `/home/justine/.codex/skills/maestro/`.
+plugin cache; it does not depend on a local Codex skill path or repository
+checkout.
+
+Installing `@jstn-sdk/ma` with npm is not a substitute for this step. npm
+installs the local CLI and package files; it does not register a ChatGPT
+plugin or add `$maestro` to ChatGPT's plugin catalog.
 
 The generated portable artifact can be inspected with:
 
@@ -103,9 +107,16 @@ credentials, or unbounded shell execution.
 This repository does not claim hosted ChatGPT runtime compatibility until an
 MCP app is deployed, authenticated, reviewed, and tested independently.
 
+For hosted ChatGPT, submit the portable plugin through OpenAI's plugin
+submission portal or publish it to your workspace. A hosted plugin that runs
+live Maestro work also needs a separately deployed, authenticated HTTPS MCP
+server; the skills-only bundle cannot execute the local `ma` binary.
+
 ## Official OpenAI references
 
-- [Package your plugin](https://developers.openai.com/plugins/build/plugins)
-- [Plugins in ChatGPT and Codex](https://help.openai.com/en/articles/20001256-plugins-in-chatgpt-and-codex)
-- [Skills in ChatGPT](https://help.openai.com/en/articles/20001066-skills-in-chatgpt)
-- [Developer mode and MCP apps](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt)
+<table>
+  <tr><th>Reference</th><th>Reference</th></tr>
+  <tr><td><a href="https://developers.openai.com/plugins/build/plugins">Package your plugin</a></td><td><a href="https://help.openai.com/en/articles/20001256-plugins-in-chatgpt-and-codex">Plugins in ChatGPT and Codex</a></td></tr>
+  <tr><td><a href="https://help.openai.com/en/articles/20001066-skills-in-chatgpt">Skills in ChatGPT</a></td><td><a href="https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt">Developer mode and MCP apps</a></td></tr>
+  <tr><td><a href="https://developers.openai.com/plugins/deploy/submission">Submit and publish plugins</a></td><td></td></tr>
+</table>

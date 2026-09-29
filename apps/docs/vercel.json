@@ -1,5 +1,15 @@
 {
   "framework": "nextjs",
   "installCommand": "npm ci",
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "rewrites": [
+    {
+      "source": "/mcp",
+      "destination": "https://calm-cloud-0d8ea.run.mcp-use.com/mcp"
+    },
+    {
+      "source": "/mcp/:path*",
+      "destination": "https://calm-cloud-0d8ea.run.mcp-use.com/mcp/:path*"
+    }
+  ]
 }

@@ -222,10 +222,38 @@ function syncSupportBundleVersion(nextVersion) {
   writeJson(manifestPath, manifest);
 }
 
+function syncDocsAppVersion(nextVersion) {
+  for (const file of ["apps/docs/package.json", "apps/docs/package-lock.json"]) {
+    if (!fs.existsSync(file)) continue;
+    const value = readJson(file);
+    value.version = nextVersion;
+    if (value.packages?.[""]) {
+      value.packages[""].version = nextVersion;
+    }
+    writeJson(file, value);
+  }
+}
+
+function syncRootPluginManifestVersion(nextVersion) {
+  const file = path.join("plugins", "meta-architect", "plugin.json");
+  if (!fs.existsSync(file)) return;
+  const value = readJson(file);
+  value.version = nextVersion;
+  writeJson(file, value);
+}
+
+function syncMcpServerVersion(nextVersion) {
+  const file = path.join("mcp", "meta-architect-mcp", "index.ts");
+  if (!fs.existsSync(file)) return;
+  const content = readText(file);
+  const next = content.replace(/(\n\s*version:\s*)"[^"]+"/, `$1"${nextVersion}"`);
+  if (next === content) throw new Error("Expected MCP server version declaration");
+  writeText(file, next);
+}
+
 function syncPluginVersions(nextVersion) {
   for (const file of [
     path.join("plugins", "meta-architect", ".app.json"),
-    path.join("plugins", "meta-architect", ".mcp.json"),
     path.join("plugins", "meta-architect", "obsidian", "manifest.json"),
   ]) {
     const value = readJson(file);
@@ -261,6 +289,7 @@ function syncCurrentReleaseFiles(oldVersion, nextVersion) {
     path.join("docs", "skills.md"),
     path.join("docs", "release-spec.md"),
     path.join("plugins", "meta-architect", "README.md"),
+    path.join("example", "usage-workflow.md"),
   ]) {
     updateCurrentSurfaceFile(file, oldVersion, nextVersion);
   }
@@ -291,6 +320,12 @@ function syncSupportingCode(oldVersion, nextVersion) {
       search: `release/${oldVersion}`,
       replacement: `release/${nextVersion}`,
       label: "release branch example",
+    },
+    {
+      file: path.join("test", "release-operations.test.js"),
+      search: `release/${oldVersion}`,
+      replacement: `release/${nextVersion}`,
+      label: "release branch rejection example",
     },
   ];
 
@@ -351,7 +386,7 @@ function rewriteReleaseState(nextVersion, previousVersion) {
     `- publishability note: \`${previousVersion}\` is already published, so \`${nextVersion}\` is the next publishable package line`,
   );
   release = release.replace(
-    /- GitHub release: .+/,
+    /- GitHub release(?: state)?: .+/,
     `- GitHub release: pending publish for \`v${nextVersion}\``,
   );
   release = release.replace(
@@ -370,7 +405,7 @@ function rewriteReleaseState(nextVersion, previousVersion) {
     `- publishability note: \`${previousVersion}\` is already published, so \`${nextVersion}\` is the next publishable package line`,
   );
   qa = qa.replace(
-    /- GitHub release: .+/,
+    /- GitHub release(?: state)?: .+/,
     `- GitHub release: pending publish for \`v${nextVersion}\``,
   );
   writeText(qaPath, qa);
@@ -419,8 +454,11 @@ function main() {
   parseVersion(nextVersion);
 
   syncPackageVersion(nextVersion);
+  syncDocsAppVersion(nextVersion);
   syncSupportBundleVersion(nextVersion);
   syncPluginVersions(nextVersion);
+  syncRootPluginManifestVersion(nextVersion);
+  syncMcpServerVersion(nextVersion);
   prependChangelog(nextVersion);
   syncCurrentReleaseFiles(currentVersion, nextVersion);
   syncReadmeReleaseSurface(nextVersion);

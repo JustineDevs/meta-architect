@@ -1,8 +1,13 @@
-# Agent-Compat Integration Report
+# Historical Agent-Compat Integration Report
 
 Date: 2026-08-27
 
-## Verdict
+> Historical snapshot. This report records the state observed on 2026-08-27 and
+> is not a current release or compatibility claim. Use the [documentation
+> index](./README.md), [conformance matrix](./conformance-matrix.md), and
+> current release evidence for present behavior.
+
+## Historical verdict
 
 **Needs work before production integration.** The local SDK contract is verified, but the published npm artifact is stale relative to the current TypeScript workspace. The exact requested command `npx jstn-sdk/ma@latest init` is also not a valid npm package invocation; the scoped command `npx @jstn-sdk/ma@latest init` works.
 
@@ -72,12 +77,15 @@ The counts intentionally overlap: narrowly evidenced issues remain open until th
 
 Repository-backed evidence:
 
-- [`test/agent-compat-integration.test.js`](../test/agent-compat-integration.test.js) (standalone SDK compile/validate conformance)
-- [`test/test-fixtures.test.js`](../test/test-fixtures.test.js)
-- [`src/test-fixtures.js`](../src/test-fixtures.js)
-- [`docs/disk-optimization.md`](./disk-optimization.md)
-- [`package.json`](../package.json) for reproducible verification commands
-- [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) for CI disk gates
+<table>
+  <tr><th>Evidence</th><th>Role</th></tr>
+  <tr><td><a href="../test/agent-compat-integration.test.js"><code>test/agent-compat-integration.test.js</code></a></td><td>Standalone SDK compile and validation conformance.</td></tr>
+  <tr><td><a href="../test/test-fixtures.test.js"><code>test/test-fixtures.test.js</code></a></td><td>Fixture and disk-boundary coverage.</td></tr>
+  <tr><td><a href="../src/test-fixtures.js"><code>src/test-fixtures.js</code></a></td><td>Fixture source and test data boundaries.</td></tr>
+  <tr><td><a href="./disk-optimization.md"><code>docs/disk-optimization.md</code></a></td><td>Disk-bounded verification guidance.</td></tr>
+  <tr><td><a href="../package.json"><code>package.json</code></a></td><td>Reproducible verification commands.</td></tr>
+  <tr><td><a href="../.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a></td><td>CI disk gates.</td></tr>
+</table>
 
 The earlier `/tmp/agent-compat-evidence/*` paths were ephemeral session artifacts and are not treated as durable proof. Re-run the commands in the tables above to regenerate current evidence.
 

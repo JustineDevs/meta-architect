@@ -54,7 +54,7 @@ import {
 import { embedProjectContext } from "./runtime/obsidian-integration-core.js";
 import { submitTask } from "./runtime/orchestrator.js";
 import { seedPreferences } from "./runtime/preferences.js";
-import { refreshProjectIndex } from "./runtime/project-context.js";
+import { loadProjectIndex, refreshProjectIndex } from "./runtime/project-context.js";
 import {
   createQuorumReviewReceipt,
   evaluateQuorumVotes,
@@ -111,9 +111,20 @@ const skillNames = [
   "$cleanup",
 ];
 const maestroWorkflowSequence = ["$arch", "$sage", "$flow", "$vet", "$vibe", "$build"];
+const architectureStyleCatalog = Object.freeze([
+  "layered",
+  "modular",
+  "pipeline",
+  "microkernel",
+  "service-oriented",
+  "event-driven",
+  "space-based",
+  "orchestration-driven",
+  "microservices",
+]);
 const workflowTemplates = {
   "maestro.skill.md":
-    "# `$maestro`\n\nThe autonomous Meta-Architect workflow. Inspect runtime state, ask the configured Jev decision provider to choose one eligible action, execute it through the owning lane, and persist the decision and evidence. Users do not need to select the next lane manually.\n",
+    "# `$maestro`\n\nThe autonomous Meta-Architect workflow. Inspect runtime state, use live Jev routing when TypeSafe credentials are configured, otherwise use the bounded local policy, execute one eligible action through the owning lane, and persist the decision and evidence. Users do not need to select the next lane manually.\n",
   "arch.skill.md":
     "# `$arch`\n\nProduces blueprint architecture, stack rationale, subsystem design, and tradeoffs.\n",
   "sage.skill.md":
@@ -288,16 +299,16 @@ function chooseMaestroRecommendation(releaseState, idea, buildReadiness = null) 
 
   if (releaseState.merge_status !== "MERGED_TO_DEVELOPMENT") {
     return {
-      nextStep: "Finish the implementation slice and merge it into dev.",
+      nextStep: "Finish the implementation slice and prepare the dev-to-main promotion.",
       why: "The build gate is ready or done, but the branch promotion path has not completed yet.",
       primaryLane: "implementation",
       supportLane: "merge",
       assignments: [
         "Use the current build plan to finish the smallest viable implementation slice.",
-        "When ready, merge feature work into dev with `ma merge`.",
+        "When ready, approve the dev-to-main promotion with `ma merge dev main`.",
       ],
-      avoid: ["Do not promote directly to main."],
-      nextTrigger: "`ma merge <feature/*> dev`",
+      avoid: ["Do not promote from any branch other than dev."],
+      nextTrigger: "`ma merge dev main`",
     };
   }
 
@@ -308,11 +319,11 @@ function chooseMaestroRecommendation(releaseState, idea, buildReadiness = null) 
       primaryLane: "release",
       supportLane: "verification",
       assignments: [
-        "Verify the origin branch is dev or an approved release branch.",
-        "Run `ma release <origin> main` when the line is ready.",
+        "Verify the origin branch is dev.",
+        "Run `ma release dev main` when the line is ready.",
       ],
       avoid: ["Do not reopen earlier gates unless a new blocker appears."],
-      nextTrigger: "`ma release <dev|release/*> main`",
+      nextTrigger: "`ma release dev main`",
     };
   }
 
@@ -563,7 +574,7 @@ export async function runBuildLane({
     };
   }
 
-  const suggestedBranches = ["feature/implementation", "feature/verification"];
+  const suggestedBranches = ["dev"];
   const buildSlice = createBoundedBuildSlice();
   const verificationPlan = createBuildVerificationPlan("`$build`");
   const repairPath = createBuildRepairPath();
@@ -669,7 +680,7 @@ export async function runBuildLane({
       allowed: true,
       gateState: "DONE",
       blockers: [],
-      nextTriggers: ["ma merge <feature/*> dev"],
+      nextTriggers: ["ma merge dev main"],
       suggestedBranches,
       buildSlice,
       verificationPlan,
@@ -685,21 +696,21 @@ export async function runBuildLane({
       status: "DONE",
       evidence: [execution.receipt ?? execution.evidence, laneReceipt],
       blockers: [],
-      next_allowed_triggers: ["ma merge <feature/*> dev"],
+      next_allowed_triggers: ["ma merge dev main"],
     });
     await syncStatusUpdates({ build_status: "DONE" }, { actor: authority.leaderActor });
     await updateMaestroLedgerForBuild({
       buildStatus: "DONE",
       runtimeSummary,
       blockers: [],
-      nextTriggers: ["ma merge <feature/*> dev"],
+      nextTriggers: ["ma merge dev main"],
       gateState: "COMPLETED",
       trackStatus: "COMPLETED",
       completionEvidence: [...(execution.evidence ?? []), laneReceipt],
     });
     return {
       status: "DONE",
-      nextTrigger: "ma merge <feature/*> dev",
+      nextTrigger: "ma merge dev main",
       blockers: [],
       executionResult: execution,
     };
@@ -815,7 +826,7 @@ export async function runBuildLane({
     allowed: true,
     gateState: "DONE",
     blockers: [],
-    nextTriggers: ["ma merge <feature/*> dev"],
+    nextTriggers: ["ma merge dev main"],
     suggestedBranches,
     buildSlice,
     verificationPlan,
@@ -836,21 +847,21 @@ export async function runBuildLane({
       { kind: "ralph-prd", value: ralphContract.prdPath },
     ],
     blockers: [],
-    next_allowed_triggers: ["ma merge <feature/*> dev"],
+    next_allowed_triggers: ["ma merge dev main"],
   });
   await syncStatusUpdates({ build_status: "DONE" }, { actor: authority.leaderActor });
   await updateMaestroLedgerForBuild({
     buildStatus: "DONE",
     runtimeSummary,
     blockers: [],
-    nextTriggers: ["ma merge <feature/*> dev"],
+    nextTriggers: ["ma merge dev main"],
     gateState: "COMPLETED",
     trackStatus: "COMPLETED",
     completionEvidence,
   });
   return {
     status: "DONE",
-    nextTrigger: "ma merge <feature/*> dev",
+    nextTrigger: "ma merge dev main",
     blockers: [],
     suggestedBranches,
   };
@@ -1151,6 +1162,10 @@ export async function runArch() {
     sources: [],
     content: "",
   }));
+  const sourceRegistry = await loadSourceRegistry();
+  const architectureReference = sourceRegistry.sources.find(
+    (source) => source.id === "software-architecture-guild-reference",
+  );
   const advisoryGuidance = guidance.sources
     .map((source) => `${source.label ?? source.id ?? "Guidance"}: ${source.content ?? ""}`)
     .filter(Boolean)
@@ -1161,6 +1176,17 @@ export async function runArch() {
     status: "APPROVED",
     summary: `Blueprint derived from idea: ${idea}. Runtime shell currently exposes ${runtimeSummary.workerCount} workers, ${runtimeSummary.workspaceCount} workspaces, and ${runtimeSummary.guidanceSourceCount} guidance sources. Advisory guidance: ${advisoryGuidance}`,
     suggestedStack: ["Node.js", "MCP", "GitMCP", "Git worktree", "File-backed runtime state"],
+    architectureStyleCatalog,
+    architectureStyleSelectionRule:
+      "Select the simplest applicable style or composition from the catalog; tie the choice to requirements and record rejected alternatives.",
+    architectureReference: architectureReference
+      ? {
+          id: architectureReference.id,
+          repo: architectureReference.repo,
+          endpoint: architectureReference.endpoint,
+          requiredClaims: architectureReference.requiredClaims,
+        }
+      : null,
     workloadAssumptions: [
       "single-repo operator workflow",
       "gate-driven release discipline",
@@ -1173,6 +1199,10 @@ export async function runArch() {
       `Workers detected: ${runtimeSummary.workerCount}`,
       `Workspaces detected: ${runtimeSummary.workspaceCount}`,
       `Guidance sources detected: ${runtimeSummary.guidanceSourceCount}`,
+      architectureReference
+        ? `Architecture style reference: ${architectureReference.repo} (${architectureReference.endpoint})`
+        : "Architecture style reference missing from source registry",
+      `Architecture styles considered: ${architectureStyleCatalog.join(", ")}`,
     ],
     blockers: [],
     nextAllowedTriggers: ["`$sage`"],
@@ -1211,6 +1241,8 @@ export async function runSage() {
   const sourcesByRepo = new Map(sourceRegistry.sources.map((source) => [source.repo, source]));
   const runtimeSummary = await readRuntimeSummary();
   assertControlPlaneReady(runtimeSummary);
+  const projectIndex = await loadProjectIndex().catch(() => null);
+  const technologyMatrix = projectIndex?.project?.technologyCapabilityMatrix ?? null;
   await seedRedactionVault();
   await seedPreferences();
   const disableLiveProbe = process.env.MA_DISABLE_LIVE_MCP === "1";
@@ -1364,14 +1396,27 @@ export async function runSage() {
         : "No live MCP verification succeeded, so evidence remains unverified.",
     );
   }
-  await writeEvidenceSpec({ idea, sourceEntries, verified, blockers, runtimeSummary });
+  await writeEvidenceSpec({
+    idea,
+    sourceEntries,
+    technologyMatrix,
+    verified,
+    blockers,
+    runtimeSummary,
+  });
   await appendDecision({
     kind: "skill",
     skill: "$sage",
     decision:
       "Bound architectural choices to approved sources using local core-source snapshots first, with GitMCP only as refresh/provenance fallback",
     status: verified ? "VERIFIED" : sourceEntries.length > 0 ? "PARTIAL" : "MISSING",
-    evidence: sourceEntries,
+    evidence: [
+      {
+        technologyInventory: technologyMatrix?.technologies ?? [],
+        projectConfigurationVariables: technologyMatrix?.projectConfigurationVariables ?? [],
+      },
+      ...sourceEntries,
+    ],
     blockers: requiredSources.length > 0 ? blockers : ["No approved GitMCP sources configured"],
     next_allowed_triggers: verified ? ["$flow"] : ["mcp/servers.json", "$sage"],
   });
@@ -2296,6 +2341,11 @@ async function runInitUnlocked({
   const projectIndex = await refreshProjectIndex(repoRoot);
   report.context = {
     path: path.relative(repoRoot, getRuntimeWritePath("context", "project-index.json")),
+    technologyMatrixPath: path.relative(
+      repoRoot,
+      getRuntimeWritePath("context", "technology-capability-matrix.json"),
+    ),
+    technologyCount: projectIndex.project.technologyCapabilityMatrix.technologies.length,
     status: projectIndex.quality.confidence,
     completeness: projectIndex.quality.completeness,
     detected: {

@@ -10,6 +10,13 @@ entry points, important documentation, Git provenance, and detected local agent
 integrations. Human corrections belong under `humanOverrides`; setup preserves
 that object on every refresh.
 
+The same refresh writes `.ma/context/technology-capability-matrix.json`. It
+contains every direct runtime and development dependency, requested version,
+dependency role, project-level variables observed in package scripts, and a
+fail-closed placeholder for technology-specific capabilities and variables.
+`$sage` must replace those unknowns with official, version-aware evidence before
+the technology can be recommended.
+
 Refresh is incremental in its evidence: unchanged source metadata produces an
 `unchanged` freshness status, while additions, deletions, and size/mtime changes
 appear in `freshness.changedFiles`.

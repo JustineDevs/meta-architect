@@ -11,6 +11,8 @@ export const expertLanes = Object.freeze([
     doesNotOwn: ["implementation-success", "security-approval", "release-approval"],
     inputs: ["task-contract", "project-context", "verified-sources"],
     outputs: ["architecture-decision", "component-model", "tradeoff-matrix", "risk-register"],
+    dossier: "software-architecture-guild",
+    dossierSources: ["software-architecture-guild-reference"],
     sourceRoles: ["project", "authoritative", "reference"],
     invariants: ["Every boundary has an owner", "Rejected alternatives are recorded"],
     nextLanes: ["sage", "flow", "vet"],
@@ -30,6 +32,8 @@ export const expertLanes = Object.freeze([
     doesNotOwn: ["architecture-authority", "security-approval", "implementation-success"],
     inputs: ["architecture-decision", "task-contract", "source-registry"],
     outputs: ["candidate-matrix", "claim-receipts", "source-lock", "recommendation"],
+    dossier: "technology-evidence",
+    dossierSources: ["obsidian-api-official", "owasp-asvs-authoritative"],
     sourceRoles: ["project", "authoritative", "reference"],
     invariants: ["Discovery sources never unlock evidence", "Every claim has a pinned source"],
     nextLanes: ["flow", "vet"],
@@ -43,6 +47,8 @@ export const expertLanes = Object.freeze([
     doesNotOwn: ["technology-selection", "security-approval", "release-approval"],
     inputs: ["architecture-decision", "sage-receipts", "implementation", "tests"],
     outputs: ["runtime-model", "failure-matrix", "integration-evidence"],
+    dossier: "reliability-and-recovery",
+    dossierSources: ["google-secure-reliable-systems-reference"],
     sourceRoles: ["project", "authoritative", "runtime"],
     invariants: ["Failure paths are explicit", "Retries are bounded and idempotent"],
     nextLanes: ["vet", "vibe", "build"],
@@ -56,6 +62,8 @@ export const expertLanes = Object.freeze([
     doesNotOwn: ["architecture-authority", "product-ux-approval"],
     inputs: ["architecture-decision", "runtime-model", "lockfiles", "source-receipts"],
     outputs: ["threat-model", "security-receipt", "required-controls", "residual-risks"],
+    dossier: "security-verification",
+    dossierSources: ["owasp-asvs-authoritative", "slsa-authoritative"],
     sourceRoles: ["project", "authoritative", "runtime"],
     invariants: ["Critical findings block progress", "Secrets never enter shared receipts"],
     nextLanes: ["flow", "vibe", "build"],
@@ -76,6 +84,8 @@ export const expertLanes = Object.freeze([
     doesNotOwn: ["security-approval", "release-approval"],
     inputs: ["task-contract", "architecture-decision", "runtime-failures"],
     outputs: ["journey-map", "interaction-states", "acceptance-scenarios", "ux-risks"],
+    dossier: "accessibility-and-usability",
+    dossierSources: ["wcag-authoritative"],
     sourceRoles: ["project", "authoritative", "runtime"],
     invariants: ["Failure states are usable", "Operator actions are explicit"],
     nextLanes: ["build"],
@@ -97,6 +107,8 @@ export const expertLanes = Object.freeze([
     doesNotOwn: ["inventing-source-evidence", "overriding-security-blocks"],
     inputs: ["all-applicable-lane-receipts", "implementation-plan", "repository-state"],
     outputs: ["file-change-receipt", "test-receipt", "package-receipt", "release-decision"],
+    dossier: "supply-chain-readiness",
+    dossierSources: ["slsa-authoritative", "google-secure-reliable-systems-reference"],
     sourceRoles: ["project", "runtime"],
     invariants: ["Fresh verification is required", "Rollback is defined before release"],
     nextLanes: [],
@@ -124,8 +136,12 @@ export function validateExpertLane(lane) {
     "sourceRoles",
     "invariants",
     "nextLanes",
+    "dossierSources",
   ]) {
     assertStringArray(lane[field], `${lane.id}.${field}`);
+  }
+  if (typeof lane.dossier !== "string" || !lane.dossier.trim()) {
+    throw new Error(`${lane.id}.dossier is required`);
   }
   if (typeof lane.domain !== "string" || typeof lane.mission !== "string") {
     throw new Error(`${lane.id} requires domain and mission`);
@@ -190,6 +206,8 @@ export function createLaneReceipt({
       owns: resolved.owns,
       doesNotOwn: resolved.doesNotOwn,
     },
+    dossier: resolved.dossier,
+    dossierSources: resolved.dossierSources,
     createdAt: new Date().toISOString(),
   };
 }

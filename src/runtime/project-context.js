@@ -10,6 +10,7 @@ import { createManagedMarkdownBlock, replaceManagedMarkdownBlock } from "./manag
 
 const execFileAsync = promisify(safeExecFile);
 export const projectIndexSchemaVersion = "0.1.0";
+export const technologyCapabilityMatrixSchemaVersion = "1.0.0";
 const MAX_SOURCE_FILES = 2000;
 const GENERATED_DIRS = [
   "node_modules",
@@ -79,6 +80,10 @@ export async function refreshProjectIndex(root = getRepoRoot(), { mode = "increm
       name: packageData?.name ?? path.basename(path.resolve(root)),
       description: packageData?.description ?? null,
       stack: detectStack(packageData),
+      technologyCapabilityMatrix: createTechnologyCapabilityMatrix({
+        packageData,
+        commands: packageData?.scripts ?? {},
+      }),
     },
     languages: detectLanguages(sourceFiles),
     frameworks: detectFrameworks(packageData),
@@ -124,6 +129,10 @@ export async function refreshProjectIndex(root = getRepoRoot(), { mode = "increm
   index.facts = createCanonicalFacts(index);
   const affectedArtifacts = getAffectedContextArtifacts(changedFiles);
   await writeJson(getProjectIndexPath(root), index);
+  await writeJson(
+    path.join(root, ".ma", "context", "technology-capability-matrix.json"),
+    index.project.technologyCapabilityMatrix,
+  );
   if (mode === "full" || !previous || changedFiles.length > 0) {
     await writeAgentContextArtifacts(root, index);
   }
@@ -142,7 +151,12 @@ export async function refreshProjectIndex(root = getRepoRoot(), { mode = "increm
 
 function getAffectedContextArtifacts(changedFiles) {
   if (changedFiles.length === 0) return [];
-  const artifacts = new Set(["project-index.json", "agent-brief.md", "architecture.md"]);
+  const artifacts = new Set([
+    "project-index.json",
+    "technology-capability-matrix.json",
+    "agent-brief.md",
+    "architecture.md",
+  ]);
   if (changedFiles.some((file) => file === "package.json" || file.endsWith("/package.json"))) {
     artifacts.add("commands.json");
   }
@@ -167,6 +181,8 @@ async function writeAgentContextArtifacts(root, index) {
     `Stack: ${index.project.stack.join(", ") || "unknown"}`,
     `Languages: ${index.languages.join(", ") || "unknown"}`,
     `Commands: ${Object.keys(index.commands).join(", ") || "none detected"}`,
+    `Technology inventory: ${index.project.technologyCapabilityMatrix.technologies.length} direct dependencies`,
+    "Technology matrix: .ma/context/technology-capability-matrix.json",
     "First-read: .ma/context/project-index.json",
     "",
     "## Instructions",
@@ -189,6 +205,7 @@ async function writeAgentContextArtifacts(root, index) {
     `Entrypoints: ${index.entrypoints.join(", ") || "none detected"}`,
     `Important docs: ${index.importantDocs.join(", ") || "none detected"}`,
     `Workspaces: ${index.workspaces.packages.length}`,
+    "Technology evidence: .ma/context/technology-capability-matrix.json",
     "",
   ].join("\n");
   await writeManagedMarkdown(
@@ -263,11 +280,75 @@ export function validateProjectIndex(value) {
   if (!Array.isArray(value.quality.verification) || !Array.isArray(value.quality.gaps)) {
     throw new Error("project index quality requires verification and gaps");
   }
+  if (value.project?.technologyCapabilityMatrix) {
+    validateTechnologyCapabilityMatrix(value.project.technologyCapabilityMatrix);
+  }
   if (
     !Array.isArray(value.facts) ||
     value.facts.some((fact) => !fact.id || fact.authority !== "source_truth")
   ) {
     throw new Error("project index requires canonical source-truth facts");
+  }
+  return value;
+}
+
+export function validateTechnologyCapabilityMatrix(value) {
+  if (
+    !value ||
+    value.schemaVersion !== technologyCapabilityMatrixSchemaVersion ||
+    value.recordType !== "technology_capability_matrix" ||
+    value.authority !== "repository-filesystem" ||
+    value.source !== "package.json"
+  ) {
+    throw new Error("technology capability matrix has invalid identity metadata");
+  }
+  if (
+    value.policy?.unverifiedClaimsBlockRecommendation !== true ||
+    value.policy?.recommendedVariablesRequireOfficialSource !== true ||
+    !Array.isArray(value.projectConfigurationVariables) ||
+    value.projectConfigurationVariables.some((variable) => typeof variable !== "string") ||
+    !Array.isArray(value.technologies)
+  ) {
+    throw new Error("technology capability matrix has invalid safety policy");
+  }
+  for (const technology of value.technologies) {
+    if (
+      !technology?.name ||
+      !technology.versionSpec ||
+      !["runtime", "development"].includes(technology.dependencyType) ||
+      !Array.isArray(technology.detectedIn) ||
+      !technology.detectedIn.includes("package.json") ||
+      !Array.isArray(technology.capabilityClaims) ||
+      !["missing", "partial", "verified"].includes(technology.evidence?.status) ||
+      !Array.isArray(technology.evidence?.sources) ||
+      !Array.isArray(technology.evidence?.requiredClaims) ||
+      technology.evidence.requiredClaims.length === 0 ||
+      !["blocked", "conditional", "approved"].includes(technology.recommendation?.status) ||
+      (technology.recommendation?.rationale !== null &&
+        typeof technology.recommendation?.rationale !== "string")
+    ) {
+      throw new Error(`technology capability entry is invalid: ${technology?.name ?? "unknown"}`);
+    }
+    if (
+      !Array.isArray(technology.configurationVariables?.technologySpecificUsed) ||
+      !Array.isArray(technology.configurationVariables?.recommended) ||
+      typeof technology.configurationVariables.unknown !== "boolean"
+    ) {
+      throw new Error(`technology variables are invalid: ${technology.name}`);
+    }
+    if (
+      technology.evidence?.status !== "verified" &&
+      (technology.configurationVariables.technologySpecificUsed.length > 0 ||
+        technology.configurationVariables.recommended.length > 0)
+    ) {
+      throw new Error(`unverified technology variables: ${technology.name}`);
+    }
+    if (
+      technology.evidence?.status !== "verified" &&
+      technology.recommendation?.status === "approved"
+    ) {
+      throw new Error(`unverified technology recommendation: ${technology.name}`);
+    }
   }
   return value;
 }
@@ -479,6 +560,74 @@ function detectStack(packageData) {
 
 function detectFrameworks(packageData) {
   return detectStack(packageData).filter((name) => !["typescript", "zod", "trpc"].includes(name));
+}
+
+export function createTechnologyCapabilityMatrix({ packageData, commands = {} } = {}) {
+  const dependencies = Object.entries(packageData?.dependencies ?? {}).map(
+    ([name, versionSpec]) => ({ name, versionSpec, dependencyType: "runtime" }),
+  );
+  const devDependencies = Object.entries(packageData?.devDependencies ?? {}).map(
+    ([name, versionSpec]) => ({ name, versionSpec, dependencyType: "development" }),
+  );
+  const variables = extractCommandVariables(commands);
+  const technologies = [...dependencies, ...devDependencies]
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .map(({ name, versionSpec, dependencyType }) => ({
+      name,
+      versionSpec: String(versionSpec),
+      dependencyType,
+      detectedIn: ["package.json"],
+      capabilityClaims: [],
+      configurationVariables: {
+        technologySpecificUsed: [],
+        recommended: [],
+        unknown: true,
+      },
+      evidence: {
+        status: "missing",
+        sources: [],
+        requiredClaims: [
+          "source_identity",
+          "content_match",
+          "version_or_commit",
+          "license",
+          "maintenance",
+          "compatibility",
+          "security",
+          "operational_assumptions",
+          "migration_cost",
+        ],
+      },
+      recommendation: {
+        status: "blocked",
+        rationale: null,
+      },
+    }));
+
+  return {
+    schemaVersion: technologyCapabilityMatrixSchemaVersion,
+    recordType: "technology_capability_matrix",
+    authority: "repository-filesystem",
+    source: "package.json",
+    projectConfigurationVariables: variables,
+    policy: {
+      unverifiedClaimsBlockRecommendation: true,
+      recommendedVariablesRequireOfficialSource: true,
+    },
+    technologies,
+  };
+}
+
+function extractCommandVariables(commands) {
+  const variables = new Set();
+  for (const command of Object.values(commands)) {
+    const text = String(command);
+    for (const match of text.matchAll(/(?:^|\s)([A-Z][A-Z0-9_]*)=/g)) variables.add(match[1]);
+    for (const match of text.matchAll(/\$\{([A-Z][A-Z0-9_]*)\}|\$([A-Z][A-Z0-9_]*)/g)) {
+      variables.add(match[1] ?? match[2]);
+    }
+  }
+  return [...variables].sort();
 }
 
 function detectPackageManager(files) {

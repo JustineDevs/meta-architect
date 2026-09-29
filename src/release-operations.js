@@ -13,6 +13,9 @@ function assertBranch(value, label) {
 export function getGitOperation(sourceBranch, targetBranch) {
   assertBranch(sourceBranch, "Source branch");
   assertBranch(targetBranch, "Target branch");
+  if (sourceBranch !== "dev" || targetBranch !== "main") {
+    throw new Error("only the dev -> main branch transition is allowed");
+  }
   return {
     command: "git",
     args: ["merge", "--no-ff", "--no-edit", "--", sourceBranch],

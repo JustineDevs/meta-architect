@@ -1,6 +1,6 @@
 {
   "name": "@jstn-sdk/ma",
-  "version": "0.15.2",
+  "version": "0.15.3",
   "description": "Codex-native skills system for architecture, evidence, review, and gated build guidance.",
   "license": "MIT",
   "author": "JustineDevs",
@@ -89,6 +89,7 @@
     "fixtures:cleanup": "bash ./scripts/cleanup-test-fixtures.sh",
     "demo:smoke": "node ./scripts/demo-smoke.js",
     "live:regression": "node ./scripts/live-regression.mjs",
+    "mcp:release:verify": "node ./scripts/mcp-release-verify.mjs",
     "status": "node ./bin/ma.js status",
     "linux:packages:build": "node ./scripts/build-linux-packages.mjs",
     "linux:packages:smoke": "node ./scripts/linux-package-smoke.mjs",

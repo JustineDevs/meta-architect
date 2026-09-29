@@ -7,7 +7,7 @@ description: Install Meta-Architect and run your first guided task.
 
 - [Node.js 20 or newer](https://nodejs.org/en/download "Download Node.js 20 or newer from the official Node.js site.") — install the current LTS release before running Meta-Architect.
 - [An AI coding agent](/docs/guides/agent-hosts "See supported agent hosts and host-specific setup instructions.") — install Codex, Claude Code, Cursor, or another supported host first.
-- [A TypeSafe API key](https://typesafe.ai "Join TypeSafe AI, then create a key in the TypeSafe console when invited.") — request access and export it as `TYPESAFE_API_KEY` for live Maestro routing.
+- [Optional TypeSafe API key](https://typesafe.ai "Join TypeSafe AI, then create a key in the TypeSafe console when invited.") — configure this for live Jev routing; local Maestro routing works without it.
 
 ## Install
 
@@ -15,11 +15,18 @@ description: Install Meta-Architect and run your first guided task.
 npm install --global @jstn-sdk/ma@latest
 ```
 
-Set the key in your shell. It is read at runtime and is not written to the
-project:
+For live Jev routing, set the key in your shell. It is read at runtime and is
+not written to the project:
 
 ```bash
 export TYPESAFE_API_KEY="jv_live_your_key"
+```
+
+Without a key, Maestro uses its bounded local policy and records that live Jev
+was not used. To select that mode explicitly:
+
+```bash
+MAESTRO_DECISION_PROVIDER=local ma run '$maestro'
 ```
 
 ## Set up the project

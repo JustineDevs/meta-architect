@@ -65,6 +65,29 @@ test("offline routing is explicit and constrained to the eligible action", async
   assert.equal(applyMaestroDecision(managerAction, decision).dispatchPlan.gated[0].skill, "$arch");
 });
 
+test("missing TypeSafe credentials fall back to local routing with honest evidence", async () => {
+  const decision = await decideMaestroLane({
+    managerAction,
+    env: {},
+  });
+  assert.equal(decision.provider, "local");
+  assert.equal(decision.fallbackReason, "typesafe_credentials_missing");
+  assert.equal(decision.choice, "$arch");
+  assert.equal(decision.model, "local-policy");
+});
+
+test("local provider mode is explicit and does not call the network", async () => {
+  const decision = await decideMaestroLane({
+    managerAction,
+    env: { MAESTRO_DECISION_PROVIDER: "local" },
+    fetchImpl: async () => {
+      throw new Error("local mode must not call a provider");
+    },
+  });
+  assert.equal(decision.provider, "local");
+  assert.equal(decision.choice, "$arch");
+});
+
 test("offline routing dispatches only the selected action when several are eligible", async () => {
   const action = {
     mode: "helper+gated",

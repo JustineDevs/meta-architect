@@ -207,7 +207,7 @@ async function buildRpm(commonRoot, artifactPath) {
     specPath,
     `Name: ${LINUX_PACKAGE_NAME}
 Version: ${version}
-Release: ${LINUX_PACKAGE_REVISION}%{?dist}
+Release: ${LINUX_PACKAGE_REVISION}
 Summary: ${description}
 License: MIT
 URL: ${homepage}

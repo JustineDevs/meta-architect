@@ -71,9 +71,9 @@ If any required field is missing, red, or unverified, the workflow should stop a
 
 ### Merge and release rule
 
-- `feature/*` work merges into `dev`
-- release promotion is allowed only from `dev` or approved `release/*`
-- no direct `feature/* -> prod`
+- human work is completed on `dev`
+- release promotion is allowed only from `dev` to `main`
+- no other persistent developer branch is supported
 
 ## Evidence rule
 

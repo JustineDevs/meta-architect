@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JustineDevs/meta-architect/blob/main/schemas/technology-capability-matrix.schema.json",
+  "title": "Technology capability matrix",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "recordType",
+    "authority",
+    "source",
+    "projectConfigurationVariables",
+    "policy",
+    "technologies"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "recordType": { "const": "technology_capability_matrix" },
+    "authority": { "const": "repository-filesystem" },
+    "source": { "const": "package.json" },
+    "projectConfigurationVariables": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "policy": {
+      "type": "object",
+      "required": [
+        "unverifiedClaimsBlockRecommendation",
+        "recommendedVariablesRequireOfficialSource"
+      ],
+      "properties": {
+        "unverifiedClaimsBlockRecommendation": { "const": true },
+        "recommendedVariablesRequireOfficialSource": { "const": true }
+      },
+      "additionalProperties": false
+    },
+    "technologies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "versionSpec",
+          "dependencyType",
+          "detectedIn",
+          "capabilityClaims",
+          "configurationVariables",
+          "evidence",
+          "recommendation"
+        ],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "versionSpec": { "type": "string", "minLength": 1 },
+          "dependencyType": { "enum": ["runtime", "development"] },
+          "detectedIn": { "type": "array", "items": { "const": "package.json" }, "minItems": 1 },
+          "capabilityClaims": { "type": "array", "items": { "type": "string" } },
+          "configurationVariables": {
+            "type": "object",
+            "required": ["technologySpecificUsed", "recommended", "unknown"],
+            "properties": {
+              "technologySpecificUsed": { "type": "array", "items": { "type": "string" } },
+              "recommended": { "type": "array", "items": { "type": "string" } },
+              "unknown": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          },
+          "evidence": {
+            "type": "object",
+            "required": ["status", "sources", "requiredClaims"],
+            "properties": {
+              "status": { "enum": ["missing", "partial", "verified"] },
+              "sources": { "type": "array", "items": { "type": "string" } },
+              "requiredClaims": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+            },
+            "additionalProperties": false
+          },
+          "recommendation": {
+            "type": "object",
+            "required": ["status", "rationale"],
+            "properties": {
+              "status": { "enum": ["blocked", "conditional", "approved"] },
+              "rationale": { "type": ["string", "null"] }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

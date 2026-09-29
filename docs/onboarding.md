@@ -74,7 +74,7 @@ Only use this when you need local repo scaffolding or scripted validation:
 ```bash
 ma setup
 ma
-ma idea "Prepare Meta-Architect v0.15.1 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare the current Meta-Architect release with reliable install docs, context, learning-loop behavior, and package proof artifacts."
 ma run '$maestro'
 ma run '$arch'
 ma run '$sage'

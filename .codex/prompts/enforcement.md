@@ -48,8 +48,8 @@ The kernel may be minimal, but it must be strict. Extensions may vary, but they 
 4. Do not guess missing evidence. Return `UNVERIFIED`, `PARTIAL`, or `MISSING` when evidence is incomplete.
 5. Do not allow `$build` unless all required gates are satisfied.
 6. Do not allow direct release from a task branch or linked worktree.
-7. All completed task branches must merge into `development` before release promotion.
-8. Only release from `development` or an approved `release/*` branch to `prod`.
+7. All completed work must be present on `dev` before release promotion.
+8. Only release from `dev` to protected `main`.
 9. Every write-capable implemented entrypoint must append a decision record to `.ma/decisions.json`.
 10. Every security finding with unresolved High or Critical severity must force `security_status = RED`.
 11. Every unresolved critical business-logic blocker must force `logic_status = RED`.

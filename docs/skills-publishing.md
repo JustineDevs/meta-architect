@@ -256,14 +256,10 @@ Before a release is considered real:
 
 ## Related surfaces
 
-- [README.md](../README.md)
-- [docs/skills.md](./skills.md)
-- [plugins/meta-architect/README.md](../plugins/meta-architect/README.md)
-- [plugins/meta-architect/.codex-plugin/plugin.json](../plugins/meta-architect/.codex-plugin/plugin.json)
-- [../.agents/plugins/marketplace.json](../.agents/plugins/marketplace.json)
-- [package.json](../package.json)
-- [scripts/skills-manifest.js](../scripts/skills-manifest.js)
-- [scripts/plugin-sync.js](../scripts/plugin-sync.js)
-- [scripts/skills-validate.js](../scripts/skills-validate.js)
-- [scripts/skills-pack.js](../scripts/skills-pack.js)
-- [scripts/skills-install.js](../scripts/skills-install.js)
+<table>
+  <tr><th>Surface</th><th>Surface</th><th>Surface</th></tr>
+  <tr><td><a href="../README.md">README</a></td><td><a href="./skills.md">Skills reference</a></td><td><a href="../plugins/meta-architect/README.md">Plugin bundle</a></td></tr>
+  <tr><td><a href="../plugins/meta-architect/.codex-plugin/plugin.json">Plugin manifest</a></td><td><a href="../.agents/plugins/marketplace.json">Marketplace</a></td><td><a href="../package.json">Package manifest</a></td></tr>
+  <tr><td><a href="../scripts/skills-manifest.js">Manifest script</a></td><td><a href="../scripts/plugin-sync.js">Plugin sync</a></td><td><a href="../scripts/skills-validate.js">Skill validation</a></td></tr>
+  <tr><td><a href="../scripts/skills-pack.js">Skill packing</a></td><td><a href="../scripts/skills-install.js">Skill installation</a></td><td></td></tr>
+</table>

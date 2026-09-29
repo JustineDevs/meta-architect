@@ -165,7 +165,11 @@ function verifyCoverageDoc({ version, gitTag }) {
   );
   assert(content.includes("Obsidian Integration Core"), "COVERAGE.md: missing Obsidian coverage");
   assert(content.includes("Ralph Execution Core"), "COVERAGE.md: missing Ralph coverage");
-  assert(content.includes("36/36 passing"), "COVERAGE.md: missing current test count");
+  assert(
+    content.includes("Current automated verification status") &&
+      content.includes("Do not treat this matrix as proof that the full release check is green"),
+    "COVERAGE.md: missing current verification status",
+  );
   assert(
     content.includes("This repository is not a toy demo."),
     "COVERAGE.md: missing truth statement",
@@ -176,7 +180,7 @@ function verifyCoverageDoc({ version, gitTag }) {
 
 function verifyReadmeReleaseSurface({ gitTag }) {
   const content = readText("README.md");
-  const demoImage = `<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="800">`;
+  const demoImage = `<img src="https://raw.githubusercontent.com/JustineDevs/meta-architect/${gitTag}/docs/assets/DEMO_VIDEO.gif" alt="Meta-Architect demo video" width="1080">`;
   const bannerImage = `<img src="./docs/assets/banner.png" alt="Meta-Architect: quality gates and evidence verification for AI coding agents" width="1000">`;
   assert(content.includes("> [!NOTE]"), "README.md: missing product-positioning note admonition");
   assert(
@@ -195,7 +199,7 @@ function verifyReadmeReleaseSurface({ gitTag }) {
     ),
     "README.md: missing runtime-wrapper behavior note",
   );
-  assert(content.includes(demoImage), "README.md: missing requested 800px demo GIF");
+  assert(content.includes(demoImage), "README.md: missing requested 1080px demo GIF");
   assert(
     content.includes("<summary><strong>🔌 All 33 plugins & features</strong></summary>"),
     "README.md: missing all 33 plugins/features toggle",
@@ -378,16 +382,18 @@ function main() {
   );
 
   const pluginApp = readJson(path.join("plugins", "meta-architect", ".app.json"));
-  const pluginMcp = readJson(path.join("plugins", "meta-architect", ".mcp.json"));
+  const rootPlugin = readJson(path.join("plugins", "meta-architect", "plugin.json"));
   const pluginManifest = readJson(
     path.join("plugins", "meta-architect", ".codex-plugin", "plugin.json"),
   );
+  const docsPackage = readJson(path.join("apps", "docs", "package.json"));
+  const docsLock = readJson(path.join("apps", "docs", "package-lock.json"));
   const claudeMarketplace = readJson(path.join(".claude-plugin", "marketplace.json"));
   const claudePlugin = readJson(
     path.join("plugins", "meta-architect", ".claude-plugin", "plugin.json"),
   );
   assert(pluginApp.version === version, "plugins/meta-architect/.app.json: version drift");
-  assert(pluginMcp.version === version, "plugins/meta-architect/.mcp.json: version drift");
+  assert(rootPlugin.version === version, "plugins/meta-architect/plugin.json: version drift");
   assert(
     pluginManifest.version === version,
     "plugins/meta-architect/.codex-plugin/plugin.json: version drift",
@@ -403,6 +409,18 @@ function main() {
   assert(
     claudePlugin.version === version,
     "plugins/meta-architect/.claude-plugin/plugin.json: version drift",
+  );
+  assert(docsPackage.version === version, "apps/docs/package.json: version drift");
+  assert(docsLock.version === version, "apps/docs/package-lock.json: version drift");
+  assert(
+    docsLock.packages?.[""]?.version === version,
+    "apps/docs/package-lock.json: root package version drift",
+  );
+
+  const mcpServer = readText(path.join("mcp", "meta-architect-mcp", "index.ts"));
+  assert(
+    mcpServer.includes(`version: "${version}"`),
+    "mcp/meta-architect-mcp/index.ts: version drift",
   );
 
   for (const file of [

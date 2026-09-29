@@ -111,7 +111,7 @@ Required output:
 5. Data model and storage choices
 6. Auth/security considerations
 7. DX/UX considerations
-8. Delivery plan for v0.15.2
+8. Delivery plan for the current release
 9. Risks and trade-offs
 10. Decision log
 11. Exact next trigger to run after this
@@ -310,7 +310,7 @@ See [docs/mcp-setup.md](./mcp-setup.md) for endpoint policy and evidence semanti
 ## 6. Secondary helper flow
 
 ```bash
-ma idea "Prepare Meta-Architect v0.15.2 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare the current Meta-Architect release with reliable install docs, context, learning-loop behavior, and package proof artifacts."
 ```
 
 Expected effects:
@@ -478,11 +478,9 @@ Expected output shape:
 ```text
 Build gate is green.
 Suggested branches:
-- feature/implementation
-- feature/verification
-Optional worktree commands:
-git worktree add ../implementation feature/implementation
-git worktree add ../verification feature/verification
+- dev
+Work happens on the shared `dev` integration branch. The protected `main`
+branch is reserved for the curated release promotion.
 ```
 
 If `$build` fails:
@@ -491,11 +489,11 @@ If `$build` fails:
 - fix the corresponding upstream lane
 - rerun that lane, then rerun `$build`
 
-## 10. Example walkthrough: MA release hardening
+## 10. Example walkthrough: release hardening
 
 ```bash
 ma setup
-ma idea "Prepare Meta-Architect v0.15.2 for a production package release with real install docs, Obsidian brain-context support, learning-loop reliability, and package proof artifacts."
+ma idea "Prepare the current Meta-Architect release with reliable install docs, context, learning-loop behavior, and package proof artifacts."
 ma run '$arch'
 ma run '$sage'
 ma run '$flow'
@@ -523,7 +521,7 @@ Canonical demo reference:
 After implementation work is complete:
 
 ```bash
-ma merge feature/ui dev
+ma merge dev main
 ma release dev main
 ```
 
@@ -533,8 +531,8 @@ state, or `--execute` to run the checked, explicit merge on the target branch.
 Both modes require a clean worktree and a valid source branch.
 
 Expected effects:
-- merge only succeeds for `feature/* -> dev`
-- release only succeeds for `dev|release/* -> main`
+- merge only succeeds for `dev -> main`
+- release only succeeds for `dev -> main`
 - final statuses advance to:
   - `build_status = DONE`
   - `merge_status = MERGED_TO_DEVELOPMENT`
@@ -583,9 +581,8 @@ Common examples:
 
 ## Related docs
 
-- [README.md](../README.md)
-- [Skills Reference](./skills.md)
-- [MCP Setup](./mcp-setup.md)
-- [Release Spec](./release-spec.md)
-- [Skills Publishing](./skills-publishing.md)
-- [Plugin Bundle](../plugins/meta-architect/README.md)
+<table>
+  <tr><th>Document</th><th>Document</th><th>Document</th></tr>
+  <tr><td><a href="../README.md">README</a></td><td><a href="./skills.md">Skills reference</a></td><td><a href="./mcp-setup.md">MCP setup</a></td></tr>
+  <tr><td><a href="./release-spec.md">Release spec</a></td><td><a href="./skills-publishing.md">Skills publishing</a></td><td><a href="../plugins/meta-architect/README.md">Plugin bundle</a></td></tr>
+</table>

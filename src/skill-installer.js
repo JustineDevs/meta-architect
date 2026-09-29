@@ -26,10 +26,14 @@ async function copyDir(src, dest, { omitIndex = false } = {}) {
   const entries = await fs.readdir(src, { withFileTypes: true });
   for (const entry of entries) {
     if (omitIndex && entry.name === "index.json") continue;
+    // Do not dereference dependency or workspace symlinks while copying a
+    // support bundle. Hashing intentionally excludes symlinks, so copying
+    // their targets would create false legacy-install conflicts and could
+    // pull files outside the bundle boundary.
+    if (entry.isSymbolicLink()) continue;
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
-    const sourceStat = entry.isSymbolicLink() ? await fs.stat(srcPath) : entry;
-    if (sourceStat.isDirectory()) {
+    if (entry.isDirectory()) {
       await copyDir(srcPath, destPath, { omitIndex });
     } else {
       await fs.copyFile(srcPath, destPath);

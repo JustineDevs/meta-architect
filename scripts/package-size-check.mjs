@@ -7,7 +7,10 @@ const result = spawnSync("npm", ["pack", "--dry-run", "--json", "--ignore-script
   encoding: "utf8",
 });
 if (result.status !== 0) throw new Error(result.stderr || "npm pack inspection failed");
-const pack = JSON.parse(result.stdout)[0];
+const parsed = JSON.parse(result.stdout);
+const pack = Array.isArray(parsed) ? parsed[0] : Object.values(parsed)[0];
+if (!pack || !Array.isArray(pack.files))
+  throw new Error("npm pack inspection returned no file list");
 const excludedMedia = pack.files.filter(
   (file) => /docs\/assets\//.test(file.path) && file.path !== "docs/assets/banner.png",
 );
